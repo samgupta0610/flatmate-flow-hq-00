@@ -9,7 +9,150 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      maid_contacts: {
+        Row: {
+          auto_send: boolean | null
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          send_time: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_send?: boolean | null
+          created_at?: string
+          id?: string
+          name: string
+          phone: string
+          send_time?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_send?: boolean | null
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+          send_time?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      maid_tasks: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          selected: boolean | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          selected?: boolean | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          selected?: boolean | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id: string
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      task_templates: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      template_tasks: {
+        Row: {
+          id: string
+          task_id: string
+          template_id: string
+        }
+        Insert: {
+          id?: string
+          task_id: string
+          template_id: string
+        }
+        Update: {
+          id?: string
+          task_id?: string
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_tasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "maid_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_tasks_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "task_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
