@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,16 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// MaidEasy custom colors
+				maideasy: {
+					blue: "#1EAEDB",
+					brightBlue: "#0FA0CE",
+					green: "#7ADE65",
+					navy: "#221F26",
+					accent: "#F97316", // Orange
+					secondary: "#D946EF", // Purple
+					background: "#F8FAFC"
 				}
 			},
 			borderRadius: {
@@ -69,26 +80,47 @@ export default {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			keyframes: {
-				'accordion-down': {
-					from: {
-						height: '0'
+				"accordion-down": {
+					from: { height: "0" },
+					to: { height: "var(--radix-accordion-content-height)" },
+				},
+				"accordion-up": {
+					from: { height: "var(--radix-accordion-content-height)" },
+					to: { height: "0" },
+				},
+				"fade-in": {
+					"0%": {
+						opacity: "0",
+						transform: "translateY(10px)"
 					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
+					"100%": {
+						opacity: "1",
+						transform: "translateY(0)"
 					}
 				},
-				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
+				"bounce-light": {
+					"0%, 100%": { 
+						transform: "translateY(0)",
 					},
-					to: {
-						height: '0'
+					"50%": {
+						transform: "translateY(-5px)"
 					}
+				},
+				"confetti": {
+					"0%": { transform: "translateY(0) rotate(0)", opacity: "1" },
+					"100%": { transform: "translateY(-100px) rotate(720deg)", opacity: "0" }
 				}
 			},
 			animation: {
-				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				"accordion-down": "accordion-down 0.2s ease-out",
+				"accordion-up": "accordion-up 0.2s ease-out",
+				"fade-in": "fade-in 0.5s ease-out",
+				"bounce-light": "bounce-light 2s infinite",
+				"confetti": "confetti 1s ease-out forwards"
+			},
+			fontFamily: {
+				poppins: ["Poppins", "sans-serif"],
+				inter: ["Inter", "sans-serif"]
 			}
 		}
 	},
