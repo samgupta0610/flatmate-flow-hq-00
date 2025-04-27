@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Google, Twitter, Github } from 'lucide-react';
+import { Github, Mail, MessageCircle } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -125,7 +125,7 @@ const Auth = () => {
                   disabled={loading}
                   className="w-full"
                 >
-                  <Google className="h-5 w-5" />
+                  <Mail className="h-5 w-5" />
                 </Button>
                 <Button
                   variant="outline"
@@ -133,7 +133,7 @@ const Auth = () => {
                   disabled={loading}
                   className="w-full"
                 >
-                  <Twitter className="h-5 w-5" />
+                  <MessageCircle className="h-5 w-5" />
                 </Button>
                 <Button
                   variant="outline"
@@ -183,7 +183,7 @@ const Auth = () => {
                   disabled={loading}
                   className="w-full"
                 >
-                  <Google className="h-5 w-5" />
+                  <Mail className="h-5 w-5" />
                 </Button>
                 <Button
                   variant="outline"
@@ -191,7 +191,7 @@ const Auth = () => {
                   disabled={loading}
                   className="w-full"
                 >
-                  <Twitter className="h-5 w-5" />
+                  <MessageCircle className="h-5 w-5" />
                 </Button>
                 <Button
                   variant="outline"
