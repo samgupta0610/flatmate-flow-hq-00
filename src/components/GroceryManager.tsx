@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShoppingCart, Plus, Minus, Trash, Check, AlertTriangle, ClipboardCheck } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { SheetsSyncButton } from "@/components/ui/sheets-sync-button";
 
 interface GroceryItem {
   id: number;
@@ -379,6 +381,9 @@ const GroceryManager = () => {
               </Tabs>
             </CardHeader>
           </Card>
+          
+          {/* Google Sheets Sync Button */}
+          <SheetsSyncButton type="grocery" />
           
           <Card className="mt-6">
             <CardHeader>

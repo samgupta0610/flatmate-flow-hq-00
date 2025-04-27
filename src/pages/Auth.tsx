@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { Google, Twitter, Github } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -27,8 +29,8 @@ const Auth = () => {
       if (type === 'LOGIN') {
         navigate('/');
         toast({
-          title: "Welcome back! 🎉",
-          description: "Ready to manage your home like a boss?",
+          title: "Login Successful! 🎉",
+          description: "Welcome back to MaidEasy!",
         });
       } else {
         toast({
@@ -47,9 +49,30 @@ const Auth = () => {
     }
   };
 
+  const handleSocialLogin = async (provider: 'google' | 'twitter' | 'github') => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        }
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Social login failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-maideasy-background p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold text-maideasy-blue">
             Maid<span className="text-maideasy-green">Easy</span>
@@ -60,7 +83,7 @@ const Auth = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
@@ -70,20 +93,57 @@ const Auth = () => {
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="bg-white"
               />
               <Input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="bg-white"
               />
               <Button 
-                className="w-full bg-maideasy-blue hover:bg-maideasy-blue/90"
+                className="w-full bg-maideasy-blue hover:bg-maideasy-blue/90 text-white font-medium"
                 onClick={() => handleAuth('LOGIN')}
                 disabled={loading}
+                size="lg"
               >
                 {loading ? "Logging in..." : "Login"}
               </Button>
+              
+              <div className="relative my-6">
+                <Separator />
+                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-muted-foreground">
+                  OR CONTINUE WITH
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => handleSocialLogin('google')}
+                  disabled={loading}
+                  className="w-full"
+                >
+                  <Google className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleSocialLogin('twitter')}
+                  disabled={loading}
+                  className="w-full"
+                >
+                  <Twitter className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleSocialLogin('github')}
+                  disabled={loading}
+                  className="w-full"
+                >
+                  <Github className="h-5 w-5" />
+                </Button>
+              </div>
             </TabsContent>
             <TabsContent value="signup" className="space-y-4">
               <Input
@@ -91,20 +151,57 @@ const Auth = () => {
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="bg-white"
               />
               <Input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="bg-white"
               />
               <Button 
-                className="w-full bg-maideasy-green hover:bg-maideasy-green/90"
+                className="w-full bg-maideasy-green hover:bg-maideasy-green/90 text-white font-medium"
                 onClick={() => handleAuth('SIGNUP')}
                 disabled={loading}
+                size="lg"
               >
                 {loading ? "Creating account..." : "Sign Up"}
               </Button>
+              
+              <div className="relative my-6">
+                <Separator />
+                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-muted-foreground">
+                  OR CONTINUE WITH
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => handleSocialLogin('google')}
+                  disabled={loading}
+                  className="w-full"
+                >
+                  <Google className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleSocialLogin('twitter')}
+                  disabled={loading}
+                  className="w-full"
+                >
+                  <Twitter className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleSocialLogin('github')}
+                  disabled={loading}
+                  className="w-full"
+                >
+                  <Github className="h-5 w-5" />
+                </Button>
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>
