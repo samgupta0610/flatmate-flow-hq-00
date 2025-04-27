@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -140,489 +139,488 @@ const MealPlanner = () => {
         <div className="md:col-span-2">
           <Card>
             <CardHeader className="pb-2">
-              <Tabs defaultValue="today" onValueChange={setActiveDay}>
+              <Tabs defaultValue="today" value={activeDay} onValueChange={setActiveDay}>
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="today">Today</TabsTrigger>
                   <TabsTrigger value="tomorrow">Tomorrow</TabsTrigger>
                   <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
                 </TabsList>
+                
+                <TabsContent value="today" className="mt-4">
+                  <div className="text-sm text-gray-500 flex items-center mb-4">
+                    <Calendar className="w-4 h-4 mr-1" />
+                    <span>{meals.today.date}</span>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    {/* Breakfast */}
+                    <div className="border border-gray-100 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-maideasy-blue text-white">Breakfast</Badge>
+                          <h3 className="font-semibold">
+                            {editingMeal?.day === 'today' && editingMeal?.type === 'breakfast' ? (
+                              <div className="flex items-center gap-2">
+                                <Input 
+                                  value={editMealName}
+                                  onChange={(e) => setEditMealName(e.target.value)}
+                                  className="h-8 w-40 md:w-auto"
+                                />
+                                <Button size="sm" variant="ghost" onClick={saveMealEdit}>
+                                  <Check className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                {meals.today.breakfast.name}
+                                <button onClick={() => startEditing('today', 'breakfast')} className="text-gray-400 hover:text-maideasy-blue">
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </h3>
+                        </div>
+                        <span className="text-sm font-medium">
+                          {meals.today.breakfast.attending.length}/{meals.today.breakfast.total} attending
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {users.map((user) => {
+                          const isAttending = meals.today.breakfast.attending.includes(user.id);
+                          return (
+                            <Button 
+                              key={user.id}
+                              variant={isAttending ? "default" : "outline"}
+                              size="sm"
+                              className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
+                              onClick={() => toggleAttendance('today', 'breakfast', user.id)}
+                            >
+                              {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    {/* Lunch */}
+                    <div className="border border-gray-100 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-maideasy-accent text-white">Lunch</Badge>
+                          <h3 className="font-semibold">
+                            {editingMeal?.day === 'today' && editingMeal?.type === 'lunch' ? (
+                              <div className="flex items-center gap-2">
+                                <Input 
+                                  value={editMealName}
+                                  onChange={(e) => setEditMealName(e.target.value)}
+                                  className="h-8 w-40 md:w-auto"
+                                />
+                                <Button size="sm" variant="ghost" onClick={saveMealEdit}>
+                                  <Check className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                {meals.today.lunch.name}
+                                <button onClick={() => startEditing('today', 'lunch')} className="text-gray-400 hover:text-maideasy-blue">
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </h3>
+                        </div>
+                        <span className="text-sm font-medium">
+                          {meals.today.lunch.attending.length}/{meals.today.lunch.total} attending
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {users.map((user) => {
+                          const isAttending = meals.today.lunch.attending.includes(user.id);
+                          return (
+                            <Button 
+                              key={user.id}
+                              variant={isAttending ? "default" : "outline"}
+                              size="sm"
+                              className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
+                              onClick={() => toggleAttendance('today', 'lunch', user.id)}
+                            >
+                              {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    {/* Dinner */}
+                    <div className="border border-gray-100 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-maideasy-green text-white">Dinner</Badge>
+                          <h3 className="font-semibold">
+                            {editingMeal?.day === 'today' && editingMeal?.type === 'dinner' ? (
+                              <div className="flex items-center gap-2">
+                                <Input 
+                                  value={editMealName}
+                                  onChange={(e) => setEditMealName(e.target.value)}
+                                  className="h-8 w-40 md:w-auto"
+                                />
+                                <Button size="sm" variant="ghost" onClick={saveMealEdit}>
+                                  <Check className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                {meals.today.dinner.name}
+                                <button onClick={() => startEditing('today', 'dinner')} className="text-gray-400 hover:text-maideasy-blue">
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </h3>
+                        </div>
+                        <span className="text-sm font-medium">
+                          {meals.today.dinner.attending.length}/{meals.today.dinner.total} attending
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {users.map((user) => {
+                          const isAttending = meals.today.dinner.attending.includes(user.id);
+                          return (
+                            <Button 
+                              key={user.id}
+                              variant={isAttending ? "default" : "outline"}
+                              size="sm"
+                              className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
+                              onClick={() => toggleAttendance('today', 'dinner', user.id)}
+                            >
+                              {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="tomorrow" className="mt-4">
+                  <div className="text-sm text-gray-500 flex items-center mb-4">
+                    <Calendar className="w-4 h-4 mr-1" />
+                    <span>{meals.tomorrow.date}</span>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    {/* Breakfast */}
+                    <div className="border border-gray-100 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-maideasy-blue text-white">Breakfast</Badge>
+                          <h3 className="font-semibold">
+                            {editingMeal?.day === 'tomorrow' && editingMeal?.type === 'breakfast' ? (
+                              <div className="flex items-center gap-2">
+                                <Input 
+                                  value={editMealName}
+                                  onChange={(e) => setEditMealName(e.target.value)}
+                                  className="h-8 w-40 md:w-auto"
+                                />
+                                <Button size="sm" variant="ghost" onClick={saveMealEdit}>
+                                  <Check className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                {meals.tomorrow.breakfast.name}
+                                <button onClick={() => startEditing('tomorrow', 'breakfast')} className="text-gray-400 hover:text-maideasy-blue">
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </h3>
+                        </div>
+                        <span className="text-sm font-medium">
+                          {meals.tomorrow.breakfast.attending.length}/{meals.tomorrow.breakfast.total} attending
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {users.map((user) => {
+                          const isAttending = meals.tomorrow.breakfast.attending.includes(user.id);
+                          return (
+                            <Button 
+                              key={user.id}
+                              variant={isAttending ? "default" : "outline"}
+                              size="sm"
+                              className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
+                              onClick={() => toggleAttendance('tomorrow', 'breakfast', user.id)}
+                            >
+                              {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    {/* Similar structure for Lunch and Dinner */}
+                    <div className="border border-gray-100 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-maideasy-accent text-white">Lunch</Badge>
+                          <h3 className="font-semibold">
+                            {editingMeal?.day === 'tomorrow' && editingMeal?.type === 'lunch' ? (
+                              <div className="flex items-center gap-2">
+                                <Input 
+                                  value={editMealName}
+                                  onChange={(e) => setEditMealName(e.target.value)}
+                                  className="h-8 w-40 md:w-auto"
+                                />
+                                <Button size="sm" variant="ghost" onClick={saveMealEdit}>
+                                  <Check className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                {meals.tomorrow.lunch.name}
+                                <button onClick={() => startEditing('tomorrow', 'lunch')} className="text-gray-400 hover:text-maideasy-blue">
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </h3>
+                        </div>
+                        <span className="text-sm font-medium">
+                          {meals.tomorrow.lunch.attending.length}/{meals.tomorrow.lunch.total} attending
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {users.map((user) => {
+                          const isAttending = meals.tomorrow.lunch.attending.includes(user.id);
+                          return (
+                            <Button 
+                              key={user.id}
+                              variant={isAttending ? "default" : "outline"}
+                              size="sm"
+                              className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
+                              onClick={() => toggleAttendance('tomorrow', 'lunch', user.id)}
+                            >
+                              {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    <div className="border border-gray-100 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-maideasy-green text-white">Dinner</Badge>
+                          <h3 className="font-semibold">
+                            {editingMeal?.day === 'tomorrow' && editingMeal?.type === 'dinner' ? (
+                              <div className="flex items-center gap-2">
+                                <Input 
+                                  value={editMealName}
+                                  onChange={(e) => setEditMealName(e.target.value)}
+                                  className="h-8 w-40 md:w-auto"
+                                />
+                                <Button size="sm" variant="ghost" onClick={saveMealEdit}>
+                                  <Check className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                {meals.tomorrow.dinner.name}
+                                <button onClick={() => startEditing('tomorrow', 'dinner')} className="text-gray-400 hover:text-maideasy-blue">
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </h3>
+                        </div>
+                        <span className="text-sm font-medium">
+                          {meals.tomorrow.dinner.attending.length}/{meals.tomorrow.dinner.total} attending
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {users.map((user) => {
+                          const isAttending = meals.tomorrow.dinner.attending.includes(user.id);
+                          return (
+                            <Button 
+                              key={user.id}
+                              variant={isAttending ? "default" : "outline"}
+                              size="sm"
+                              className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
+                              onClick={() => toggleAttendance('tomorrow', 'dinner', user.id)}
+                            >
+                              {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="upcoming" className="mt-4">
+                  <div className="text-sm text-gray-500 flex items-center mb-4">
+                    <Calendar className="w-4 h-4 mr-1" />
+                    <span>{meals.upcoming.date}</span>
+                  </div>
+                  
+                  {/* Similar structure as above for upcoming meals */}
+                  <div className="space-y-6">
+                    <div className="border border-gray-100 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-maideasy-blue text-white">Breakfast</Badge>
+                          <h3 className="font-semibold">
+                            {editingMeal?.day === 'upcoming' && editingMeal?.type === 'breakfast' ? (
+                              <div className="flex items-center gap-2">
+                                <Input 
+                                  value={editMealName}
+                                  onChange={(e) => setEditMealName(e.target.value)}
+                                  className="h-8 w-40 md:w-auto"
+                                />
+                                <Button size="sm" variant="ghost" onClick={saveMealEdit}>
+                                  <Check className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                {meals.upcoming.breakfast.name}
+                                <button onClick={() => startEditing('upcoming', 'breakfast')} className="text-gray-400 hover:text-maideasy-blue">
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </h3>
+                        </div>
+                        <span className="text-sm font-medium">
+                          {meals.upcoming.breakfast.attending.length}/{meals.upcoming.breakfast.total} attending
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {users.map((user) => {
+                          const isAttending = meals.upcoming.breakfast.attending.includes(user.id);
+                          return (
+                            <Button 
+                              key={user.id}
+                              variant={isAttending ? "default" : "outline"}
+                              size="sm"
+                              className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
+                              onClick={() => toggleAttendance('upcoming', 'breakfast', user.id)}
+                            >
+                              {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    <div className="border border-gray-100 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-maideasy-accent text-white">Lunch</Badge>
+                          <h3 className="font-semibold">
+                            {editingMeal?.day === 'upcoming' && editingMeal?.type === 'lunch' ? (
+                              <div className="flex items-center gap-2">
+                                <Input 
+                                  value={editMealName}
+                                  onChange={(e) => setEditMealName(e.target.value)}
+                                  className="h-8 w-40 md:w-auto"
+                                />
+                                <Button size="sm" variant="ghost" onClick={saveMealEdit}>
+                                  <Check className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                {meals.upcoming.lunch.name}
+                                <button onClick={() => startEditing('upcoming', 'lunch')} className="text-gray-400 hover:text-maideasy-blue">
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </h3>
+                        </div>
+                        <span className="text-sm font-medium">
+                          {meals.upcoming.lunch.attending.length}/{meals.upcoming.lunch.total} attending
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {users.map((user) => {
+                          const isAttending = meals.upcoming.lunch.attending.includes(user.id);
+                          return (
+                            <Button 
+                              key={user.id}
+                              variant={isAttending ? "default" : "outline"}
+                              size="sm"
+                              className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
+                              onClick={() => toggleAttendance('upcoming', 'lunch', user.id)}
+                            >
+                              {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    <div className="border border-gray-100 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-maideasy-green text-white">Dinner</Badge>
+                          <h3 className="font-semibold">
+                            {editingMeal?.day === 'upcoming' && editingMeal?.type === 'dinner' ? (
+                              <div className="flex items-center gap-2">
+                                <Input 
+                                  value={editMealName}
+                                  onChange={(e) => setEditMealName(e.target.value)}
+                                  className="h-8 w-40 md:w-auto"
+                                />
+                                <Button size="sm" variant="ghost" onClick={saveMealEdit}>
+                                  <Check className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                {meals.upcoming.dinner.name}
+                                <button onClick={() => startEditing('upcoming', 'dinner')} className="text-gray-400 hover:text-maideasy-blue">
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </h3>
+                        </div>
+                        <span className="text-sm font-medium">
+                          {meals.upcoming.dinner.attending.length}/{meals.upcoming.dinner.total} attending
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {users.map((user) => {
+                          const isAttending = meals.upcoming.dinner.attending.includes(user.id);
+                          return (
+                            <Button 
+                              key={user.id}
+                              variant={isAttending ? "default" : "outline"}
+                              size="sm"
+                              className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
+                              onClick={() => toggleAttendance('upcoming', 'dinner', user.id)}
+                            >
+                              {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
               </Tabs>
             </CardHeader>
-            <CardContent className="pt-4">
-              <TabsContent value="today" className="mt-0">
-                <div className="text-sm text-gray-500 flex items-center mb-4">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  <span>{meals.today.date}</span>
-                </div>
-                
-                <div className="space-y-6">
-                  {/* Breakfast */}
-                  <div className="border border-gray-100 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-maideasy-blue text-white">Breakfast</Badge>
-                        <h3 className="font-semibold">
-                          {editingMeal?.day === 'today' && editingMeal?.type === 'breakfast' ? (
-                            <div className="flex items-center gap-2">
-                              <Input 
-                                value={editMealName}
-                                onChange={(e) => setEditMealName(e.target.value)}
-                                className="h-8 w-40 md:w-auto"
-                              />
-                              <Button size="sm" variant="ghost" onClick={saveMealEdit}>
-                                <Check className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              {meals.today.breakfast.name}
-                              <button onClick={() => startEditing('today', 'breakfast')} className="text-gray-400 hover:text-maideasy-blue">
-                                <Edit className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                        </h3>
-                      </div>
-                      <span className="text-sm font-medium">
-                        {meals.today.breakfast.attending.length}/{meals.today.breakfast.total} attending
-                      </span>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {users.map((user) => {
-                        const isAttending = meals.today.breakfast.attending.includes(user.id);
-                        return (
-                          <Button 
-                            key={user.id}
-                            variant={isAttending ? "default" : "outline"}
-                            size="sm"
-                            className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
-                            onClick={() => toggleAttendance('today', 'breakfast', user.id)}
-                          >
-                            {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  
-                  {/* Lunch */}
-                  <div className="border border-gray-100 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-maideasy-accent text-white">Lunch</Badge>
-                        <h3 className="font-semibold">
-                          {editingMeal?.day === 'today' && editingMeal?.type === 'lunch' ? (
-                            <div className="flex items-center gap-2">
-                              <Input 
-                                value={editMealName}
-                                onChange={(e) => setEditMealName(e.target.value)}
-                                className="h-8 w-40 md:w-auto"
-                              />
-                              <Button size="sm" variant="ghost" onClick={saveMealEdit}>
-                                <Check className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              {meals.today.lunch.name}
-                              <button onClick={() => startEditing('today', 'lunch')} className="text-gray-400 hover:text-maideasy-blue">
-                                <Edit className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                        </h3>
-                      </div>
-                      <span className="text-sm font-medium">
-                        {meals.today.lunch.attending.length}/{meals.today.lunch.total} attending
-                      </span>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {users.map((user) => {
-                        const isAttending = meals.today.lunch.attending.includes(user.id);
-                        return (
-                          <Button 
-                            key={user.id}
-                            variant={isAttending ? "default" : "outline"}
-                            size="sm"
-                            className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
-                            onClick={() => toggleAttendance('today', 'lunch', user.id)}
-                          >
-                            {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  
-                  {/* Dinner */}
-                  <div className="border border-gray-100 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-maideasy-green text-white">Dinner</Badge>
-                        <h3 className="font-semibold">
-                          {editingMeal?.day === 'today' && editingMeal?.type === 'dinner' ? (
-                            <div className="flex items-center gap-2">
-                              <Input 
-                                value={editMealName}
-                                onChange={(e) => setEditMealName(e.target.value)}
-                                className="h-8 w-40 md:w-auto"
-                              />
-                              <Button size="sm" variant="ghost" onClick={saveMealEdit}>
-                                <Check className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              {meals.today.dinner.name}
-                              <button onClick={() => startEditing('today', 'dinner')} className="text-gray-400 hover:text-maideasy-blue">
-                                <Edit className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                        </h3>
-                      </div>
-                      <span className="text-sm font-medium">
-                        {meals.today.dinner.attending.length}/{meals.today.dinner.total} attending
-                      </span>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {users.map((user) => {
-                        const isAttending = meals.today.dinner.attending.includes(user.id);
-                        return (
-                          <Button 
-                            key={user.id}
-                            variant={isAttending ? "default" : "outline"}
-                            size="sm"
-                            className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
-                            onClick={() => toggleAttendance('today', 'dinner', user.id)}
-                          >
-                            {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="tomorrow" className="mt-0">
-                <div className="text-sm text-gray-500 flex items-center mb-4">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  <span>{meals.tomorrow.date}</span>
-                </div>
-                
-                <div className="space-y-6">
-                  {/* Breakfast */}
-                  <div className="border border-gray-100 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-maideasy-blue text-white">Breakfast</Badge>
-                        <h3 className="font-semibold">
-                          {editingMeal?.day === 'tomorrow' && editingMeal?.type === 'breakfast' ? (
-                            <div className="flex items-center gap-2">
-                              <Input 
-                                value={editMealName}
-                                onChange={(e) => setEditMealName(e.target.value)}
-                                className="h-8 w-40 md:w-auto"
-                              />
-                              <Button size="sm" variant="ghost" onClick={saveMealEdit}>
-                                <Check className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              {meals.tomorrow.breakfast.name}
-                              <button onClick={() => startEditing('tomorrow', 'breakfast')} className="text-gray-400 hover:text-maideasy-blue">
-                                <Edit className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                        </h3>
-                      </div>
-                      <span className="text-sm font-medium">
-                        {meals.tomorrow.breakfast.attending.length}/{meals.tomorrow.breakfast.total} attending
-                      </span>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {users.map((user) => {
-                        const isAttending = meals.tomorrow.breakfast.attending.includes(user.id);
-                        return (
-                          <Button 
-                            key={user.id}
-                            variant={isAttending ? "default" : "outline"}
-                            size="sm"
-                            className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
-                            onClick={() => toggleAttendance('tomorrow', 'breakfast', user.id)}
-                          >
-                            {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  
-                  {/* Similar structure for Lunch and Dinner */}
-                  <div className="border border-gray-100 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-maideasy-accent text-white">Lunch</Badge>
-                        <h3 className="font-semibold">
-                          {editingMeal?.day === 'tomorrow' && editingMeal?.type === 'lunch' ? (
-                            <div className="flex items-center gap-2">
-                              <Input 
-                                value={editMealName}
-                                onChange={(e) => setEditMealName(e.target.value)}
-                                className="h-8 w-40 md:w-auto"
-                              />
-                              <Button size="sm" variant="ghost" onClick={saveMealEdit}>
-                                <Check className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              {meals.tomorrow.lunch.name}
-                              <button onClick={() => startEditing('tomorrow', 'lunch')} className="text-gray-400 hover:text-maideasy-blue">
-                                <Edit className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                        </h3>
-                      </div>
-                      <span className="text-sm font-medium">
-                        {meals.tomorrow.lunch.attending.length}/{meals.tomorrow.lunch.total} attending
-                      </span>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {users.map((user) => {
-                        const isAttending = meals.tomorrow.lunch.attending.includes(user.id);
-                        return (
-                          <Button 
-                            key={user.id}
-                            variant={isAttending ? "default" : "outline"}
-                            size="sm"
-                            className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
-                            onClick={() => toggleAttendance('tomorrow', 'lunch', user.id)}
-                          >
-                            {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  
-                  <div className="border border-gray-100 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-maideasy-green text-white">Dinner</Badge>
-                        <h3 className="font-semibold">
-                          {editingMeal?.day === 'tomorrow' && editingMeal?.type === 'dinner' ? (
-                            <div className="flex items-center gap-2">
-                              <Input 
-                                value={editMealName}
-                                onChange={(e) => setEditMealName(e.target.value)}
-                                className="h-8 w-40 md:w-auto"
-                              />
-                              <Button size="sm" variant="ghost" onClick={saveMealEdit}>
-                                <Check className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              {meals.tomorrow.dinner.name}
-                              <button onClick={() => startEditing('tomorrow', 'dinner')} className="text-gray-400 hover:text-maideasy-blue">
-                                <Edit className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                        </h3>
-                      </div>
-                      <span className="text-sm font-medium">
-                        {meals.tomorrow.dinner.attending.length}/{meals.tomorrow.dinner.total} attending
-                      </span>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {users.map((user) => {
-                        const isAttending = meals.tomorrow.dinner.attending.includes(user.id);
-                        return (
-                          <Button 
-                            key={user.id}
-                            variant={isAttending ? "default" : "outline"}
-                            size="sm"
-                            className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
-                            onClick={() => toggleAttendance('tomorrow', 'dinner', user.id)}
-                          >
-                            {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="upcoming" className="mt-0">
-                <div className="text-sm text-gray-500 flex items-center mb-4">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  <span>{meals.upcoming.date}</span>
-                </div>
-                
-                {/* Similar structure as above for upcoming meals */}
-                <div className="space-y-6">
-                  <div className="border border-gray-100 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-maideasy-blue text-white">Breakfast</Badge>
-                        <h3 className="font-semibold">
-                          {editingMeal?.day === 'upcoming' && editingMeal?.type === 'breakfast' ? (
-                            <div className="flex items-center gap-2">
-                              <Input 
-                                value={editMealName}
-                                onChange={(e) => setEditMealName(e.target.value)}
-                                className="h-8 w-40 md:w-auto"
-                              />
-                              <Button size="sm" variant="ghost" onClick={saveMealEdit}>
-                                <Check className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              {meals.upcoming.breakfast.name}
-                              <button onClick={() => startEditing('upcoming', 'breakfast')} className="text-gray-400 hover:text-maideasy-blue">
-                                <Edit className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                        </h3>
-                      </div>
-                      <span className="text-sm font-medium">
-                        {meals.upcoming.breakfast.attending.length}/{meals.upcoming.breakfast.total} attending
-                      </span>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {users.map((user) => {
-                        const isAttending = meals.upcoming.breakfast.attending.includes(user.id);
-                        return (
-                          <Button 
-                            key={user.id}
-                            variant={isAttending ? "default" : "outline"}
-                            size="sm"
-                            className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
-                            onClick={() => toggleAttendance('upcoming', 'breakfast', user.id)}
-                          >
-                            {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  
-                  <div className="border border-gray-100 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-maideasy-accent text-white">Lunch</Badge>
-                        <h3 className="font-semibold">
-                          {editingMeal?.day === 'upcoming' && editingMeal?.type === 'lunch' ? (
-                            <div className="flex items-center gap-2">
-                              <Input 
-                                value={editMealName}
-                                onChange={(e) => setEditMealName(e.target.value)}
-                                className="h-8 w-40 md:w-auto"
-                              />
-                              <Button size="sm" variant="ghost" onClick={saveMealEdit}>
-                                <Check className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              {meals.upcoming.lunch.name}
-                              <button onClick={() => startEditing('upcoming', 'lunch')} className="text-gray-400 hover:text-maideasy-blue">
-                                <Edit className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                        </h3>
-                      </div>
-                      <span className="text-sm font-medium">
-                        {meals.upcoming.lunch.attending.length}/{meals.upcoming.lunch.total} attending
-                      </span>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {users.map((user) => {
-                        const isAttending = meals.upcoming.lunch.attending.includes(user.id);
-                        return (
-                          <Button 
-                            key={user.id}
-                            variant={isAttending ? "default" : "outline"}
-                            size="sm"
-                            className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
-                            onClick={() => toggleAttendance('upcoming', 'lunch', user.id)}
-                          >
-                            {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  
-                  <div className="border border-gray-100 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-maideasy-green text-white">Dinner</Badge>
-                        <h3 className="font-semibold">
-                          {editingMeal?.day === 'upcoming' && editingMeal?.type === 'dinner' ? (
-                            <div className="flex items-center gap-2">
-                              <Input 
-                                value={editMealName}
-                                onChange={(e) => setEditMealName(e.target.value)}
-                                className="h-8 w-40 md:w-auto"
-                              />
-                              <Button size="sm" variant="ghost" onClick={saveMealEdit}>
-                                <Check className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              {meals.upcoming.dinner.name}
-                              <button onClick={() => startEditing('upcoming', 'dinner')} className="text-gray-400 hover:text-maideasy-blue">
-                                <Edit className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                        </h3>
-                      </div>
-                      <span className="text-sm font-medium">
-                        {meals.upcoming.dinner.attending.length}/{meals.upcoming.dinner.total} attending
-                      </span>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {users.map((user) => {
-                        const isAttending = meals.upcoming.dinner.attending.includes(user.id);
-                        return (
-                          <Button 
-                            key={user.id}
-                            variant={isAttending ? "default" : "outline"}
-                            size="sm"
-                            className={isAttending ? "bg-green-500 hover:bg-green-600" : ""}
-                            onClick={() => toggleAttendance('upcoming', 'dinner', user.id)}
-                          >
-                            {user.name} {isAttending ? <ThumbsUp className="w-3 h-3 ml-1" /> : <ThumbsDown className="w-3 h-3 ml-1" />}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-            </CardContent>
           </Card>
           
           <Card className="mt-6">

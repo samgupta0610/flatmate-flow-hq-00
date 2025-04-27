@@ -177,147 +177,87 @@ const GroceryManager = () => {
                   <TabsTrigger value="inventory">Inventory</TabsTrigger>
                   <TabsTrigger value="cart">Shopping Cart</TabsTrigger>
                 </TabsList>
-                <CardContent className="pt-4">
-                  <TabsContent value="inventory" className="mt-0">
-                    <div className="mb-6">
-                      <div className="flex items-end gap-2">
-                        <div className="flex-grow">
-                          <Label htmlFor="item-name">Item Name</Label>
-                          <Input 
-                            id="item-name" 
-                            placeholder="e.g. Onions"
-                            value={newItemName}
-                            onChange={(e) => setNewItemName(e.target.value)}
-                          />
-                        </div>
-                        <div className="w-24">
-                          <Label htmlFor="item-quantity">Quantity</Label>
-                          <Input 
-                            id="item-quantity" 
-                            type="number"
-                            placeholder="e.g. 2"
-                            value={newItemQuantity}
-                            onChange={(e) => setNewItemQuantity(e.target.value)}
-                          />
-                        </div>
-                        <div className="w-24">
-                          <Label htmlFor="item-unit">Unit</Label>
-                          <select
-                            id="item-unit"
-                            value={newItemUnit}
-                            onChange={(e) => setNewItemUnit(e.target.value)}
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            {units.map(unit => (
-                              <option key={unit} value={unit}>{unit}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="w-32">
-                          <Label htmlFor="item-category">Category</Label>
-                          <select
-                            id="item-category"
-                            value={newItemCategory}
-                            onChange={(e) => setNewItemCategory(e.target.value as GroceryItem['category'])}
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            <option value="vegetables">Vegetables</option>
-                            <option value="fruits">Fruits</option>
-                            <option value="dairy">Dairy</option>
-                            <option value="grains">Grains</option>
-                            <option value="other">Other</option>
-                          </select>
-                        </div>
-                        <Button 
-                          onClick={addNewItem} 
-                          className="bg-maideasy-blue hover:bg-maideasy-blue/90 h-10"
+                
+                <TabsContent value="inventory" className="mt-4">
+                  <div className="mb-6">
+                    <div className="flex items-end gap-2">
+                      <div className="flex-grow">
+                        <Label htmlFor="item-name">Item Name</Label>
+                        <Input 
+                          id="item-name" 
+                          placeholder="e.g. Onions"
+                          value={newItemName}
+                          onChange={(e) => setNewItemName(e.target.value)}
+                        />
+                      </div>
+                      <div className="w-24">
+                        <Label htmlFor="item-quantity">Quantity</Label>
+                        <Input 
+                          id="item-quantity" 
+                          type="number"
+                          placeholder="e.g. 2"
+                          value={newItemQuantity}
+                          onChange={(e) => setNewItemQuantity(e.target.value)}
+                        />
+                      </div>
+                      <div className="w-24">
+                        <Label htmlFor="item-unit">Unit</Label>
+                        <select
+                          id="item-unit"
+                          value={newItemUnit}
+                          onChange={(e) => setNewItemUnit(e.target.value)}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    {Object.entries(itemsByCategory).map(([category, items]) => (
-                      <div key={category} className="mb-6">
-                        <h3 className="font-medium text-lg mb-2 capitalize">{category}</h3>
-                        <div className="space-y-2">
-                          {items.map((item) => (
-                            <div
-                              key={item.id}
-                              className={`flex items-center justify-between p-3 rounded-lg ${
-                                item.critical ? 'bg-red-50 border border-red-100' : 'bg-gray-50'
-                              }`}
-                            >
-                              <div className="flex items-center gap-2">
-                                {item.critical && <span className="text-red-500">🚨</span>}
-                                <span className={item.critical ? 'font-medium' : ''}>{item.name}</span>
-                              </div>
-                              
-                              <div className="flex items-center gap-3">
-                                <span className="text-sm text-gray-500">
-                                  {item.quantity} {item.unit}
-                                </span>
-                                
-                                <div className="flex items-center">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0"
-                                    onClick={() => updateQuantity(item.id, -0.5)}
-                                  >
-                                    <Minus className="w-3 h-3" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0"
-                                    onClick={() => updateQuantity(item.id, 0.5)}
-                                  >
-                                    <Plus className="w-3 h-3" />
-                                  </Button>
-                                </div>
-                                
-                                <Button
-                                  variant={item.inCart ? "default" : "outline"}
-                                  size="sm"
-                                  className={`h-8 ${item.inCart ? 'bg-maideasy-secondary hover:bg-maideasy-secondary/90' : ''}`}
-                                  onClick={() => toggleInCart(item.id)}
-                                >
-                                  {item.inCart ? 'In Cart' : 'Add to Cart'}
-                                </Button>
-                                
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
-                                  onClick={() => deleteItem(item.id)}
-                                >
-                                  <Trash className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            </div>
+                          {units.map(unit => (
+                            <option key={unit} value={unit}>{unit}</option>
                           ))}
-                        </div>
+                        </select>
                       </div>
-                    ))}
-                  </TabsContent>
+                      <div className="w-32">
+                        <Label htmlFor="item-category">Category</Label>
+                        <select
+                          id="item-category"
+                          value={newItemCategory}
+                          onChange={(e) => setNewItemCategory(e.target.value as GroceryItem['category'])}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <option value="vegetables">Vegetables</option>
+                          <option value="fruits">Fruits</option>
+                          <option value="dairy">Dairy</option>
+                          <option value="grains">Grains</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                      <Button 
+                        onClick={addNewItem} 
+                        className="bg-maideasy-blue hover:bg-maideasy-blue/90 h-10"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
                   
-                  <TabsContent value="cart" className="mt-0">
-                    {cartItems.length > 0 ? (
-                      <div className="space-y-4">
-                        {cartItems.map((item) => (
+                  {Object.entries(itemsByCategory).map(([category, items]) => (
+                    <div key={category} className="mb-6">
+                      <h3 className="font-medium text-lg mb-2 capitalize">{category}</h3>
+                      <div className="space-y-2">
+                        {items.map((item) => (
                           <div
                             key={item.id}
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                            className={`flex items-center justify-between p-3 rounded-lg ${
+                              item.critical ? 'bg-red-50 border border-red-100' : 'bg-gray-50'
+                            }`}
                           >
                             <div className="flex items-center gap-2">
-                              <span className="font-medium">{item.name}</span>
-                              <Badge variant="outline" className="ml-2">
-                                {item.quantity} {item.unit}
-                              </Badge>
+                              {item.critical && <span className="text-red-500">🚨</span>}
+                              <span className={item.critical ? 'font-medium' : ''}>{item.name}</span>
                             </div>
                             
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm text-gray-500">
+                                {item.quantity} {item.unit}
+                              </span>
+                              
                               <div className="flex items-center">
                                 <Button
                                   variant="ghost"
@@ -338,45 +278,104 @@ const GroceryManager = () => {
                               </div>
                               
                               <Button
+                                variant={item.inCart ? "default" : "outline"}
+                                size="sm"
+                                className={`h-8 ${item.inCart ? 'bg-maideasy-secondary hover:bg-maideasy-secondary/90' : ''}`}
+                                onClick={() => toggleInCart(item.id)}
+                              >
+                                {item.inCart ? 'In Cart' : 'Add to Cart'}
+                              </Button>
+                              
+                              <Button
                                 variant="ghost"
                                 size="sm"
                                 className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
-                                onClick={() => toggleInCart(item.id)}
+                                onClick={() => deleteItem(item.id)}
                               >
                                 <Trash className="w-3 h-3" />
                               </Button>
                             </div>
                           </div>
                         ))}
-                        
-                        <div className="mt-6 flex justify-end">
-                          <Button 
-                            onClick={placeOrder}
-                            disabled={orderPlaced} 
-                            className="bg-maideasy-secondary hover:bg-maideasy-secondary/90"
-                          >
-                            {orderPlaced ? "Placing Order..." : "Order Like a Boss"}
-                          </Button>
-                        </div>
                       </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center py-10">
-                        <div className="bg-gray-100 p-4 rounded-full mb-4">
-                          <ShoppingCart className="w-8 h-8 text-gray-400" />
-                        </div>
-                        <h3 className="text-xl font-medium mb-2">Your cart is empty</h3>
-                        <p className="text-gray-500 mb-4">Add items from your inventory to place an order</p>
-                        <Button
-                          variant="outline"
-                          onClick={addAllLowStockToCart}
-                          className="border-maideasy-secondary text-maideasy-secondary hover:bg-maideasy-secondary/10"
+                    </div>
+                  ))}
+                </TabsContent>
+                
+                <TabsContent value="cart" className="mt-4">
+                  {cartItems.length > 0 ? (
+                    <div className="space-y-4">
+                      {cartItems.map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                         >
-                          Add Low Stock Items to Cart
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{item.name}</span>
+                            <Badge variant="outline" className="ml-2">
+                              {item.quantity} {item.unit}
+                            </Badge>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => updateQuantity(item.id, -0.5)}
+                              >
+                                <Minus className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => updateQuantity(item.id, 0.5)}
+                              >
+                                <Plus className="w-3 h-3" />
+                              </Button>
+                            </div>
+                            
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+                              onClick={() => toggleInCart(item.id)}
+                            >
+                              <Trash className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      <div className="mt-6 flex justify-end">
+                        <Button 
+                          onClick={placeOrder}
+                          disabled={orderPlaced} 
+                          className="bg-maideasy-secondary hover:bg-maideasy-secondary/90"
+                        >
+                          {orderPlaced ? "Placing Order..." : "Order Like a Boss"}
                         </Button>
                       </div>
-                    )}
-                  </TabsContent>
-                </CardContent>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-10">
+                      <div className="bg-gray-100 p-4 rounded-full mb-4">
+                        <ShoppingCart className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <h3 className="text-xl font-medium mb-2">Your cart is empty</h3>
+                      <p className="text-gray-500 mb-4">Add items from your inventory to place an order</p>
+                      <Button
+                        variant="outline"
+                        onClick={addAllLowStockToCart}
+                        className="border-maideasy-secondary text-maideasy-secondary hover:bg-maideasy-secondary/10"
+                      >
+                        Add Low Stock Items to Cart
+                      </Button>
+                    </div>
+                  )}
+                </TabsContent>
               </Tabs>
             </CardHeader>
           </Card>
