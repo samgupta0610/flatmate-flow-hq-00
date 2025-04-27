@@ -8,18 +8,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Github, Mail, MessageCircle } from 'lucide-react';
+import { AlertCircle, Github, Mail, MessageCircle, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleAuth = async (type: 'LOGIN' | 'SIGNUP') => {
     try {
       setLoading(true);
+      setError(null);
+      
+      // Form validation
+      if (!email || !password) {
+        setError('Please enter both email and password');
+        return;
+      }
+      
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters');
+        return;
+      }
+
       const { error } = type === 'LOGIN'
         ? await supabase.auth.signInWithPassword({ email, password })
         : await supabase.auth.signUp({ email, password });
@@ -39,8 +54,9 @@ const Auth = () => {
         });
       }
     } catch (error: any) {
+      setError(error.message);
       toast({
-        title: "Oops! Something went wrong",
+        title: "Authentication error",
         description: error.message,
         variant: "destructive",
       });
@@ -52,6 +68,7 @@ const Auth = () => {
   const handleSocialLogin = async (provider: 'google' | 'twitter' | 'github') => {
     try {
       setLoading(true);
+      setError(null);
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
@@ -61,6 +78,7 @@ const Auth = () => {
 
       if (error) throw error;
     } catch (error: any) {
+      setError(error.message);
       toast({
         title: "Social login failed",
         description: error.message,
@@ -70,45 +88,66 @@ const Auth = () => {
     }
   };
 
+  const renderAuthError = () => {
+    if (!error) return null;
+    
+    return (
+      <Alert variant="destructive" className="mb-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-maideasy-background p-4">
-      <Card className="w-full max-w-md shadow-lg">
+      <Card className="w-full max-w-md shadow-lg animate-fade-in">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold text-maideasy-blue">
             Maid<span className="text-maideasy-green">Easy</span>
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-lg">
             Your Smart Home Sidekick — for Maids, Meals, and More! 🚀
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="login" className="text-base py-2">Login</TabsTrigger>
+              <TabsTrigger value="signup" className="text-base py-2">Sign Up</TabsTrigger>
             </TabsList>
+            
             <TabsContent value="login" className="space-y-4">
+              {renderAuthError()}
+              
               <Input
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-white"
+                className="bg-white text-base h-12"
               />
+              
               <Input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-white"
+                className="bg-white text-base h-12"
               />
+              
               <Button 
-                className="w-full bg-maideasy-blue hover:bg-maideasy-blue/90 text-white font-medium"
+                className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-medium h-12 text-base"
                 onClick={() => handleAuth('LOGIN')}
                 disabled={loading}
                 size="lg"
               >
-                {loading ? "Logging in..." : "Login"}
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                    Logging in...
+                  </>
+                ) : "Login"}
               </Button>
               
               <div className="relative my-6">
@@ -123,7 +162,7 @@ const Auth = () => {
                   variant="outline"
                   onClick={() => handleSocialLogin('google')}
                   disabled={loading}
-                  className="w-full"
+                  className="w-full h-11 border-gray-300 hover:bg-gray-50"
                 >
                   <Mail className="h-5 w-5" />
                 </Button>
@@ -131,7 +170,7 @@ const Auth = () => {
                   variant="outline"
                   onClick={() => handleSocialLogin('twitter')}
                   disabled={loading}
-                  className="w-full"
+                  className="w-full h-11 border-gray-300 hover:bg-gray-50"
                 >
                   <MessageCircle className="h-5 w-5" />
                 </Button>
@@ -139,34 +178,44 @@ const Auth = () => {
                   variant="outline"
                   onClick={() => handleSocialLogin('github')}
                   disabled={loading}
-                  className="w-full"
+                  className="w-full h-11 border-gray-300 hover:bg-gray-50"
                 >
                   <Github className="h-5 w-5" />
                 </Button>
               </div>
             </TabsContent>
+            
             <TabsContent value="signup" className="space-y-4">
+              {renderAuthError()}
+              
               <Input
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-white"
+                className="bg-white text-base h-12"
               />
+              
               <Input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-white"
+                className="bg-white text-base h-12"
               />
+              
               <Button 
-                className="w-full bg-maideasy-green hover:bg-maideasy-green/90 text-white font-medium"
+                className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-medium h-12 text-base"
                 onClick={() => handleAuth('SIGNUP')}
                 disabled={loading}
                 size="lg"
               >
-                {loading ? "Creating account..." : "Sign Up"}
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                    Creating account...
+                  </>
+                ) : "Sign Up"}
               </Button>
               
               <div className="relative my-6">
@@ -181,7 +230,7 @@ const Auth = () => {
                   variant="outline"
                   onClick={() => handleSocialLogin('google')}
                   disabled={loading}
-                  className="w-full"
+                  className="w-full h-11 border-gray-300 hover:bg-gray-50"
                 >
                   <Mail className="h-5 w-5" />
                 </Button>
@@ -189,7 +238,7 @@ const Auth = () => {
                   variant="outline"
                   onClick={() => handleSocialLogin('twitter')}
                   disabled={loading}
-                  className="w-full"
+                  className="w-full h-11 border-gray-300 hover:bg-gray-50"
                 >
                   <MessageCircle className="h-5 w-5" />
                 </Button>
@@ -197,7 +246,7 @@ const Auth = () => {
                   variant="outline"
                   onClick={() => handleSocialLogin('github')}
                   disabled={loading}
-                  className="w-full"
+                  className="w-full h-11 border-gray-300 hover:bg-gray-50"
                 >
                   <Github className="h-5 w-5" />
                 </Button>
