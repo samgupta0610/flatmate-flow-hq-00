@@ -1,15 +1,15 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, ShoppingCart, Menu } from 'lucide-react';
+import { Home, CalendarCheck, ChefHat, ShoppingCart } from 'lucide-react';
 
 const MobileNav = () => {
   const location = useLocation();
   
   const navItems = [
     { path: '/', label: 'Home', icon: <Home className="w-5 h-5" /> },
-    { path: '/maid-tasks', label: 'Maid', icon: <Calendar className="w-5 h-5" /> },
-    { path: '/meal-planner', label: 'Meals', icon: <Calendar className="w-5 h-5" /> },
+    { path: '/maid-tasks', label: 'Maid', icon: <CalendarCheck className="w-5 h-5" /> },
+    { path: '/meal-planner', label: 'Meals', icon: <ChefHat className="w-5 h-5" /> },
     { path: '/grocery', label: 'Grocery', icon: <ShoppingCart className="w-5 h-5" /> },
   ];
 
@@ -23,7 +23,7 @@ const MobileNav = () => {
             key={item.path} 
             to={item.path}
             className={`flex flex-col items-center py-2 px-3 ${
-              isActive(item.path) ? 'text-maideasy-blue' : 'text-gray-500'
+              isActive(item.path) ? 'text-maideasy-primary' : 'text-gray-500'
             }`}
           >
             {item.icon}

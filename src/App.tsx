@@ -24,26 +24,22 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <div className="flex min-h-screen bg-maideasy-background">
-                  <NavigationBar />
-                  <div className="flex-1 md:ml-64">
-                    <Routes>
-                      <Route index element={<Index />} />
-                      <Route path="/maid-tasks" element={<MaidTasks />} />
-                      <Route path="/meal-planner" element={<MealPlanner />} />
-                      <Route path="/grocery" element={<GroceryManager />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </div>
+          <Route element={
+            <ProtectedRoute>
+              <div className="flex min-h-screen bg-maideasy-background">
+                <NavigationBar />
+                <div className="flex-1 md:ml-64">
                   <MobileNav />
                 </div>
-              </ProtectedRoute>
-            }
-          />
+              </div>
+            </ProtectedRoute>
+          }>
+            <Route path="/" element={<Index />} />
+            <Route path="/maid-tasks" element={<MaidTasks />} />
+            <Route path="/meal-planner" element={<MealPlanner />} />
+            <Route path="/grocery" element={<GroceryManager />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

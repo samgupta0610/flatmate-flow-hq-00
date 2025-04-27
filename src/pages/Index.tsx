@@ -4,7 +4,7 @@ import Dashboard from "@/components/Dashboard";
 
 const Index = () => {
   return (
-    <div>
+    <div className="p-4 md:p-8 pb-24 md:pb-8">
       <Dashboard />
     </div>
   );
