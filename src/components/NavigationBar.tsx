@@ -1,4 +1,5 @@
 
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, CalendarCheck, ChefHat, ShoppingCart, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
