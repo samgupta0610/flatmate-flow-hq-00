@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMaidTasks } from '@/hooks/useMaidTasks';
 import { useMaidContact } from '@/hooks/useMaidContact';
 import WhatsAppReminder from './WhatsAppReminder';
+import WhatsAppMaidReminder from './WhatsAppMaidReminder';
 
 interface TaskTemplate {
   id: number;
@@ -231,6 +231,8 @@ const MaidTasks = () => {
           </Card>
 
           <WhatsAppReminder selectedTasks={selectedTasks} />
+          
+          <WhatsAppMaidReminder selectedTasks={selectedTasks} />
           
           <Card>
             <CardHeader>

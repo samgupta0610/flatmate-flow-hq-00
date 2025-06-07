@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      house_groups: {
+        Row: {
+          created_at: string
+          created_by: string
+          group_name: string
+          id: string
+          join_code: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          group_name: string
+          id?: string
+          join_code: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          group_name?: string
+          id?: string
+          join_code?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       maid_contacts: {
         Row: {
           auto_send: boolean | null
@@ -76,25 +103,42 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          house_group_id: string | null
           id: string
+          phone_number: string | null
+          role: string | null
           updated_at: string
           username: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          house_group_id?: string | null
           id: string
+          phone_number?: string | null
+          role?: string | null
           updated_at?: string
           username?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
+          house_group_id?: string | null
           id?: string
+          phone_number?: string | null
+          role?: string | null
           updated_at?: string
           username?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_house_group_id_fkey"
+            columns: ["house_group_id"]
+            isOneToOne: false
+            referencedRelation: "house_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       task_templates: {
         Row: {
@@ -158,7 +202,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_join_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

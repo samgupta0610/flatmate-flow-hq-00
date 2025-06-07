@@ -2,17 +2,20 @@
 import { FC, ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
+import { useProfile } from '@/hooks/useProfile';
 import { Loader2 } from 'lucide-react';
+import HouseGroupOnboarding from './HouseGroupOnboarding';
 
 interface ProtectedRouteProps {
   children: ReactNode;
 }
 
 const ProtectedRoute: FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
   
   // Wait while authentication is loading
-  if (loading) {
+  if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-maideasy-background">
         <Loader2 className="h-10 w-10 text-maideasy-primary animate-spin mb-4" />
@@ -27,7 +30,16 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // If authenticated, render the protected content
+  // If authenticated but no house group, show onboarding
+  if (profile && !profile.house_group_id) {
+    return (
+      <HouseGroupOnboarding 
+        onComplete={() => window.location.reload()} 
+      />
+    );
+  }
+
+  // If authenticated and has house group, render the protected content
   return <>{children}</>;
 };
 
