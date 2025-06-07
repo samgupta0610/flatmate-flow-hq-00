@@ -43,5 +43,41 @@ export const useMaidContact = () => {
     fetchMaidContact();
   }, [user]);
 
-  return { maidContact, loading, error };
+  const saveMaidContact = async (phone: string, name: string = 'Maid') => {
+    if (!user) return;
+
+    try {
+      if (maidContact) {
+        // Update existing contact
+        const { error } = await supabase
+          .from('maid_contacts')
+          .update({ phone, name })
+          .eq('id', maidContact.id);
+
+        if (error) throw error;
+        setMaidContact({ ...maidContact, phone, name });
+      } else {
+        // Create new contact
+        const { data, error } = await supabase
+          .from('maid_contacts')
+          .insert({
+            user_id: user.id,
+            phone,
+            name,
+            auto_send: false,
+            send_time: '08:00'
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        setMaidContact(data);
+      }
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  return { maidContact, loading, error, saveMaidContact };
 };
