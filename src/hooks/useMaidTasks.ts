@@ -8,6 +8,7 @@ interface MaidTask {
   title: string;
   selected: boolean;
   category: string;
+  completed?: boolean;
 }
 
 export const useMaidTasks = () => {

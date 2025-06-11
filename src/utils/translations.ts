@@ -116,6 +116,48 @@ export const getTranslatedClosing = (language: string): string => {
   return closings[language as keyof typeof closings] || closings.english;
 };
 
+export const getTranslatedMessage = (message: string, language: string): string => {
+  if (language === 'english') return message;
+  
+  // For meal messages, provide basic translations
+  const mealTranslations = {
+    hindi: {
+      'Hello! Here are today\'s meal plans:': 'नमस्ते! यहाँ आज के भोजन की योजना है:',
+      'Breakfast': 'नाश्ता',
+      'Lunch': 'दोपहर का खाना',
+      'Dinner': 'रात का खाना',
+      'people': 'लोग',
+      'Please prepare accordingly. Thank you!': 'कृपया तदनुसार तैयारी करें। धन्यवाद!'
+    },
+    kannada: {
+      'Hello! Here are today\'s meal plans:': 'ನಮಸ್ಕಾರ! ಇಂದಿನ ಊಟದ ಯೋಜನೆಗಳು ಇಲ್ಲಿವೆ:',
+      'Breakfast': 'ಬೆಳಗಿನ ಊಟ',
+      'Lunch': 'ಮಧ್ಯಾಹ್ನದ ಊಟ',
+      'Dinner': 'ರಾತ್ರಿಯ ಊಟ',
+      'people': 'ಜನರು',
+      'Please prepare accordingly. Thank you!': 'ದಯವಿಟ್ಟು ಅದಕ್ಕೆ ತಕ್ಕಂತೆ ತಯಾರಿಸಿ। ಧನ್ಯವಾದಗಳು!'
+    },
+    telugu: {
+      'Hello! Here are today\'s meal plans:': 'నమస్కారం! ఈ రోజు భోజన ప్రణాళికలు ఇవే:',
+      'Breakfast': 'అల్పాహారం',
+      'Lunch': 'మధ్యాహ్న భోజనం',
+      'Dinner': 'రాత్రి భోజనం',
+      'people': 'వ్యక్తులు',
+      'Please prepare accordingly. Thank you!': 'దయచేసి దాని ప్రకారం సిద్ధం చేయండి। ధన్యవాదాలు!'
+    }
+  };
+  
+  const translations = mealTranslations[language as keyof typeof mealTranslations];
+  if (!translations) return message;
+  
+  let translatedMessage = message;
+  Object.entries(translations).forEach(([english, translated]) => {
+    translatedMessage = translatedMessage.replace(english, translated);
+  });
+  
+  return translatedMessage;
+};
+
 export const generateWhatsAppMessage = (tasks: Array<{ title: string; selected: boolean }>, language: string): string => {
   const selectedTasks = tasks.filter(task => task.selected);
   
