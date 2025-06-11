@@ -3,9 +3,8 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Send } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useMaidTasks } from '@/hooks/useMaidTasks';
 import { useMaidContact } from '@/hooks/useMaidContact';
@@ -13,7 +12,9 @@ import WhatsAppReminder from './WhatsAppReminder';
 import WhatsAppMaidReminder from './WhatsAppMaidReminder';
 import TaskItem from './TaskItem';
 import LanguageSelector from './LanguageSelector';
-import { getTranslatedMessage } from '@/utils/translations';
+import SmartTaskInput from './SmartTaskInput';
+import TemplatePreview from './TemplatePreview';
+import { generateWhatsAppMessage } from '@/utils/translations';
 
 interface TaskTemplate {
   id: number;
@@ -23,7 +24,6 @@ interface TaskTemplate {
 
 const MaidTasks = () => {
   const { toast } = useToast();
-  const [newTaskName, setNewTaskName] = useState("");
   const [sendingInstructions, setSendingInstructions] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('english');
   const [activeCategory, setActiveCategory] = useState('daily');
@@ -35,43 +35,69 @@ const MaidTasks = () => {
     { 
       id: 1, 
       name: "Regular Day", 
-      tasks: []
+      tasks: [
+        { id: '1', title: 'Clean Kitchen', selected: true, category: 'daily' },
+        { id: '2', title: 'Sweep the floor', selected: true, category: 'daily' },
+        { id: '3', title: 'Wash utensils', selected: true, category: 'daily' }
+      ]
     },
     { 
       id: 2, 
       name: "Deep Clean Day", 
-      tasks: []
+      tasks: [
+        { id: '1', title: 'Clean Bathroom', selected: true, category: 'daily' },
+        { id: '2', title: 'Mopping', selected: true, category: 'daily' },
+        { id: '3', title: 'Dusting', selected: true, category: 'daily' },
+        { id: '4', title: 'Vacuum', selected: true, category: 'weekly' }
+      ]
     },
     { 
       id: 3, 
       name: "Monthly Maintenance", 
-      tasks: []
+      tasks: [
+        { id: '1', title: 'Organize closet', selected: true, category: 'monthly' },
+        { id: '2', title: 'Deep clean windows', selected: true, category: 'monthly' },
+        { id: '3', title: 'Clean appliances', selected: true, category: 'monthly' }
+      ]
     },
   ]);
   
-  const handleAddNewTask = async () => {
-    if (!newTaskName.trim()) return;
-    
-    await addTask(newTaskName, activeCategory);
-    setNewTaskName("");
+  const handleAddNewTask = async (taskTitle: string) => {
+    await addTask(taskTitle, activeCategory);
     
     toast({
-      title: "Task Added!",
-      description: `${newTaskName} has been added to your tasks.`,
+      title: "Task Added! ✨",
+      description: `${taskTitle} has been added to your ${activeCategory} tasks.`,
     });
   };
   
-  const applyTemplate = (templateId: number) => {
+  const applyTemplate = async (templateId: number) => {
     const template = templates.find(t => t.id === templateId);
     if (!template) return;
     
+    // Add template tasks to the current category
+    for (const task of template.tasks) {
+      await addTask(task.title, activeCategory);
+    }
+    
     toast({
-      title: "Template Applied!",
-      description: `${template.name} template has been applied.`,
+      title: "Template Applied! 🎯",
+      description: `${template.name} template has been applied to your ${activeCategory} tasks.`,
     });
   };
   
   const sendToMaid = () => {
+    const selectedTasks = tasks.filter(task => task.selected && !task.completed);
+    
+    if (selectedTasks.length === 0) {
+      toast({
+        title: "No tasks selected",
+        description: "Please select at least one task to send.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setSendingInstructions(true);
     
     setTimeout(() => {
@@ -84,16 +110,8 @@ const MaidTasks = () => {
     }, 1500);
   };
 
-  const selectedTasks = tasks.filter(task => task.selected);
-
-  const generateWhatsAppMessage = () => {
-    const taskList = selectedTasks
-      .map((task, index) => `${index + 1}. ${task.title}`)
-      .join('\n');
-    
-    const message = `Hello! Here are today's tasks:\n${taskList}\n\nThank you!`;
-    return getTranslatedMessage(message, selectedLanguage);
-  };
+  const selectedTasks = tasks.filter(task => task.selected && !task.completed);
+  const categorizedTasks = tasks.filter(task => task.category === activeCategory);
 
   if (loading) {
     return (
@@ -118,12 +136,12 @@ const MaidTasks = () => {
         
         <Button 
           onClick={sendToMaid} 
-          disabled={sendingInstructions}
-          className="mt-4 md:mt-0 bg-maideasy-blue hover:bg-maideasy-blue/90 flex items-center gap-2"
+          disabled={sendingInstructions || selectedTasks.length === 0}
+          className="mt-4 md:mt-0 bg-maideasy-blue hover:bg-maideasy-blue/90 flex items-center gap-2 sticky top-4 z-10"
         >
           {sendingInstructions ? "Sending..." : 
             <>
-              <Send className="w-4 h-4" /> Send to Maid
+              <Send className="w-4 h-4" /> Send to Maid ({selectedTasks.length})
             </>
           }
         </Button>
@@ -145,57 +163,71 @@ const MaidTasks = () => {
                 </TabsList>
                 
                 <TabsContent value="daily" className="mt-4 space-y-4">
-                  {tasks.filter(task => task.category === 'daily').map((task) => (
-                    <TaskItem
-                      key={task.id}
-                      task={task}
-                      selectedLanguage={selectedLanguage}
-                      onUpdate={updateTask}
-                      onDelete={deleteTask}
-                    />
-                  ))}
+                  <SmartTaskInput onAddTask={handleAddNewTask} />
+                  
+                  <div className="space-y-3">
+                    {categorizedTasks.map((task) => (
+                      <TaskItem
+                        key={task.id}
+                        task={task}
+                        selectedLanguage={selectedLanguage}
+                        onUpdate={updateTask}
+                        onDelete={deleteTask}
+                      />
+                    ))}
+                    
+                    {categorizedTasks.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No daily tasks yet. Add your first task above!</p>
+                      </div>
+                    )}
+                  </div>
                 </TabsContent>
                 
                 <TabsContent value="weekly" className="mt-4 space-y-4">
-                  {tasks.filter(task => task.category === 'weekly').map((task) => (
-                    <TaskItem
-                      key={task.id}
-                      task={task}
-                      selectedLanguage={selectedLanguage}
-                      onUpdate={updateTask}
-                      onDelete={deleteTask}
-                    />
-                  ))}
+                  <SmartTaskInput onAddTask={handleAddNewTask} />
+                  
+                  <div className="space-y-3">
+                    {categorizedTasks.map((task) => (
+                      <TaskItem
+                        key={task.id}
+                        task={task}
+                        selectedLanguage={selectedLanguage}
+                        onUpdate={updateTask}
+                        onDelete={deleteTask}
+                      />
+                    ))}
+                    
+                    {categorizedTasks.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No weekly tasks yet. Add your first task above!</p>
+                      </div>
+                    )}
+                  </div>
                 </TabsContent>
                 
                 <TabsContent value="monthly" className="mt-4 space-y-4">
-                  {tasks.filter(task => task.category === 'monthly').map((task) => (
-                    <TaskItem
-                      key={task.id}
-                      task={task}
-                      selectedLanguage={selectedLanguage}
-                      onUpdate={updateTask}
-                      onDelete={deleteTask}
-                    />
-                  ))}
+                  <SmartTaskInput onAddTask={handleAddNewTask} />
+                  
+                  <div className="space-y-3">
+                    {categorizedTasks.map((task) => (
+                      <TaskItem
+                        key={task.id}
+                        task={task}
+                        selectedLanguage={selectedLanguage}
+                        onUpdate={updateTask}
+                        onDelete={deleteTask}
+                      />
+                    ))}
+                    
+                    {categorizedTasks.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No monthly tasks yet. Add your first task above!</p>
+                      </div>
+                    )}
+                  </div>
                 </TabsContent>
               </Tabs>
-              
-              <div className="mt-4 flex gap-2">
-                <Input
-                  placeholder="Add a new task..."
-                  value={newTaskName}
-                  onChange={(e) => setNewTaskName(e.target.value)}
-                  className="flex-grow"
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddNewTask()}
-                />
-                <Button 
-                  onClick={handleAddNewTask} 
-                  className="bg-maideasy-blue hover:bg-maideasy-blue/90"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
             </CardContent>
           </Card>
 
@@ -213,7 +245,7 @@ const MaidTasks = () => {
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <p className="font-medium mb-2">Message Preview:</p>
                 <p className="text-sm text-gray-600 whitespace-pre-line">
-                  {selectedTasks.length > 0 ? generateWhatsAppMessage() : 'No tasks selected'}
+                  {selectedTasks.length > 0 ? generateWhatsAppMessage(selectedTasks, selectedLanguage) : 'No tasks selected'}
                 </p>
               </div>
             </CardContent>
@@ -234,12 +266,9 @@ const MaidTasks = () => {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="whatsapp">WhatsApp Number</Label>
-                  <Input 
-                    id="whatsapp" 
-                    value={maidContact?.phone || ''} 
-                    readOnly
-                    className="bg-gray-100"
-                  />
+                  <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                    {maidContact?.phone || 'Not set yet'}
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -253,20 +282,11 @@ const MaidTasks = () => {
             <CardContent>
               <div className="space-y-4">
                 {templates.map((template) => (
-                  <div key={template.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
-                    <div>
-                      <p className="font-medium">{template.name}</p>
-                      <p className="text-xs text-gray-500">{template.tasks.length} tasks</p>
-                    </div>
-                    <Button 
-                      onClick={() => applyTemplate(template.id)} 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-8"
-                    >
-                      Apply
-                    </Button>
-                  </div>
+                  <TemplatePreview
+                    key={template.id}
+                    template={template}
+                    onApply={applyTemplate}
+                  />
                 ))}
               </div>
             </CardContent>

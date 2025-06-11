@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Edit, Trash } from 'lucide-react';
-import { getTranslatedTask } from '@/utils/translations';
+import { getTranslatedTask, getTaskEmoji } from '@/utils/translations';
 
 interface TaskItemProps {
   task: {
@@ -12,6 +12,7 @@ interface TaskItemProps {
     title: string;
     selected: boolean;
     category: string;
+    completed?: boolean;
   };
   selectedLanguage: string;
   onUpdate: (taskId: string, updates: any) => void;
@@ -32,14 +33,30 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, selectedLanguage, onUpdate, o
     setIsEditing(false);
   };
 
+  const handleCompletedChange = (completed: boolean) => {
+    onUpdate(task.id, { completed });
+  };
+
+  const handleSelectedChange = (selected: boolean) => {
+    onUpdate(task.id, { selected });
+  };
+
   const translatedTask = getTranslatedTask(task.title, selectedLanguage);
+  const emoji = getTaskEmoji(task.title);
 
   return (
-    <div className="flex items-center justify-between pb-3 border-b">
+    <div className={`flex items-center justify-between p-3 border rounded-lg ${task.completed ? 'bg-gray-50 opacity-75' : 'bg-white'} transition-all duration-200`}>
       <div className="flex items-center gap-3 flex-1">
         <Checkbox
+          checked={task.completed || false}
+          onCheckedChange={handleCompletedChange}
+          className="text-green-500"
+        />
+        
+        <Checkbox
           checked={task.selected}
-          onCheckedChange={(checked) => onUpdate(task.id, { selected: checked })}
+          onCheckedChange={handleSelectedChange}
+          className="text-blue-500"
         />
         
         <div className="flex-1">
@@ -50,18 +67,22 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, selectedLanguage, onUpdate, o
                 onChange={(e) => setEditTitle(e.target.value)}
                 className="flex-1"
                 onKeyPress={(e) => e.key === 'Enter' && handleSaveEdit()}
+                autoFocus
               />
               <Button size="sm" onClick={handleSaveEdit}>Save</Button>
               <Button size="sm" variant="outline" onClick={handleCancelEdit}>Cancel</Button>
             </div>
           ) : (
             <div>
-              <span className={task.selected ? 'font-medium' : 'text-gray-500'}>
-                {task.title}
-              </span>
-              {selectedLanguage !== 'english' && (
-                <div className="text-sm text-gray-400 mt-1">
-                  {task.title} | {translatedTask}
+              <div className="flex items-center gap-2">
+                <span>{emoji}</span>
+                <span className={`${task.completed ? 'line-through text-gray-500' : task.selected ? 'font-medium text-gray-900' : 'text-gray-600'}`}>
+                  {task.title}
+                </span>
+              </div>
+              {selectedLanguage !== 'english' && !task.completed && (
+                <div className="text-sm text-gray-500 mt-1 ml-6">
+                  {translatedTask}
                 </div>
               )}
             </div>
@@ -70,14 +91,16 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, selectedLanguage, onUpdate, o
       </div>
       
       <div className="flex gap-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsEditing(!isEditing)}
-          className="text-gray-400 hover:text-blue-500"
-        >
-          <Edit className="w-4 h-4" />
-        </Button>
+        {!task.completed && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsEditing(!isEditing)}
+            className="text-gray-400 hover:text-blue-500"
+          >
+            <Edit className="w-4 h-4" />
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="sm"

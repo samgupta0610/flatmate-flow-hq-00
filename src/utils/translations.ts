@@ -18,6 +18,16 @@ export const taskTranslations: TaskTranslations = {
     kannada: 'ಸ್ನಾನಗೃಹವನ್ನು ಸ್ವಚ್ಛಗೊಳಿಸಿ',
     telugu: 'స్నానగదిని శుభ్రం చేయండి'
   },
+  'Sweep the floor': {
+    hindi: 'फर्श पर झाड़ू लगाएं',
+    kannada: 'ನೆಲವನ್ನು ಗುಡಿಸಿ',
+    telugu: 'నేలను ఊడ్చండి'
+  },
+  'Wash utensils': {
+    hindi: 'बर्तन धोएं',
+    kannada: 'ಪಾತ್ರೆಗಳನ್ನು ತೊಳೆಯಿರಿ',
+    telugu: 'పాత్రలను కడుక్కోండి'
+  },
   'Dusting': {
     hindi: 'धूल साफ करना',
     kannada: 'ಧೂಳು ತೆಗೆಯುವುದು',
@@ -50,6 +60,19 @@ export const taskTranslations: TaskTranslations = {
   }
 };
 
+// Common task suggestions with emojis
+export const taskSuggestions = [
+  { text: 'Clean Kitchen', emoji: '🍽️' },
+  { text: 'Clean Bathroom', emoji: '🚿' },
+  { text: 'Sweep the floor', emoji: '🧹' },
+  { text: 'Wash utensils', emoji: '🍴' },
+  { text: 'Dusting', emoji: '🧽' },
+  { text: 'Mopping', emoji: '🧽' },
+  { text: 'Laundry', emoji: '👕' },
+  { text: 'Ironing', emoji: '👔' },
+  { text: 'Organize closet', emoji: '👗' }
+];
+
 export const getTranslatedTask = (task: string, language: string): string => {
   if (language === 'english') return task;
   
@@ -68,42 +91,49 @@ export const getTranslatedTask = (task: string, language: string): string => {
   }
 };
 
-export const getTranslatedMessage = (message: string, language: string): string => {
+export const getTaskEmoji = (task: string): string => {
+  const suggestion = taskSuggestions.find(s => s.text.toLowerCase().includes(task.toLowerCase()));
+  return suggestion?.emoji || '✨';
+};
+
+export const getTranslatedGreeting = (language: string): string => {
   const greetings = {
-    english: 'Hello! Here are today\'s tasks:',
+    english: 'Hi! Here are today\'s tasks:',
     hindi: 'नमस्ते! यहाँ आज के कार्य हैं:',
     kannada: 'ನಮಸ್ಕಾರ! ಇಂದಿನ ಕಾರ್ಯಗಳು ಇಲ್ಲಿವೆ:',
     telugu: 'నమస్కారం! ఈ రోజు పనులు ఇవే:'
   };
+  return greetings[language as keyof typeof greetings] || greetings.english;
+};
 
+export const getTranslatedClosing = (language: string): string => {
   const closings = {
-    english: 'Thank you!',
-    hindi: 'धन्यवाद!',
-    kannada: 'ಧನ್ಯವಾದಗಳು!',
-    telugu: 'ధన్యవాదాలు!'
+    english: 'Please let me know once done. Thank you! 🙏',
+    hindi: 'कृपया समाप्त होने पर मुझे बताएं। धन्यवाद! 🙏',
+    kannada: 'ಮುಗಿದ ನಂತರ ದಯವಿಟ್ಟು ತಿಳಿಸಿ। ಧನ್ಯವಾದಗಳು! 🙏',
+    telugu: 'పూర్తయ్యాక దయచేసి తెలపండి। ధన్యవాదాలు! 🙏'
   };
+  return closings[language as keyof typeof closings] || closings.english;
+};
 
-  if (language === 'english') return message;
+export const generateWhatsAppMessage = (tasks: Array<{ title: string; selected: boolean }>, language: string): string => {
+  const selectedTasks = tasks.filter(task => task.selected);
+  
+  if (selectedTasks.length === 0) return 'No tasks selected';
 
-  const lines = message.split('\n');
-  const translatedLines = lines.map(line => {
-    if (line.includes('Hello! Here are today\'s tasks:')) {
-      return greetings[language as keyof typeof greetings] || line;
-    }
-    if (line.includes('Thank you!')) {
-      return closings[language as keyof typeof closings] || line;
-    }
+  const greeting = getTranslatedGreeting(language);
+  const closing = getTranslatedClosing(language);
+  
+  const taskList = selectedTasks.map(task => {
+    const emoji = getTaskEmoji(task.title);
+    const translatedTask = getTranslatedTask(task.title, language);
     
-    // Handle numbered task lines
-    const taskMatch = line.match(/^\d+\.\s+(.+)$/);
-    if (taskMatch) {
-      const taskText = taskMatch[1];
-      const translatedTask = getTranslatedTask(taskText, language);
-      return line.replace(taskText, translatedTask);
+    if (language === 'english') {
+      return `${emoji} ${task.title}`;
+    } else {
+      return `${emoji} ${task.title} | ${translatedTask}`;
     }
-    
-    return line;
-  });
+  }).join('\n');
 
-  return translatedLines.join('\n');
+  return `${greeting}\n${taskList}\n\n${closing}`;
 };
