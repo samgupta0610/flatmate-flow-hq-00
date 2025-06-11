@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, CalendarDays } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { SheetsSyncButton } from "@/components/ui/sheets-sync-button";
+import MealWhatsAppReminder from './MealWhatsAppReminder';
 
 // Mock data types
 interface Recipe {
@@ -503,6 +503,12 @@ const MealPlanner = () => {
 
           {/* Google Sheets Sync Button */}
           <SheetsSyncButton type="meal" />
+
+          {/* Add Meal WhatsApp Reminder */}
+          <MealWhatsAppReminder 
+            mealPlan={mealPlan}
+            selectedDay={selectedDay}
+          />
         </div>
         
         {/* Right column - Details */}

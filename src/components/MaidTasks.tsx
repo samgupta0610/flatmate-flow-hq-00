@@ -1,16 +1,19 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Check, Plus, Send, Trash } from 'lucide-react';
+import { Plus, Send } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useMaidTasks } from '@/hooks/useMaidTasks';
 import { useMaidContact } from '@/hooks/useMaidContact';
 import WhatsAppReminder from './WhatsAppReminder';
 import WhatsAppMaidReminder from './WhatsAppMaidReminder';
+import TaskItem from './TaskItem';
+import LanguageSelector from './LanguageSelector';
+import { getTranslatedMessage } from '@/utils/translations';
 
 interface TaskTemplate {
   id: number;
@@ -22,6 +25,8 @@ const MaidTasks = () => {
   const { toast } = useToast();
   const [newTaskName, setNewTaskName] = useState("");
   const [sendingInstructions, setSendingInstructions] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('english');
+  const [activeCategory, setActiveCategory] = useState('daily');
   const { tasks, loading, updateTask, addTask, deleteTask } = useMaidTasks();
   const { maidContact } = useMaidContact();
   
@@ -44,17 +49,10 @@ const MaidTasks = () => {
     },
   ]);
   
-  const toggleTask = (taskId: string) => {
-    const task = tasks.find(t => t.id === taskId);
-    if (task) {
-      updateTask(taskId, { selected: !task.selected });
-    }
-  };
-  
   const handleAddNewTask = async () => {
     if (!newTaskName.trim()) return;
     
-    await addTask(newTaskName);
+    await addTask(newTaskName, activeCategory);
     setNewTaskName("");
     
     toast({
@@ -73,15 +71,6 @@ const MaidTasks = () => {
     });
   };
   
-  const handleDeleteTask = async (taskId: string) => {
-    await deleteTask(taskId);
-    
-    toast({
-      title: "Task Deleted!",
-      description: "The task has been removed from your list.",
-    });
-  };
-  
   const sendToMaid = () => {
     setSendingInstructions(true);
     
@@ -96,6 +85,15 @@ const MaidTasks = () => {
   };
 
   const selectedTasks = tasks.filter(task => task.selected);
+
+  const generateWhatsAppMessage = () => {
+    const taskList = selectedTasks
+      .map((task, index) => `${index + 1}. ${task.title}`)
+      .join('\n');
+    
+    const message = `Hello! Here are today's tasks:\n${taskList}\n\nThank you!`;
+    return getTranslatedMessage(message, selectedLanguage);
+  };
 
   if (loading) {
     return (
@@ -136,10 +134,10 @@ const MaidTasks = () => {
           <Card>
             <CardHeader>
               <CardTitle>Today's Tasks</CardTitle>
-              <CardDescription>Select the tasks for your maid today</CardDescription>
+              <CardDescription>Select and manage the tasks for your maid today</CardDescription>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="daily" className="mb-6">
+              <Tabs value={activeCategory} onValueChange={setActiveCategory} className="mb-6">
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="daily">Daily</TabsTrigger>
                   <TabsTrigger value="weekly">Weekly</TabsTrigger>
@@ -148,67 +146,37 @@ const MaidTasks = () => {
                 
                 <TabsContent value="daily" className="mt-4 space-y-4">
                   {tasks.filter(task => task.category === 'daily').map((task) => (
-                    <div key={task.id} className="flex items-center justify-between pb-2 border-b">
-                      <div className="flex items-center gap-3">
-                        <Switch
-                          checked={task.selected}
-                          onCheckedChange={() => toggleTask(task.id)}
-                        />
-                        <span className={task.selected ? 'font-medium' : 'text-gray-500'}>
-                          {task.title}
-                        </span>
-                      </div>
-                      <button 
-                        onClick={() => handleDeleteTask(task.id)}
-                        className="text-gray-400 hover:text-red-500"
-                      >
-                        <Trash className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      selectedLanguage={selectedLanguage}
+                      onUpdate={updateTask}
+                      onDelete={deleteTask}
+                    />
                   ))}
                 </TabsContent>
                 
                 <TabsContent value="weekly" className="mt-4 space-y-4">
                   {tasks.filter(task => task.category === 'weekly').map((task) => (
-                    <div key={task.id} className="flex items-center justify-between pb-2 border-b">
-                      <div className="flex items-center gap-3">
-                        <Switch
-                          checked={task.selected}
-                          onCheckedChange={() => toggleTask(task.id)}
-                        />
-                        <span className={task.selected ? 'font-medium' : 'text-gray-500'}>
-                          {task.title}
-                        </span>
-                      </div>
-                      <button 
-                        onClick={() => handleDeleteTask(task.id)}
-                        className="text-gray-400 hover:text-red-500"
-                      >
-                        <Trash className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      selectedLanguage={selectedLanguage}
+                      onUpdate={updateTask}
+                      onDelete={deleteTask}
+                    />
                   ))}
                 </TabsContent>
                 
                 <TabsContent value="monthly" className="mt-4 space-y-4">
                   {tasks.filter(task => task.category === 'monthly').map((task) => (
-                    <div key={task.id} className="flex items-center justify-between pb-2 border-b">
-                      <div className="flex items-center gap-3">
-                        <Switch
-                          checked={task.selected}
-                          onCheckedChange={() => toggleTask(task.id)}
-                        />
-                        <span className={task.selected ? 'font-medium' : 'text-gray-500'}>
-                          {task.title}
-                        </span>
-                      </div>
-                      <button 
-                        onClick={() => handleDeleteTask(task.id)}
-                        className="text-gray-400 hover:text-red-500"
-                      >
-                        <Trash className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      selectedLanguage={selectedLanguage}
+                      onUpdate={updateTask}
+                      onDelete={deleteTask}
+                    />
                   ))}
                 </TabsContent>
               </Tabs>
@@ -219,6 +187,7 @@ const MaidTasks = () => {
                   value={newTaskName}
                   onChange={(e) => setNewTaskName(e.target.value)}
                   className="flex-grow"
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddNewTask()}
                 />
                 <Button 
                   onClick={handleAddNewTask} 
@@ -230,27 +199,29 @@ const MaidTasks = () => {
             </CardContent>
           </Card>
 
-          <WhatsAppReminder selectedTasks={selectedTasks} />
-          
-          <WhatsAppMaidReminder selectedTasks={selectedTasks} />
-          
           <Card>
             <CardHeader>
-              <CardTitle>Preview Message</CardTitle>
-              <CardDescription>This is what will be sent to your maid</CardDescription>
+              <CardTitle>WhatsApp Message Settings</CardTitle>
+              <CardDescription>Configure language and preview your message</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              <LanguageSelector 
+                selectedLanguage={selectedLanguage}
+                onLanguageChange={setSelectedLanguage}
+              />
+              
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <p className="font-medium mb-2">Today's Battle Plan for MaidEasy 🧹:</p>
-                <ul className="list-disc pl-6 space-y-1">
-                  {selectedTasks.map((task) => (
-                    <li key={task.id}>{task.title}</li>
-                  ))}
-                </ul>
-                <p className="mt-4 text-gray-600">Let's roll! 💪</p>
+                <p className="font-medium mb-2">Message Preview:</p>
+                <p className="text-sm text-gray-600 whitespace-pre-line">
+                  {selectedTasks.length > 0 ? generateWhatsAppMessage() : 'No tasks selected'}
+                </p>
               </div>
             </CardContent>
           </Card>
+
+          <WhatsAppReminder selectedTasks={selectedTasks} />
+          
+          <WhatsAppMaidReminder selectedTasks={selectedTasks} />
         </div>
         
         <div className="md:col-span-1 space-y-6">
@@ -269,14 +240,6 @@ const MaidTasks = () => {
                     readOnly
                     className="bg-gray-100"
                   />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch 
-                    id="auto-send" 
-                    checked={maidContact?.auto_send || false}
-                    disabled
-                  />
-                  <Label htmlFor="auto-send">Auto-send daily at {maidContact?.send_time || '08:00'}</Label>
                 </div>
               </div>
             </CardContent>
@@ -301,7 +264,7 @@ const MaidTasks = () => {
                       size="sm" 
                       className="h-8"
                     >
-                      <Check className="w-4 h-4" />
+                      Apply
                     </Button>
                   </div>
                 ))}
