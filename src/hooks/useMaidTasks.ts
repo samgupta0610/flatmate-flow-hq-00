@@ -25,16 +25,25 @@ export const useMaidTasks = () => {
 
     const fetchTasks = async () => {
       try {
+        setError(null);
+        console.log('Fetching tasks for user:', user.id);
+        
         const { data, error } = await supabase
           .from('maid_tasks')
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: true });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
+        
+        console.log('Fetched tasks:', data);
         setTasks(data || []);
       } catch (err: any) {
-        setError(err.message);
+        console.error('Error fetching tasks:', err);
+        setError(err.message || 'Failed to load tasks');
       } finally {
         setLoading(false);
       }
@@ -44,20 +53,28 @@ export const useMaidTasks = () => {
   }, [user]);
 
   const updateTask = async (taskId: string, updates: Partial<MaidTask>) => {
+    if (!user) return;
+
     try {
+      console.log('Updating task:', taskId, updates);
+      
       const { error } = await supabase
         .from('maid_tasks')
         .update(updates)
         .eq('id', taskId)
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Update error:', error);
+        throw error;
+      }
 
       setTasks(tasks.map(task => 
         task.id === taskId ? { ...task, ...updates } : task
       ));
     } catch (err: any) {
-      setError(err.message);
+      console.error('Error updating task:', err);
+      setError(err.message || 'Failed to update task');
     }
   };
 
@@ -65,36 +82,55 @@ export const useMaidTasks = () => {
     if (!user) return;
 
     try {
+      console.log('Adding task:', title, category);
+      setError(null);
+      
       const { data, error } = await supabase
         .from('maid_tasks')
         .insert({
           user_id: user.id,
           title,
           category,
-          selected: true
+          selected: true,
+          completed: false
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Insert error:', error);
+        throw error;
+      }
+      
+      console.log('Added task:', data);
       setTasks([...tasks, data]);
     } catch (err: any) {
-      setError(err.message);
+      console.error('Error adding task:', err);
+      setError(err.message || 'Failed to add task');
     }
   };
 
   const deleteTask = async (taskId: string) => {
+    if (!user) return;
+
     try {
+      console.log('Deleting task:', taskId);
+      
       const { error } = await supabase
         .from('maid_tasks')
         .delete()
         .eq('id', taskId)
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Delete error:', error);
+        throw error;
+      }
+      
       setTasks(tasks.filter(task => task.id !== taskId));
     } catch (err: any) {
-      setError(err.message);
+      console.error('Error deleting task:', err);
+      setError(err.message || 'Failed to delete task');
     }
   };
 

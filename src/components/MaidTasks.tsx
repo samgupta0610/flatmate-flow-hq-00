@@ -27,7 +27,7 @@ const MaidTasks = () => {
   const [sendingInstructions, setSendingInstructions] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('english');
   const [activeCategory, setActiveCategory] = useState('daily');
-  const { tasks, loading, updateTask, addTask, deleteTask } = useMaidTasks();
+  const { tasks, loading, error, updateTask, addTask, deleteTask } = useMaidTasks();
   const { maidContact } = useMaidContact();
   
   // Mock templates data - in a real app, this would come from the database
@@ -97,17 +97,31 @@ const MaidTasks = () => {
       });
       return;
     }
+
+    // Generate WhatsApp message and open WhatsApp
+    const message = generateWhatsAppMessage(selectedTasks, selectedLanguage);
+    const encodedMessage = encodeURIComponent(message);
+    const phoneNumber = maidContact?.phone || '';
+    const cleanPhoneNumber = phoneNumber.replace(/[^\d+]/g, '');
+    
+    let whatsappUrl;
+    if (cleanPhoneNumber) {
+      whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhoneNumber}&text=${encodedMessage}`;
+    } else {
+      whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+    }
     
     setSendingInstructions(true);
     
     setTimeout(() => {
       setSendingInstructions(false);
+      window.open(whatsappUrl, '_blank');
       
       toast({
-        title: "Instructions Sent! ✅",
-        description: "Today's tasks have been sent to your maid via WhatsApp.",
+        title: "WhatsApp Opened! ✅",
+        description: "Message is ready to send to your maid.",
       });
-    }, 1500);
+    }, 500);
   };
 
   const selectedTasks = tasks.filter(task => task.selected && !task.completed);
@@ -126,6 +140,17 @@ const MaidTasks = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="p-4 md:p-8 pb-32 md:pb-8">
+        <div className="text-center py-8">
+          <p className="text-red-500 mb-4">Error loading tasks: {error}</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-8 pb-32 md:pb-8">
       <div className="flex flex-col md:flex-row justify-between items-start mb-6">
@@ -139,7 +164,7 @@ const MaidTasks = () => {
           disabled={sendingInstructions || selectedTasks.length === 0}
           className="mt-4 md:mt-0 bg-maideasy-blue hover:bg-maideasy-blue/90 flex items-center gap-2 sticky top-4 z-10"
         >
-          {sendingInstructions ? "Sending..." : 
+          {sendingInstructions ? "Opening WhatsApp..." : 
             <>
               <Send className="w-4 h-4" /> Send to Maid ({selectedTasks.length})
             </>
@@ -155,6 +180,22 @@ const MaidTasks = () => {
               <CardDescription>Select and manage the tasks for your maid today</CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Language Selector at the top */}
+              <div className="mb-6">
+                <LanguageSelector 
+                  selectedLanguage={selectedLanguage}
+                  onLanguageChange={setSelectedLanguage}
+                />
+              </div>
+
+              {/* WhatsApp Message Preview */}
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                <p className="font-medium mb-2">WhatsApp Message Preview:</p>
+                <p className="text-sm text-gray-600 whitespace-pre-line">
+                  {selectedTasks.length > 0 ? generateWhatsAppMessage(selectedTasks, selectedLanguage) : 'Select tasks to see message preview'}
+                </p>
+              </div>
+
               <Tabs value={activeCategory} onValueChange={setActiveCategory} className="mb-6">
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="daily">Daily</TabsTrigger>
@@ -228,26 +269,6 @@ const MaidTasks = () => {
                   </div>
                 </TabsContent>
               </Tabs>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>WhatsApp Message Settings</CardTitle>
-              <CardDescription>Configure language and preview your message</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <LanguageSelector 
-                selectedLanguage={selectedLanguage}
-                onLanguageChange={setSelectedLanguage}
-              />
-              
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <p className="font-medium mb-2">Message Preview:</p>
-                <p className="text-sm text-gray-600 whitespace-pre-line">
-                  {selectedTasks.length > 0 ? generateWhatsAppMessage(selectedTasks, selectedLanguage) : 'No tasks selected'}
-                </p>
-              </div>
             </CardContent>
           </Card>
 
