@@ -18,7 +18,9 @@ const WhatsAppMaidReminder: React.FC<WhatsAppMaidReminderProps> = ({ selectedTas
   const handleSendWhatsApp = (phoneNumber: string) => {
     if (!phoneNumber || selectedTasks.length === 0) return;
 
-    const message = generateWhatsAppMessage(selectedTasks, 'english', houseGroup?.group_name);
+    // Convert selectedTasks to the format expected by generateWhatsAppMessage
+    const tasksWithSelected = selectedTasks.map(task => ({ ...task, selected: true }));
+    const message = generateWhatsAppMessage(tasksWithSelected, 'english', houseGroup?.group_name);
     const encodedMessage = encodeURIComponent(message);
     const cleanPhoneNumber = phoneNumber.replace(/[^\d+]/g, ''); // Clean phone number
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhoneNumber}&text=${encodedMessage}`;
@@ -59,7 +61,14 @@ const WhatsAppMaidReminder: React.FC<WhatsAppMaidReminderProps> = ({ selectedTas
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <p className="font-medium mb-2">Message Preview:</p>
             <p className="text-sm text-gray-600 whitespace-pre-line">
-              {selectedTasks.length > 0 ? generateWhatsAppMessage(selectedTasks, 'english', houseGroup?.group_name) : 'No tasks selected'}
+              {selectedTasks.length > 0 ? 
+                generateWhatsAppMessage(
+                  selectedTasks.map(task => ({ ...task, selected: true })), 
+                  'english', 
+                  houseGroup?.group_name
+                ) : 
+                'No tasks selected'
+              }
             </p>
           </div>
           
