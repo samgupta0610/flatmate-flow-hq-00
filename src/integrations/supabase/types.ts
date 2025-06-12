@@ -9,13 +9,113 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      house_groups: {
+        Row: {
+          created_at: string
+          created_by: string
+          group_name: string
+          id: string
+          join_code: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          group_name: string
+          id?: string
+          join_code: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          group_name?: string
+          id?: string
+          join_code?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      maid_contacts: {
+        Row: {
+          auto_send: boolean | null
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          send_time: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_send?: boolean | null
+          created_at?: string
+          id?: string
+          name?: string
+          phone: string
+          send_time?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_send?: boolean | null
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+          send_time?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          house_group_id: string | null
+          id: string
+          phone_number: string | null
+          role: string | null
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          house_group_id?: string | null
+          id: string
+          phone_number?: string | null
+          role?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          house_group_id?: string | null
+          id?: string
+          phone_number?: string | null
+          role?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_house_group_id_fkey"
+            columns: ["house_group_id"]
+            isOneToOne: false
+            referencedRelation: "house_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_join_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
