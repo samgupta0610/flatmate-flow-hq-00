@@ -8,19 +8,12 @@ import { Send } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useMaidTasks } from '@/hooks/useMaidTasks';
 import { useMaidContact } from '@/hooks/useMaidContact';
-import WhatsAppReminder from './WhatsAppReminder';
+import { useHouseGroupInfo } from '@/hooks/useHouseGroupInfo';
 import WhatsAppMaidReminder from './WhatsAppMaidReminder';
 import TaskItem from './TaskItem';
 import LanguageSelector from './LanguageSelector';
 import SmartTaskInput from './SmartTaskInput';
-import TemplatePreview from './TemplatePreview';
 import { generateWhatsAppMessage } from '@/utils/translations';
-
-interface TaskTemplate {
-  id: number;
-  name: string;
-  tasks: Array<{ id: string; title: string; selected: boolean; category: string }>;
-}
 
 const MaidTasks = () => {
   const { toast } = useToast();
@@ -29,38 +22,7 @@ const MaidTasks = () => {
   const [activeCategory, setActiveCategory] = useState('daily');
   const { tasks, loading, error, updateTask, addTask, deleteTask } = useMaidTasks();
   const { maidContact } = useMaidContact();
-  
-  // Mock templates data - in a real app, this would come from the database
-  const [templates] = useState<TaskTemplate[]>([
-    { 
-      id: 1, 
-      name: "Regular Day", 
-      tasks: [
-        { id: '1', title: 'Clean Kitchen', selected: true, category: 'daily' },
-        { id: '2', title: 'Sweep the floor', selected: true, category: 'daily' },
-        { id: '3', title: 'Wash utensils', selected: true, category: 'daily' }
-      ]
-    },
-    { 
-      id: 2, 
-      name: "Deep Clean Day", 
-      tasks: [
-        { id: '1', title: 'Clean Bathroom', selected: true, category: 'daily' },
-        { id: '2', title: 'Mopping', selected: true, category: 'daily' },
-        { id: '3', title: 'Dusting', selected: true, category: 'daily' },
-        { id: '4', title: 'Vacuum', selected: true, category: 'weekly' }
-      ]
-    },
-    { 
-      id: 3, 
-      name: "Monthly Maintenance", 
-      tasks: [
-        { id: '1', title: 'Organize closet', selected: true, category: 'monthly' },
-        { id: '2', title: 'Deep clean windows', selected: true, category: 'monthly' },
-        { id: '3', title: 'Clean appliances', selected: true, category: 'monthly' }
-      ]
-    },
-  ]);
+  const { houseGroup } = useHouseGroupInfo();
   
   const handleAddNewTask = async (taskTitle: string) => {
     await addTask(taskTitle, activeCategory);
@@ -68,21 +30,6 @@ const MaidTasks = () => {
     toast({
       title: "Task Added! ✨",
       description: `${taskTitle} has been added to your ${activeCategory} tasks.`,
-    });
-  };
-  
-  const applyTemplate = async (templateId: number) => {
-    const template = templates.find(t => t.id === templateId);
-    if (!template) return;
-    
-    // Add template tasks to the current category
-    for (const task of template.tasks) {
-      await addTask(task.title, activeCategory);
-    }
-    
-    toast({
-      title: "Template Applied! 🎯",
-      description: `${template.name} template has been applied to your ${activeCategory} tasks.`,
     });
   };
   
@@ -99,7 +46,7 @@ const MaidTasks = () => {
     }
 
     // Generate WhatsApp message and open WhatsApp
-    const message = generateWhatsAppMessage(selectedTasks, selectedLanguage);
+    const message = generateWhatsAppMessage(selectedTasks, selectedLanguage, houseGroup?.group_name);
     const encodedMessage = encodeURIComponent(message);
     const phoneNumber = maidContact?.phone || '';
     const cleanPhoneNumber = phoneNumber.replace(/[^\d+]/g, '');
@@ -132,7 +79,7 @@ const MaidTasks = () => {
       <div className="p-4 md:p-8 pb-32 md:pb-8">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-maideasy-blue mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-maideasy-primary mx-auto mb-4"></div>
             <p>Loading tasks...</p>
           </div>
         </div>
@@ -155,14 +102,14 @@ const MaidTasks = () => {
     <div className="p-4 md:p-8 pb-32 md:pb-8">
       <div className="flex flex-col md:flex-row justify-between items-start mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-maideasy-navy">Maid Tasks</h1>
+          <h1 className="text-3xl font-bold text-maideasy-secondary">Maid Tasks</h1>
           <p className="text-gray-500 mt-1">Manage your maid's daily tasks</p>
         </div>
         
         <Button 
           onClick={sendToMaid} 
           disabled={sendingInstructions || selectedTasks.length === 0}
-          className="mt-4 md:mt-0 bg-maideasy-blue hover:bg-maideasy-blue/90 flex items-center gap-2 sticky top-4 z-10"
+          className="mt-4 md:mt-0 bg-maideasy-primary hover:bg-maideasy-primary/90 flex items-center gap-2 sticky top-4 z-10"
         >
           {sendingInstructions ? "Opening WhatsApp..." : 
             <>
@@ -186,14 +133,6 @@ const MaidTasks = () => {
                   selectedLanguage={selectedLanguage}
                   onLanguageChange={setSelectedLanguage}
                 />
-              </div>
-
-              {/* WhatsApp Message Preview */}
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-                <p className="font-medium mb-2">WhatsApp Message Preview:</p>
-                <p className="text-sm text-gray-600 whitespace-pre-line">
-                  {selectedTasks.length > 0 ? generateWhatsAppMessage(selectedTasks, selectedLanguage) : 'Select tasks to see message preview'}
-                </p>
               </div>
 
               <Tabs value={activeCategory} onValueChange={setActiveCategory} className="mb-6">
@@ -223,6 +162,16 @@ const MaidTasks = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* WhatsApp Message Preview - moved here after task list */}
+                  {selectedTasks.length > 0 && (
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-6">
+                      <p className="font-medium mb-2">WhatsApp Message Preview:</p>
+                      <p className="text-sm text-gray-600 whitespace-pre-line">
+                        {generateWhatsAppMessage(selectedTasks, selectedLanguage, houseGroup?.group_name)}
+                      </p>
+                    </div>
+                  )}
                 </TabsContent>
                 
                 <TabsContent value="weekly" className="mt-4 space-y-4">
@@ -245,6 +194,16 @@ const MaidTasks = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* WhatsApp Message Preview for weekly */}
+                  {selectedTasks.length > 0 && (
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-6">
+                      <p className="font-medium mb-2">WhatsApp Message Preview:</p>
+                      <p className="text-sm text-gray-600 whitespace-pre-line">
+                        {generateWhatsAppMessage(selectedTasks, selectedLanguage, houseGroup?.group_name)}
+                      </p>
+                    </div>
+                  )}
                 </TabsContent>
                 
                 <TabsContent value="monthly" className="mt-4 space-y-4">
@@ -267,13 +226,21 @@ const MaidTasks = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* WhatsApp Message Preview for monthly */}
+                  {selectedTasks.length > 0 && (
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-6">
+                      <p className="font-medium mb-2">WhatsApp Message Preview:</p>
+                      <p className="text-sm text-gray-600 whitespace-pre-line">
+                        {generateWhatsAppMessage(selectedTasks, selectedLanguage, houseGroup?.group_name)}
+                      </p>
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
             </CardContent>
           </Card>
 
-          <WhatsAppReminder selectedTasks={selectedTasks} />
-          
           <WhatsAppMaidReminder selectedTasks={selectedTasks} />
         </div>
         
@@ -291,24 +258,6 @@ const MaidTasks = () => {
                     {maidContact?.phone || 'Not set yet'}
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Task Templates</CardTitle>
-              <CardDescription>Quick-apply predefined task sets</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {templates.map((template) => (
-                  <TemplatePreview
-                    key={template.id}
-                    template={template}
-                    onApply={applyTemplate}
-                  />
-                ))}
               </div>
             </CardContent>
           </Card>

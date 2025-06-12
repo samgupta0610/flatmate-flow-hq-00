@@ -158,7 +158,11 @@ export const getTranslatedMessage = (message: string, language: string): string 
   return translatedMessage;
 };
 
-export const generateWhatsAppMessage = (tasks: Array<{ title: string; selected: boolean }>, language: string): string => {
+export const generateWhatsAppMessage = (
+  tasks: Array<{ title: string; selected: boolean }>, 
+  language: string, 
+  groupName?: string
+): string => {
   const selectedTasks = tasks.filter(task => task.selected);
   
   if (selectedTasks.length === 0) return 'No tasks selected';
@@ -173,9 +177,16 @@ export const generateWhatsAppMessage = (tasks: Array<{ title: string; selected: 
     if (language === 'english') {
       return `${emoji} ${task.title}`;
     } else {
-      return `${emoji} ${task.title} | ${translatedTask}`;
+      return `${emoji} ${translatedTask} || ${task.title}`;
     }
   }).join('\n');
 
-  return `${greeting}\n${taskList}\n\n${closing}`;
+  let message = `${greeting}\n\n${taskList}\n\n${closing}`;
+  
+  // Add group name if provided
+  if (groupName) {
+    message += `\n\nGroup: ${groupName}`;
+  }
+  
+  return message;
 };

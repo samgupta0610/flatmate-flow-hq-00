@@ -4,22 +4,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Home, Users, Copy, Check } from 'lucide-react';
+import { Home, Users, Copy, Check, User } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useHouseGroup } from '@/hooks/useHouseGroup';
+import { useProfile } from '@/hooks/useProfile';
 
 interface HouseGroupOnboardingProps {
   onComplete: () => void;
 }
 
 const HouseGroupOnboarding: React.FC<HouseGroupOnboardingProps> = ({ onComplete }) => {
-  const [step, setStep] = useState<'choose' | 'create' | 'join' | 'success'>('choose');
+  const [step, setStep] = useState<'name' | 'choose' | 'create' | 'join' | 'success'>('name');
+  const [userName, setUserName] = useState('');
   const [groupName, setGroupName] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [createdCode, setCreatedCode] = useState('');
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
   const { createHouseGroup, joinHouseGroup, loading, error } = useHouseGroup();
+  const { updateProfile } = useProfile();
+
+  const handleNameSubmit = async () => {
+    if (!userName.trim()) return;
+    
+    // Save the user name to profile
+    await updateProfile({ username: userName.trim() });
+    setStep('choose');
+  };
 
   const handleCreateGroup = async () => {
     if (!groupName.trim()) return;
@@ -66,13 +77,52 @@ const HouseGroupOnboarding: React.FC<HouseGroupOnboardingProps> = ({ onComplete 
     }
   };
 
+  // New name collection step
+  if (step === 'name') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-maideasy-background p-4">
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-maideasy-secondary">
+              Welcome to MaidEasy! 👋
+            </CardTitle>
+            <CardDescription>
+              Let's start by getting to know you
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="userName">What's your name?</Label>
+              <Input
+                id="userName"
+                placeholder="Enter your name"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                className="text-base h-12"
+              />
+            </div>
+            
+            <Button
+              onClick={handleNameSubmit}
+              disabled={!userName.trim()}
+              className="w-full h-12 bg-maideasy-primary hover:bg-maideasy-primary/90 text-white font-medium text-base shadow-lg"
+            >
+              <User className="w-5 h-5 mr-2" />
+              Continue
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (step === 'choose') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-maideasy-background p-4">
         <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-maideasy-navy">
-              Join or Create House Group
+            <CardTitle className="text-2xl font-bold text-maideasy-secondary">
+              Hi {userName}! 👋
             </CardTitle>
             <CardDescription>
               Connect with your housemates to share tasks and manage your home together
@@ -81,7 +131,7 @@ const HouseGroupOnboarding: React.FC<HouseGroupOnboardingProps> = ({ onComplete 
           <CardContent className="space-y-4">
             <Button
               onClick={() => setStep('create')}
-              className="w-full h-16 bg-maideasy-blue hover:bg-maideasy-blue/90 flex items-center gap-3"
+              className="w-full h-16 bg-maideasy-primary hover:bg-maideasy-primary/90 text-white font-medium shadow-lg flex items-center gap-3"
             >
               <Home className="w-6 h-6" />
               <div className="text-left">
@@ -93,7 +143,7 @@ const HouseGroupOnboarding: React.FC<HouseGroupOnboardingProps> = ({ onComplete 
             <Button
               onClick={() => setStep('join')}
               variant="outline"
-              className="w-full h-16 border-2 border-maideasy-blue text-maideasy-blue hover:bg-maideasy-blue hover:text-white flex items-center gap-3"
+              className="w-full h-16 border-2 border-maideasy-primary text-maideasy-primary hover:bg-maideasy-primary hover:text-white font-medium shadow-lg flex items-center gap-3"
             >
               <Users className="w-6 h-6" />
               <div className="text-left">
@@ -112,7 +162,7 @@ const HouseGroupOnboarding: React.FC<HouseGroupOnboardingProps> = ({ onComplete 
       <div className="min-h-screen flex items-center justify-center bg-maideasy-background p-4">
         <Card className="w-full max-w-md shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xl font-bold text-maideasy-navy">Create House Group</CardTitle>
+            <CardTitle className="text-xl font-bold text-maideasy-secondary">Create House Group</CardTitle>
             <CardDescription>
               Give your house group a name that everyone will recognize
             </CardDescription>
@@ -137,14 +187,14 @@ const HouseGroupOnboarding: React.FC<HouseGroupOnboardingProps> = ({ onComplete 
               <Button
                 variant="outline"
                 onClick={() => setStep('choose')}
-                className="flex-1"
+                className="flex-1 h-12 font-medium"
               >
                 Back
               </Button>
               <Button
                 onClick={handleCreateGroup}
                 disabled={!groupName.trim() || loading}
-                className="flex-1 bg-maideasy-blue hover:bg-maideasy-blue/90"
+                className="flex-1 h-12 bg-maideasy-primary hover:bg-maideasy-primary/90 text-white font-medium shadow-lg"
               >
                 {loading ? 'Creating...' : 'Create Group'}
               </Button>
@@ -160,7 +210,7 @@ const HouseGroupOnboarding: React.FC<HouseGroupOnboardingProps> = ({ onComplete 
       <div className="min-h-screen flex items-center justify-center bg-maideasy-background p-4">
         <Card className="w-full max-w-md shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xl font-bold text-maideasy-navy">Join House Group</CardTitle>
+            <CardTitle className="text-xl font-bold text-maideasy-secondary">Join House Group</CardTitle>
             <CardDescription>
               Enter the 6-character code shared by your housemate
             </CardDescription>
@@ -186,14 +236,14 @@ const HouseGroupOnboarding: React.FC<HouseGroupOnboardingProps> = ({ onComplete 
               <Button
                 variant="outline"
                 onClick={() => setStep('choose')}
-                className="flex-1"
+                className="flex-1 h-12 font-medium"
               >
                 Back
               </Button>
               <Button
                 onClick={handleJoinGroup}
                 disabled={joinCode.length !== 6 || loading}
-                className="flex-1 bg-maideasy-blue hover:bg-maideasy-blue/90"
+                className="flex-1 h-12 bg-maideasy-primary hover:bg-maideasy-primary/90 text-white font-medium shadow-lg"
               >
                 {loading ? 'Joining...' : 'Join Group'}
               </Button>
@@ -209,7 +259,7 @@ const HouseGroupOnboarding: React.FC<HouseGroupOnboardingProps> = ({ onComplete 
       <div className="min-h-screen flex items-center justify-center bg-maideasy-background p-4">
         <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="text-center">
-            <CardTitle className="text-xl font-bold text-maideasy-navy">
+            <CardTitle className="text-xl font-bold text-maideasy-secondary">
               House Group Created! 🎉
             </CardTitle>
             <CardDescription>
@@ -218,14 +268,14 @@ const HouseGroupOnboarding: React.FC<HouseGroupOnboardingProps> = ({ onComplete 
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300 text-center">
-              <div className="text-2xl font-mono font-bold text-maideasy-navy tracking-wider">
+              <div className="text-2xl font-mono font-bold text-maideasy-secondary tracking-wider">
                 {createdCode}
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={copyToClipboard}
-                className="mt-2 text-maideasy-blue hover:text-maideasy-blue/80"
+                className="mt-2 text-maideasy-primary hover:text-maideasy-primary/80"
               >
                 {copied ? (
                   <>
@@ -243,7 +293,7 @@ const HouseGroupOnboarding: React.FC<HouseGroupOnboardingProps> = ({ onComplete 
             
             <Button
               onClick={onComplete}
-              className="w-full bg-maideasy-blue hover:bg-maideasy-blue/90"
+              className="w-full h-12 bg-maideasy-primary hover:bg-maideasy-primary/90 text-white font-medium shadow-lg"
             >
               Continue to MaidEasy
             </Button>

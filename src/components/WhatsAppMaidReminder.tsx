@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageCircle } from 'lucide-react';
 import { useMaidProfiles } from '@/hooks/useMaidProfiles';
+import { useHouseGroupInfo } from '@/hooks/useHouseGroupInfo';
+import { generateWhatsAppMessage } from '@/utils/translations';
 
 interface WhatsAppMaidReminderProps {
   selectedTasks: Array<{ title: string }>;
@@ -11,19 +13,12 @@ interface WhatsAppMaidReminderProps {
 
 const WhatsAppMaidReminder: React.FC<WhatsAppMaidReminderProps> = ({ selectedTasks }) => {
   const { maidProfiles, loading } = useMaidProfiles();
-
-  const generateWhatsAppMessage = () => {
-    const taskList = selectedTasks
-      .map((task, index) => `${index + 1}. ${task.title}`)
-      .join('\n');
-    
-    return `Good morning! Here are your tasks for today:\n${taskList}`;
-  };
+  const { houseGroup } = useHouseGroupInfo();
 
   const handleSendWhatsApp = (phoneNumber: string) => {
     if (!phoneNumber || selectedTasks.length === 0) return;
 
-    const message = generateWhatsAppMessage();
+    const message = generateWhatsAppMessage(selectedTasks, 'english', houseGroup?.group_name);
     const encodedMessage = encodeURIComponent(message);
     const cleanPhoneNumber = phoneNumber.replace(/[^\d+]/g, ''); // Clean phone number
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhoneNumber}&text=${encodedMessage}`;
@@ -64,7 +59,7 @@ const WhatsAppMaidReminder: React.FC<WhatsAppMaidReminderProps> = ({ selectedTas
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <p className="font-medium mb-2">Message Preview:</p>
             <p className="text-sm text-gray-600 whitespace-pre-line">
-              {selectedTasks.length > 0 ? generateWhatsAppMessage() : 'No tasks selected'}
+              {selectedTasks.length > 0 ? generateWhatsAppMessage(selectedTasks, 'english', houseGroup?.group_name) : 'No tasks selected'}
             </p>
           </div>
           
