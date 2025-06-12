@@ -21,7 +21,7 @@ export const taskTranslations: TaskTranslations = {
   'Sweep the floor': {
     hindi: 'फर्श पर झाड़ू लगाएं',
     kannada: 'ನೆಲವನ್ನು ಗುಡಿಸಿ',
-    telugu: 'నేలను ఊడ్చండి'
+    telugu: 'నేలను ఊడ್చండి'
   },
   'Wash utensils': {
     hindi: 'बर्तन धोएं',
@@ -60,6 +60,65 @@ export const taskTranslations: TaskTranslations = {
   }
 };
 
+// Grocery item translations
+export const groceryTranslations: TaskTranslations = {
+  'Onions': {
+    hindi: 'प्याज',
+    kannada: 'ಈರುಳ್ಳಿ',
+    telugu: 'ఉల్లిపాయలు'
+  },
+  'Milk': {
+    hindi: 'दूध',
+    kannada: 'ಹಾಲು',
+    telugu: 'పాలు'
+  },
+  'Butter': {
+    hindi: 'मक्खन',
+    kannada: 'ಬೆಣ್ಣೆ',
+    telugu: 'వెన్న'
+  },
+  'Rice': {
+    hindi: 'चावल',
+    kannada: 'ಅಕ್ಕಿ',
+    telugu: 'బియ్యం'
+  },
+  'Tomatoes': {
+    hindi: 'टमाटर',
+    kannada: 'ಟೊಮಾಟೊ',
+    telugu: 'టమాటాలు'
+  },
+  'Apples': {
+    hindi: 'सेब',
+    kannada: 'ಸೇಬು',
+    telugu: 'ఆపిల్స్'
+  },
+  'Bread': {
+    hindi: 'ब्रेड',
+    kannada: 'ಬ್ರೆಡ್',
+    telugu: 'బ్రెడ్'
+  },
+  'Potatoes': {
+    hindi: 'आलू',
+    kannada: 'ಆಲೂಗಡ್ಡೆ',
+    telugu: 'బంగాళదుంపలు'
+  },
+  'Oil': {
+    hindi: 'तेल',
+    kannada: 'ಎಣ್ಣೆ',
+    telugu: 'నూనె'
+  },
+  'Sugar': {
+    hindi: 'चीनी',
+    kannada: 'ಸಕ್ಕರೆ',
+    telugu: 'చక్కెర'
+  },
+  'Salt': {
+    hindi: 'नमक',
+    kannada: 'ಉಪ್ಪು',
+    telugu: 'ఉప్పు'
+  }
+};
+
 // Common task suggestions with emojis
 export const taskSuggestions = [
   { text: 'Clean Kitchen', emoji: '🍽️' },
@@ -91,6 +150,24 @@ export const getTranslatedTask = (task: string, language: string): string => {
   }
 };
 
+export const getTranslatedGroceryItem = (item: string, language: string): string => {
+  if (language === 'english') return item;
+  
+  const translation = groceryTranslations[item];
+  if (!translation) return item;
+  
+  switch (language) {
+    case 'hindi':
+      return translation.hindi;
+    case 'kannada':
+      return translation.kannada;
+    case 'telugu':
+      return translation.telugu;
+    default:
+      return item;
+  }
+};
+
 export const getTaskEmoji = (task: string): string => {
   const suggestion = taskSuggestions.find(s => s.text.toLowerCase().includes(task.toLowerCase()));
   return suggestion?.emoji || '✨';
@@ -114,6 +191,16 @@ export const getTranslatedClosing = (language: string): string => {
     telugu: 'పూర్తయ్యాక దయచేసి తెలపండి। ధన్యవాదాలు! 🙏'
   };
   return closings[language as keyof typeof closings] || closings.english;
+};
+
+export const getTranslatedGroceryGreeting = (language: string): string => {
+  const greetings = {
+    english: 'Hello! Here is my grocery list:',
+    hindi: 'नमस्ते! यहाँ मेरी किराने की सूची है:',
+    kannada: 'ನಮಸ್ಕಾರ! ಇಲ್ಲಿ ನನ್ನ ಕಿರಾಣಿ ಪಟ್ಟಿ ಇದೆ:',
+    telugu: 'నమస్కారం! ఇది నా కిరాణా జాబితా:'
+  };
+  return greetings[language as keyof typeof greetings] || greetings.english;
 };
 
 export const getTranslatedMessage = (message: string, language: string): string => {
@@ -182,6 +269,36 @@ export const generateWhatsAppMessage = (
   }).join('\n');
 
   let message = `${greeting}\n\n${taskList}\n\n${closing}`;
+  
+  // Add group name if provided
+  if (groupName) {
+    message += `\n\nGroup: ${groupName}`;
+  }
+  
+  return message;
+};
+
+export const generateGroceryWhatsAppMessage = (
+  items: Array<{ name: string; quantity: string; unit: string }>, 
+  language: string, 
+  groupName?: string
+): string => {
+  if (items.length === 0) return 'No items in cart';
+
+  const greeting = getTranslatedGroceryGreeting(language);
+  const closing = getTranslatedClosing(language);
+  
+  const itemList = items.map(item => {
+    const translatedItem = getTranslatedGroceryItem(item.name, language);
+    
+    if (language === 'english') {
+      return `• ${item.name} - ${item.quantity} ${item.unit}`;
+    } else {
+      return `• ${translatedItem} || ${item.name} - ${item.quantity} ${item.unit}`;
+    }
+  }).join('\n');
+
+  let message = `${greeting}\n\n${itemList}\n\n${closing}`;
   
   // Add group name if provided
   if (groupName) {

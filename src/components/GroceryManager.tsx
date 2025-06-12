@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShoppingCart, Plus, Minus, Trash, Check, AlertTriangle, ClipboardCheck } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { SheetsSyncButton } from "@/components/ui/sheets-sync-button";
+import GroceryWhatsAppReminder from './GroceryWhatsAppReminder';
+import GroceryOrderLog from './GroceryOrderLog';
+import LanguageSelector from './LanguageSelector';
 
 interface GroceryItem {
   id: number;
@@ -29,6 +31,7 @@ const GroceryManager = () => {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [selectedDeliveryApp, setSelectedDeliveryApp] = useState("zepto");
   const [activeTab, setActiveTab] = useState("inventory");
+  const [selectedLanguage, setSelectedLanguage] = useState('english');
   
   const units = ["kg", "g", "pcs", "l", "ml", "packet"];
   
@@ -174,6 +177,14 @@ const GroceryManager = () => {
         <div className="md:col-span-2">
           <Card>
             <CardHeader className="pb-2">
+              {/* Language Selector */}
+              <div className="mb-4">
+                <LanguageSelector 
+                  selectedLanguage={selectedLanguage}
+                  onLanguageChange={setSelectedLanguage}
+                />
+              </div>
+              
               <Tabs defaultValue="inventory" value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="inventory">Inventory</TabsTrigger>
@@ -384,6 +395,19 @@ const GroceryManager = () => {
           
           {/* Google Sheets Sync Button */}
           <SheetsSyncButton type="grocery" />
+          
+          {/* WhatsApp Vendor Reminder */}
+          <div className="mt-6">
+            <GroceryWhatsAppReminder 
+              cartItems={cartItems} 
+              selectedLanguage={selectedLanguage}
+            />
+          </div>
+
+          {/* Grocery Order Log */}
+          <div className="mt-6">
+            <GroceryOrderLog />
+          </div>
           
           <Card className="mt-6">
             <CardHeader>
