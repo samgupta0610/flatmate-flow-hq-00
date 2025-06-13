@@ -1,4 +1,3 @@
-
 export interface TaskTranslations {
   [key: string]: {
     hindi: string;
@@ -138,6 +137,7 @@ export const getTranslatedTask = (task: string, language: string): string => {
   const translation = taskTranslations[task];
   if (!translation) {
     // For custom tasks without translations, return the original task
+    // In the future, we could implement a user-defined translation system here
     return task;
   }
   
@@ -271,7 +271,7 @@ export const generateWhatsAppMessage = (
       if (translatedTask === task.title) {
         return `${emoji} ${task.title}`;
       } else {
-        // For tasks with translations, show both
+        // For tasks with translations, show both translated and original
         return `${emoji} ${translatedTask} || ${task.title}`;
       }
     }
@@ -315,4 +315,25 @@ export const generateGroceryWhatsAppMessage = (
   }
   
   return message;
+};
+
+// Helper function to add custom translations (for future enhancement)
+export const addCustomTranslation = (
+  englishTask: string,
+  translations: { hindi?: string; kannada?: string; telugu?: string }
+) => {
+  // This could be enhanced to store custom translations in localStorage or database
+  // For now, it's a placeholder for future implementation
+  console.log(`Adding custom translation for: ${englishTask}`, translations);
+};
+
+// Function to get all unique task names for suggestions
+export const getAllTaskNames = (tasks: Array<{ title: string }>): string[] => {
+  const allTasks = [
+    ...taskSuggestions.map(s => s.text),
+    ...tasks.map(t => t.title)
+  ];
+  
+  // Remove duplicates and return
+  return [...new Set(allTasks)];
 };

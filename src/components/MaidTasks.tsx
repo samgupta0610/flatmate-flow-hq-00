@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -136,6 +135,12 @@ const MaidTasks = () => {
       </div>
     );
   }
+
+  // Prepare existing tasks for suggestions
+  const existingTasksForSuggestions = tasks.map(task => ({
+    title: task.title,
+    id: task.id
+  }));
 
   return (
     <div className="p-3 md:p-8 pb-32 md:pb-8 max-w-4xl mx-auto">
@@ -313,6 +318,7 @@ const MaidTasks = () => {
         isOpen={showAddTaskModal}
         onClose={() => setShowAddTaskModal(false)}
         onSave={handleAddTask}
+        existingTasks={existingTasksForSuggestions}
       />
     </div>
   );

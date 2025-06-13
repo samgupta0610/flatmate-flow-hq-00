@@ -17,14 +17,21 @@ interface AddTaskModalProps {
     category: string;
     remarks: string;
   }) => Promise<void>;
+  existingTasks?: Array<{ title: string; id: string }>;
 }
 
-const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave }) => {
+const AddTaskModal: React.FC<AddTaskModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  onSave, 
+  existingTasks = [] 
+}) => {
   const [taskName, setTaskName] = useState('');
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [category, setCategory] = useState('cleaning');
+  const [category, setCategory] = useState('common_area');
   const [remarks, setRemarks] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const weekdays = [
     { id: 'monday', label: 'M' },
@@ -37,11 +44,19 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave }) 
   ];
 
   const categories = [
-    { value: 'cleaning', label: 'Cleaning', icon: '🧹' },
-    { value: 'cooking', label: 'Cooking', icon: '👩‍🍳' },
+    { value: 'kitchen', label: 'Kitchen', icon: '🍽️' },
+    { value: 'washroom', label: 'Washroom/Bathroom', icon: '🚿' },
+    { value: 'bedroom', label: 'Bedroom', icon: '🛏️' },
+    { value: 'living_room', label: 'Living Room', icon: '🛋️' },
+    { value: 'common_area', label: 'Common Area', icon: '🏠' },
     { value: 'laundry', label: 'Laundry', icon: '👔' },
+    { value: 'personal', label: 'Personal Care', icon: '🧴' },
     { value: 'other', label: 'Other', icon: '📝' }
   ];
+
+  const filteredTasks = existingTasks.filter(task => 
+    task.title.toLowerCase().includes(taskName.toLowerCase())
+  ).slice(0, 5);
 
   const toggleDay = (dayId: string) => {
     setSelectedDays(prev => 
@@ -66,7 +81,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave }) 
       // Reset form
       setTaskName('');
       setSelectedDays([]);
-      setCategory('cleaning');
+      setCategory('common_area');
       setRemarks('');
       onClose();
     } catch (error) {
@@ -87,16 +102,41 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave }) 
         </DialogHeader>
         
         <div className="space-y-4">
-          {/* Task Name */}
-          <div className="space-y-2">
+          {/* Task Name with Suggestions */}
+          <div className="space-y-2 relative">
             <Label htmlFor="task-name">Task Name</Label>
             <Input
               id="task-name"
               value={taskName}
-              onChange={(e) => setTaskName(e.target.value)}
+              onChange={(e) => {
+                setTaskName(e.target.value);
+                setShowSuggestions(e.target.value.length > 0);
+              }}
+              onFocus={() => setShowSuggestions(taskName.length > 0)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               placeholder="Enter task name..."
               className="w-full"
             />
+            
+            {/* Task Suggestions */}
+            {showSuggestions && filteredTasks.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-32 overflow-y-auto">
+                {filteredTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center gap-2"
+                    onClick={() => {
+                      setTaskName(task.title);
+                      setShowSuggestions(false);
+                    }}
+                  >
+                    <span className="text-blue-600">📋</span>
+                    <span>{task.title}</span>
+                    <span className="text-xs text-gray-400 ml-auto">existing</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Weekday Selectors */}
@@ -122,7 +162,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave }) 
 
           {/* Category */}
           <div className="space-y-2">
-            <Label>Category</Label>
+            <Label>Room/Area</Label>
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger>
                 <SelectValue />
