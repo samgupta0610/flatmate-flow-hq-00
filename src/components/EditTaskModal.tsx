@@ -18,6 +18,7 @@ interface MaidTask {
   task_category?: string;
   remarks?: string;
   favorite?: boolean;
+  optional?: boolean;
 }
 
 interface EditTaskModalProps {
