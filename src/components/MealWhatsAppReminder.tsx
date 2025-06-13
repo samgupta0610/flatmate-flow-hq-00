@@ -2,13 +2,14 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, AlertCircle, Settings } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useHouseholdContacts } from '@/hooks/useHouseholdContacts';
 import LanguageSelector from './LanguageSelector';
 import MessagePreview from './MessagePreview';
 import { getTranslatedMessage } from '@/utils/translations';
+import ContactDropdown from './ContactDropdown';
+import { Link } from 'react-router-dom';
 
 interface MealWhatsAppReminderProps {
   mealPlan: any;
@@ -17,10 +18,14 @@ interface MealWhatsAppReminderProps {
 
 const MealWhatsAppReminder: React.FC<MealWhatsAppReminderProps> = ({ mealPlan, selectedDay }) => {
   const [selectedLanguage, setSelectedLanguage] = useState('english');
-  const [contactNumber, setContactNumber] = useState('');
+  const [selectedContact, setSelectedContact] = useState<any>(null);
   const [isEditingMessage, setIsEditingMessage] = useState(false);
   const [customMessage, setCustomMessage] = useState('');
   const { toast } = useToast();
+  const { contacts, loading } = useHouseholdContacts();
+
+  // Filter for cook contacts only
+  const cookContacts = contacts.filter(contact => contact.contact_type === 'cook');
 
   const selectedDayPlan = mealPlan.find((day: any) => day.date === selectedDay);
 
@@ -45,10 +50,10 @@ const MealWhatsAppReminder: React.FC<MealWhatsAppReminderProps> = ({ mealPlan, s
   };
 
   const handleSendMealReminder = () => {
-    if (!contactNumber.trim()) {
+    if (!selectedContact) {
       toast({
-        title: "Contact number required",
-        description: "Please enter a contact number.",
+        title: "Contact Required",
+        description: "Please select a cook contact first.",
         variant: "destructive"
       });
       return;
@@ -56,38 +61,70 @@ const MealWhatsAppReminder: React.FC<MealWhatsAppReminderProps> = ({ mealPlan, s
 
     const message = customMessage || generateMealMessage();
     const encodedMessage = encodeURIComponent(message);
-    const cleanPhoneNumber = contactNumber.replace(/[^\d+]/g, '');
+    const cleanPhoneNumber = selectedContact.phone_number.replace(/[^\d+]/g, '');
     
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhoneNumber}&text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
 
     toast({
       title: "Meal Reminder Sent!",
-      description: "WhatsApp opened with meal plan message.",
+      description: `WhatsApp message sent to ${selectedContact.name}`,
     });
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Meal WhatsApp Reminder</CardTitle>
+            <CardDescription>Loading cook contacts...</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  if (cookContacts.length === 0) {
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-orange-500" />
+              No Cook Contacts
+            </CardTitle>
+            <CardDescription>Add cook contacts in your profile to send meal plan reminders.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link to="/profile">
+              <Button variant="outline" className="w-full">
+                <Settings className="w-4 h-4 mr-2" />
+                Add Cook Contact in Profile
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      {/* Contact and Language - Half width each */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Contact and Language Selection */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
-          <Label htmlFor="contact-number" className="text-sm font-medium">
-            Contact Number
-          </Label>
-          <Input
-            id="contact-number"
-            type="tel"
-            placeholder="+919876543210"
-            value={contactNumber}
-            onChange={(e) => setContactNumber(e.target.value)}
-            className="h-8 text-sm"
+          <label className="text-sm font-medium mb-2 block">Cook Contact</label>
+          <ContactDropdown
+            contacts={cookContacts}
+            selectedContact={selectedContact}
+            onSelectContact={setSelectedContact}
+            placeholder="Choose cook contact"
+            type="household"
           />
         </div>
         <div>
-          <Label className="text-sm font-medium mb-2 block">
-            Language
-          </Label>
+          <label className="text-sm font-medium mb-2 block">Language</label>
           <LanguageSelector 
             selectedLanguage={selectedLanguage}
             onLanguageChange={setSelectedLanguage}
@@ -124,12 +161,12 @@ const MealWhatsAppReminder: React.FC<MealWhatsAppReminderProps> = ({ mealPlan, s
           <CardContent className="pt-0">
             <Button
               onClick={handleSendMealReminder}
-              disabled={!contactNumber.trim()}
+              disabled={!selectedContact}
               className="w-full h-8 text-sm"
               style={{ backgroundColor: '#25D366', color: 'white' }}
             >
               <MessageCircle className="w-3 h-3 mr-1" />
-              Send Plan
+              Send to {selectedContact ? selectedContact.name : 'Cook'}
             </Button>
           </CardContent>
         </Card>
