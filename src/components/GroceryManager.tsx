@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useGroceryList } from '@/hooks/useGroceryList';
 import GroceryMessagePreview from './GroceryMessagePreview';
 import GroceryWhatsAppReminder from './GroceryWhatsAppReminder';
@@ -19,24 +21,17 @@ const GroceryManager = () => {
     toggleInCart,
     updateQuantity,
     addNewItem,
-    deleteItem
+    deleteItem,
+    clearCart,
+    addOrderToHistory
   } = useGroceryList();
 
-  const [orderPlaced, setOrderPlaced] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('english');
+  const [vendorContact, setVendorContact] = useState('');
 
-  const placeOrder = () => {
-    setOrderPlaced(true);
-    
-    setTimeout(() => {
-      setOrderPlaced(false);
-      // Reset cart items
-      cartItems.forEach(item => toggleInCart(item.id));
-    }, 1500);
-  };
-
-  const handleWhatsAppSent = () => {
-    console.log('WhatsApp message sent, order logged');
+  const handleOrderPlaced = (orderDetails: any) => {
+    addOrderToHistory(orderDetails);
+    clearCart();
   };
 
   return (
@@ -52,27 +47,45 @@ const GroceryManager = () => {
       </div>
 
       <div className="px-4 pb-24">
-        {/* Language Selector */}
-        <div className="mb-4">
-          <LanguageSelector 
-            selectedLanguage={selectedLanguage}
-            onLanguageChange={setSelectedLanguage}
-          />
+        {/* Vendor Contact and Language */}
+        <div className="mb-4 space-y-3">
+          <div className="grid grid-cols-1 gap-3">
+            <div>
+              <Label htmlFor="vendor-contact" className="text-sm font-medium">
+                Vendor Contact Number
+              </Label>
+              <Input
+                id="vendor-contact"
+                type="tel"
+                placeholder="e.g. +919876543210"
+                value={vendorContact}
+                onChange={(e) => setVendorContact(e.target.value)}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-2 block">
+                Preferred Language
+              </Label>
+              <LanguageSelector 
+                selectedLanguage={selectedLanguage}
+                onLanguageChange={setSelectedLanguage}
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Message Preview and WhatsApp Send */}
-        <div className="mb-4">
+        {/* Message Preview and WhatsApp Send Side by Side */}
+        <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-3">
           <GroceryMessagePreview 
             cartItems={cartItems}
             selectedLanguage={selectedLanguage}
           />
-        </div>
-
-        <div className="mb-4">
           <GroceryWhatsAppReminder 
             cartItems={cartItems} 
             selectedLanguage={selectedLanguage}
-            onMessageSent={handleWhatsAppSent}
+            vendorContact={vendorContact}
+            onOrderPlaced={handleOrderPlaced}
           />
         </div>
 
@@ -94,8 +107,9 @@ const GroceryManager = () => {
               cartItems={cartItems}
               onToggleInCart={toggleInCart}
               onUpdateQuantity={updateQuantity}
-              onPlaceOrder={placeOrder}
-              orderPlaced={orderPlaced}
+              vendorContact={vendorContact}
+              selectedLanguage={selectedLanguage}
+              onOrderPlaced={handleOrderPlaced}
             />
           </TabsContent>
           

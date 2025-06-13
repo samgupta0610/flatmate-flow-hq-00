@@ -1,10 +1,8 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageCircle, ShoppingCart } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useHouseGroupInfo } from '@/hooks/useHouseGroupInfo';
 import { generateGroceryWhatsAppMessage } from '@/utils/translations';
@@ -20,24 +18,25 @@ interface GroceryItem {
 interface GroceryWhatsAppReminderProps {
   cartItems: GroceryItem[];
   selectedLanguage?: string;
-  onMessageSent?: () => void;
+  vendorContact: string;
+  onOrderPlaced?: (orderDetails: any) => void;
 }
 
 const GroceryWhatsAppReminder: React.FC<GroceryWhatsAppReminderProps> = ({ 
   cartItems, 
   selectedLanguage = 'english',
-  onMessageSent
+  vendorContact,
+  onOrderPlaced
 }) => {
-  const [vendorPhone, setVendorPhone] = useState('');
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
   const { houseGroup } = useHouseGroupInfo();
 
   const handleSendToVendor = () => {
-    if (!vendorPhone.trim()) {
+    if (!vendorContact.trim()) {
       toast({
         title: "Phone number required",
-        description: "Please enter the vendor's WhatsApp number.",
+        description: "Please enter the vendor's WhatsApp number above.",
         variant: "destructive"
       });
       return;
@@ -57,7 +56,7 @@ const GroceryWhatsAppReminder: React.FC<GroceryWhatsAppReminderProps> = ({
     // Generate and encode message
     const message = generateGroceryWhatsAppMessage(cartItems, selectedLanguage, houseGroup?.group_name);
     const encodedMessage = encodeURIComponent(message);
-    const cleanPhoneNumber = vendorPhone.replace(/[^\d+]/g, '');
+    const cleanPhoneNumber = vendorContact.replace(/[^\d+]/g, '');
     
     // Open WhatsApp
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhoneNumber}&text=${encodedMessage}`;
@@ -66,71 +65,50 @@ const GroceryWhatsAppReminder: React.FC<GroceryWhatsAppReminderProps> = ({
       setIsSending(false);
       window.open(whatsappUrl, '_blank');
       
-      // Trigger the callback to log the order
-      if (onMessageSent) {
-        onMessageSent();
+      // Create order details for history
+      const orderDetails = {
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        vendorNumber: cleanPhoneNumber,
+        cartList: cartItems.map(item => `${item.name} - ${item.quantity}${item.unit}`)
+      };
+      
+      // Trigger the callback to log the order and clear cart
+      if (onOrderPlaced) {
+        onOrderPlaced(orderDetails);
       }
       
-      // Dispatch custom event for the order log component
-      const orderEvent = new CustomEvent('groceryOrderSent', {
-        detail: {
-          items: cartItems.map(item => `${item.name} - ${item.quantity}${item.unit}`),
-          vendor: cleanPhoneNumber,
-          date: new Date().toLocaleString()
-        }
-      });
-      window.dispatchEvent(orderEvent);
-      
       toast({
-        title: "WhatsApp Opened! ✅",
-        description: "Grocery list sent to vendor and order logged.",
+        title: "Order Sent! ✅",
+        description: "Grocery order sent to vendor and added to order history.",
       });
     }, 500);
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ShoppingCart className="w-5 h-5" />
-          Send Grocery List to Local Vendor
+    <Card className="h-fit">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <MessageCircle className="w-4 h-4" />
+          WhatsApp Send
         </CardTitle>
-        <CardDescription>Share your grocery cart with your local vendor via WhatsApp</CardDescription>
+        <CardDescription className="text-xs">
+          Send cart to vendor
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="vendor-phone">Vendor's WhatsApp Number</Label>
-          <Input
-            id="vendor-phone"
-            type="tel"
-            placeholder="e.g. +919876543210"
-            value={vendorPhone}
-            onChange={(e) => setVendorPhone(e.target.value)}
-          />
-        </div>
-        
-        <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-          <p className="font-medium text-sm mb-2">Message Preview:</p>
-          <p className="text-sm text-gray-600 whitespace-pre-line">
-            {cartItems.length > 0 ? 
-              generateGroceryWhatsAppMessage(cartItems, selectedLanguage, houseGroup?.group_name) : 
-              'No items in cart'
-            }
-          </p>
-        </div>
-        
+      <CardContent className="pt-0">
         <Button
           onClick={handleSendToVendor}
-          disabled={isSending || cartItems.length === 0}
-          className="w-full"
+          disabled={isSending || cartItems.length === 0 || !vendorContact.trim()}
+          className="w-full h-8 text-sm"
           style={{ backgroundColor: '#25D366', color: 'white' }}
         >
           {isSending ? (
-            "Opening WhatsApp..."
+            "Sending..."
           ) : (
             <>
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Send to Vendor ({cartItems.length} items)
+              <MessageCircle className="w-3 h-3 mr-1" />
+              Send ({cartItems.length})
             </>
           )}
         </Button>

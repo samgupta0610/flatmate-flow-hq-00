@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 
@@ -12,6 +11,14 @@ interface GroceryItem {
   fromMealPlanner?: boolean;
   frequentlyBought?: boolean;
   remarks?: string;
+}
+
+interface OrderHistory {
+  id: number;
+  date: string;
+  time: string;
+  vendorNumber: string;
+  cartList: string[];
 }
 
 const initialGroceryItems: GroceryItem[] = [
@@ -106,6 +113,7 @@ const initialGroceryItems: GroceryItem[] = [
 
 export const useGroceryList = () => {
   const [groceryItems, setGroceryItems] = useState<GroceryItem[]>(initialGroceryItems);
+  const [orderHistory, setOrderHistory] = useState<OrderHistory[]>([]);
   const { toast } = useToast();
 
   const addItemFromMealPlanner = (mealName: string, ingredients?: string[]) => {
@@ -186,6 +194,20 @@ export const useGroceryList = () => {
     });
   };
 
+  const clearCart = () => {
+    setGroceryItems(items => items.map(item => 
+      item.inCart ? { ...item, inCart: false } : item
+    ));
+  };
+
+  const addOrderToHistory = (orderDetails: Omit<OrderHistory, 'id'>) => {
+    const newOrder: OrderHistory = {
+      id: Date.now(),
+      ...orderDetails
+    };
+    setOrderHistory(prev => [newOrder, ...prev]);
+  };
+
   const cartItems = groceryItems.filter(item => item.inCart);
   const frequentlyBoughtItems = groceryItems.filter(item => item.frequentlyBought && !item.inCart);
 
@@ -193,10 +215,13 @@ export const useGroceryList = () => {
     groceryItems,
     cartItems,
     frequentlyBoughtItems,
+    orderHistory,
     addItemFromMealPlanner,
     toggleInCart,
     updateQuantity,
     addNewItem,
-    deleteItem
+    deleteItem,
+    clearCart,
+    addOrderToHistory
   };
 };

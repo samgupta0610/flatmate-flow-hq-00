@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Minus, ShoppingCart, Trash } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, Trash, ChevronDown, ChevronUp } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface GroceryItem {
@@ -148,80 +148,80 @@ const GroceryItemsList: React.FC<GroceryItemsListProps> = ({
                 <CardHeader className="pb-2 cursor-pointer hover:bg-gray-50">
                   <CardTitle className="text-sm flex items-center justify-between">
                     <span>{categoryLabel}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {categoryItems.length} items
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        {categoryItems.length}
+                      </Badge>
+                      {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </div>
                   </CardTitle>
                 </CardHeader>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <CardContent className="pt-0 space-y-1">
-                  {categoryItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between p-2 bg-white border rounded-lg"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm font-medium truncate block">
-                          {item.name}
-                        </span>
-                        <div className="flex items-center gap-1 mt-1">
+                <CardContent className="pt-0">
+                  <div className="grid grid-cols-1 gap-2">
+                    {categoryItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between p-2 bg-white border rounded-lg hover:shadow-sm transition-shadow"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium truncate">
+                              {item.name}
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {item.quantity}{item.unit}
+                            </Badge>
+                          </div>
+                          {item.remarks && (
+                            <p className="text-xs text-gray-500 mt-1 truncate">{item.remarks}</p>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center gap-1 ml-2">
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            className="h-5 w-5 p-0"
+                            className="h-6 w-6 p-0"
                             onClick={() => {
                               const newQty = Math.max(1, parseInt(item.quantity) - 1).toString();
                               onUpdateQuantity(item.id, newQty);
                             }}
                           >
-                            <Minus className="w-2 h-2" />
+                            <Minus className="w-3 h-3" />
                           </Button>
-                          <Input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) => onUpdateQuantity(item.id, e.target.value)}
-                            className="h-5 w-12 text-xs text-center p-0"
-                            min="1"
-                          />
-                          <span className="text-xs text-gray-500">{item.unit}</span>
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            className="h-5 w-5 p-0"
+                            className="h-6 w-6 p-0"
                             onClick={() => {
                               const newQty = (parseInt(item.quantity) + 1).toString();
                               onUpdateQuantity(item.id, newQty);
                             }}
                           >
-                            <Plus className="w-2 h-2" />
+                            <Plus className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant={item.inCart ? "default" : "outline"}
+                            size="sm"
+                            className={`h-6 w-6 p-0 ${item.inCart ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                            onClick={() => onToggleInCart(item.id)}
+                          >
+                            <ShoppingCart className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-red-400 hover:text-red-600"
+                            onClick={() => onDeleteItem(item.id)}
+                          >
+                            <Trash className="w-3 h-3" />
                           </Button>
                         </div>
-                        {item.remarks && (
-                          <p className="text-xs text-gray-500 mt-1">{item.remarks}</p>
-                        )}
                       </div>
-                      
-                      <div className="flex items-center gap-1 ml-2">
-                        <Button
-                          variant={item.inCart ? "default" : "outline"}
-                          size="sm"
-                          className={`h-6 text-xs px-2 ${item.inCart ? 'bg-green-600 hover:bg-green-700' : ''}`}
-                          onClick={() => onToggleInCart(item.id)}
-                        >
-                          <ShoppingCart className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 text-red-400 hover:text-red-600"
-                          onClick={() => onDeleteItem(item.id)}
-                        >
-                          <Trash className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </CardContent>
               </CollapsibleContent>
             </Card>

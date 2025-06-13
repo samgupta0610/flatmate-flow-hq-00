@@ -1,9 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Trash, Plus, Minus } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import { useHouseGroupInfo } from '@/hooks/useHouseGroupInfo';
+import { generateGroceryWhatsAppMessage } from '@/utils/translations';
 
 interface GroceryItem {
   id: number;
@@ -18,17 +21,74 @@ interface GroceryCartProps {
   cartItems: GroceryItem[];
   onToggleInCart: (itemId: number) => void;
   onUpdateQuantity: (itemId: number, quantity: string) => void;
-  onPlaceOrder: () => void;
-  orderPlaced: boolean;
+  vendorContact: string;
+  selectedLanguage: string;
+  onOrderPlaced: (orderDetails: any) => void;
 }
 
 const GroceryCart: React.FC<GroceryCartProps> = ({
   cartItems,
   onToggleInCart,
   onUpdateQuantity,
-  onPlaceOrder,
-  orderPlaced
+  vendorContact,
+  selectedLanguage,
+  onOrderPlaced
 }) => {
+  const [isOrdering, setIsOrdering] = useState(false);
+  const { toast } = useToast();
+  const { houseGroup } = useHouseGroupInfo();
+
+  const handlePlaceOrder = () => {
+    if (!vendorContact.trim()) {
+      toast({
+        title: "Vendor contact required",
+        description: "Please enter vendor contact number above.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      toast({
+        title: "Cart is empty",
+        description: "Please add items to your cart first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsOrdering(true);
+
+    // Generate and encode message
+    const message = generateGroceryWhatsAppMessage(cartItems, selectedLanguage, houseGroup?.group_name);
+    const encodedMessage = encodeURIComponent(message);
+    const cleanPhoneNumber = vendorContact.replace(/[^\d+]/g, '');
+    
+    // Open WhatsApp
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhoneNumber}&text=${encodedMessage}`;
+    
+    setTimeout(() => {
+      setIsOrdering(false);
+      window.open(whatsappUrl, '_blank');
+      
+      // Create order details for history
+      const orderDetails = {
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        vendorNumber: cleanPhoneNumber,
+        cartList: cartItems.map(item => `${item.name} - ${item.quantity}${item.unit}`)
+      };
+      
+      // Clear cart and add to history
+      onOrderPlaced(orderDetails);
+      
+      toast({
+        title: "Order Placed! ✅",
+        description: "Order sent via WhatsApp and added to history.",
+      });
+    }, 500);
+  };
+
   if (cartItems.length === 0) {
     return (
       <Card>
@@ -53,7 +113,7 @@ const GroceryCart: React.FC<GroceryCartProps> = ({
           {cartItems.length} items ready for order
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-1">
         {cartItems.map((item) => (
           <div
             key={item.id}
@@ -105,11 +165,11 @@ const GroceryCart: React.FC<GroceryCartProps> = ({
       </CardContent>
       <CardFooter className="pt-2">
         <Button 
-          onClick={onPlaceOrder}
-          disabled={orderPlaced} 
+          onClick={handlePlaceOrder}
+          disabled={isOrdering || !vendorContact.trim()} 
           className="w-full bg-green-600 hover:bg-green-700 h-8 text-sm"
         >
-          {orderPlaced ? "Placing Order..." : `Order ${cartItems.length} Items`}
+          {isOrdering ? "Placing Order..." : `Order ${cartItems.length} Items via WhatsApp`}
         </Button>
       </CardFooter>
     </Card>
