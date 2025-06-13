@@ -94,6 +94,10 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
     );
   };
 
+  const handleFavoriteChange = (checked: boolean | "indeterminate") => {
+    setFavorite(checked === true);
+  };
+
   const handleSave = async () => {
     if (!taskName.trim() || !task) return;
     
@@ -168,7 +172,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
             <Checkbox
               id="favorite"
               checked={favorite}
-              onCheckedChange={setFavorite}
+              onCheckedChange={handleFavoriteChange}
             />
             <Label htmlFor="favorite" className="flex items-center gap-2">
               <Star className={`w-4 h-4 ${favorite ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`} />

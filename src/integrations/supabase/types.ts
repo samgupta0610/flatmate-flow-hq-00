@@ -75,6 +75,7 @@ export type Database = {
           completed: boolean | null
           created_at: string
           days_of_week: string[] | null
+          favorite: boolean | null
           id: string
           remarks: string | null
           selected: boolean | null
@@ -88,6 +89,7 @@ export type Database = {
           completed?: boolean | null
           created_at?: string
           days_of_week?: string[] | null
+          favorite?: boolean | null
           id?: string
           remarks?: string | null
           selected?: boolean | null
@@ -101,6 +103,7 @@ export type Database = {
           completed?: boolean | null
           created_at?: string
           days_of_week?: string[] | null
+          favorite?: boolean | null
           id?: string
           remarks?: string | null
           selected?: boolean | null
