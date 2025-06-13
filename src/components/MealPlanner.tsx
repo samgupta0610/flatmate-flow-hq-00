@@ -3,57 +3,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getTranslatedMessage } from '@/utils/translations';
 import { MealItem, DailyPlan, WeeklyPlan, EditFormData } from '@/types/meal';
-import { initialMealItems, daysOfWeek } from '@/constants/meal';
+import { initialMealItems, daysOfWeek, sampleWeeklyPlan } from '@/constants/meal';
 import TodaysMenu from './TodaysMenu';
 import MessagePreview from './MessagePreview';
 import WeeklyPlanner from './WeeklyPlanner';
 import FoodItemsManager from './FoodItemsManager';
-
-// Sample weekly plan data
-const sampleWeeklyPlan: WeeklyPlan = {
-  Monday: {
-    breakfast: [initialMealItems[0], initialMealItems[1]], // Idli, Dosa
-    lunch: [initialMealItems[6]], // Dal Rice
-    dinner: [initialMealItems[5], initialMealItems[7]], // Roti, Chicken Curry
-    snack: [initialMealItems[14]] // Tea
-  },
-  Tuesday: {
-    breakfast: [initialMealItems[2]], // Upma
-    lunch: [initialMealItems[8]], // Biryani
-    dinner: [initialMealItems[4], initialMealItems[11]], // Chapati, Rajma
-    snack: [initialMealItems[15]] // Coffee
-  },
-  Wednesday: {
-    breakfast: [initialMealItems[3]], // Poha
-    lunch: [initialMealItems[9]], // Chole Bhature
-    dinner: [initialMealItems[5], initialMealItems[12]], // Roti, Palak Paneer
-    snack: [initialMealItems[16]] // Samosa
-  },
-  Thursday: {
-    breakfast: [initialMealItems[0]], // Idli
-    lunch: [initialMealItems[10]], // Pav Bhaji
-    dinner: [initialMealItems[4], initialMealItems[13]], // Chapati, Fish Curry
-    snack: [initialMealItems[17]] // Biscuits
-  },
-  Friday: {
-    breakfast: [initialMealItems[1]], // Dosa
-    lunch: [initialMealItems[6]], // Dal Rice
-    dinner: [initialMealItems[5], initialMealItems[7]], // Roti, Chicken Curry
-    snack: [initialMealItems[14]] // Tea
-  },
-  Saturday: {
-    breakfast: [initialMealItems[2], initialMealItems[3]], // Upma, Poha
-    lunch: [initialMealItems[8]], // Biryani
-    dinner: [initialMealItems[9]], // Chole Bhature
-    snack: [initialMealItems[16]] // Samosa
-  },
-  Sunday: {
-    breakfast: [initialMealItems[1]], // Dosa
-    lunch: [initialMealItems[10]], // Pav Bhaji
-    dinner: [initialMealItems[4], initialMealItems[12]], // Chapati, Palak Paneer
-    snack: [initialMealItems[15]] // Coffee
-  }
-};
 
 const MealPlanner = () => {
   const { toast } = useToast();
@@ -193,6 +147,18 @@ const MealPlanner = () => {
     }));
   };
 
+  const updateMealPeopleCount = (day: string, mealType: keyof DailyPlan, mealId: number, peopleCount: number) => {
+    setWeeklyPlan(prev => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        [mealType]: prev[day][mealType].map(meal => 
+          meal.id === mealId ? { ...meal, peopleCount } : meal
+        )
+      }
+    }));
+  };
+
   const clearDay = (day: string) => {
     setWeeklyPlan(prev => ({
       ...prev,
@@ -204,16 +170,20 @@ const MealPlanner = () => {
     const meals = [];
     
     if (todaysPlan.breakfast.length > 0) {
-      meals.push(`Breakfast: ${todaysPlan.breakfast.map(m => m.name).join(', ')}`);
+      const breakfastItems = todaysPlan.breakfast.map(m => `${m.name} (${m.peopleCount || 2} people)`).join(', ');
+      meals.push(`Breakfast: ${breakfastItems}`);
     }
     if (todaysPlan.lunch.length > 0) {
-      meals.push(`Lunch: ${todaysPlan.lunch.map(m => m.name).join(', ')}`);
+      const lunchItems = todaysPlan.lunch.map(m => `${m.name} (${m.peopleCount || 2} people)`).join(', ');
+      meals.push(`Lunch: ${lunchItems}`);
     }
     if (todaysPlan.dinner.length > 0) {
-      meals.push(`Dinner: ${todaysPlan.dinner.map(m => m.name).join(', ')}`);
+      const dinnerItems = todaysPlan.dinner.map(m => `${m.name} (${m.peopleCount || 2} people)`).join(', ');
+      meals.push(`Dinner: ${dinnerItems}`);
     }
     if (todaysPlan.snack.length > 0) {
-      meals.push(`Snacks: ${todaysPlan.snack.map(m => m.name).join(', ')}`);
+      const snackItems = todaysPlan.snack.map(m => `${m.name} (${m.peopleCount || 2} people)`).join(', ');
+      meals.push(`Snacks: ${snackItems}`);
     }
 
     if (meals.length === 0) return 'No meals planned for today';
@@ -347,6 +317,7 @@ const MealPlanner = () => {
               onClearDay={clearDay}
               onAddMealToDay={addMealToDay}
               onRemoveMealFromDay={removeMealFromDay}
+              onUpdateMealPeopleCount={updateMealPeopleCount}
             />
           </TabsContent>
 

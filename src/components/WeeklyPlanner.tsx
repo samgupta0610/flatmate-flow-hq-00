@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2 } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { Trash2, Users, Edit3, Check, X } from 'lucide-react';
 import { WeeklyPlan, DailyPlan, MealItem } from '@/types/meal';
 import { daysOfWeek } from '@/constants/meal';
 
@@ -16,6 +17,7 @@ interface WeeklyPlannerProps {
   onClearDay: (day: string) => void;
   onAddMealToDay: (day: string, mealType: keyof DailyPlan, meal: MealItem) => void;
   onRemoveMealFromDay: (day: string, mealType: keyof DailyPlan, mealId: number) => void;
+  onUpdateMealPeopleCount: (day: string, mealType: keyof DailyPlan, mealId: number, peopleCount: number) => void;
 }
 
 const WeeklyPlanner: React.FC<WeeklyPlannerProps> = ({
@@ -25,8 +27,12 @@ const WeeklyPlanner: React.FC<WeeklyPlannerProps> = ({
   onDayChange,
   onClearDay,
   onAddMealToDay,
-  onRemoveMealFromDay
+  onRemoveMealFromDay,
+  onUpdateMealPeopleCount
 }) => {
+  const [editingPeopleCount, setEditingPeopleCount] = useState<{[key: string]: boolean}>({});
+  const [tempPeopleCount, setTempPeopleCount] = useState<{[key: string]: number}>({});
+
   const getTotalMealsForDay = (dayPlan: DailyPlan) => {
     return Object.values(dayPlan).reduce((total, meals) => total + meals.length, 0);
   };
@@ -38,6 +44,24 @@ const WeeklyPlanner: React.FC<WeeklyPlannerProps> = ({
   };
 
   const todayName = getTodayName();
+
+  const startEditingPeopleCount = (mealId: number, currentCount: number) => {
+    const key = `${selectedDay}-${mealId}`;
+    setEditingPeopleCount({ ...editingPeopleCount, [key]: true });
+    setTempPeopleCount({ ...tempPeopleCount, [key]: currentCount || 2 });
+  };
+
+  const saveEditingPeopleCount = (day: string, mealType: keyof DailyPlan, mealId: number) => {
+    const key = `${day}-${mealId}`;
+    const newCount = tempPeopleCount[key] || 2;
+    onUpdateMealPeopleCount(day, mealType, mealId, newCount);
+    setEditingPeopleCount({ ...editingPeopleCount, [key]: false });
+  };
+
+  const cancelEditingPeopleCount = (mealId: number) => {
+    const key = `${selectedDay}-${mealId}`;
+    setEditingPeopleCount({ ...editingPeopleCount, [key]: false });
+  };
 
   return (
     <div className="space-y-3">
@@ -94,19 +118,72 @@ const WeeklyPlanner: React.FC<WeeklyPlannerProps> = ({
               <h4 className="font-medium capitalize mb-2 text-sm">{mealType}</h4>
               
               <div className="space-y-1 mb-2">
-                {weeklyPlan[selectedDay][mealType].map(meal => (
-                  <div key={meal.id} className="flex items-center justify-between bg-gray-50 p-1.5 rounded text-xs">
-                    <span>{meal.name}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-4 w-4 p-0 text-red-400 hover:text-red-600"
-                      onClick={() => onRemoveMealFromDay(selectedDay, mealType, meal.id)}
-                    >
-                      <Trash2 className="w-2.5 h-2.5" />
-                    </Button>
-                  </div>
-                ))}
+                {weeklyPlan[selectedDay][mealType].map(meal => {
+                  const editKey = `${selectedDay}-${meal.id}`;
+                  const isEditing = editingPeopleCount[editKey];
+                  
+                  return (
+                    <div key={meal.id} className="flex items-center justify-between bg-gray-50 p-1.5 rounded text-xs">
+                      <div className="flex-1">
+                        <span className="font-medium">{meal.name}</span>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Users className="w-3 h-3 text-gray-500" />
+                          {isEditing ? (
+                            <div className="flex items-center gap-1">
+                              <Input
+                                type="number"
+                                min="1"
+                                max="20"
+                                value={tempPeopleCount[editKey] || 2}
+                                onChange={(e) => setTempPeopleCount({
+                                  ...tempPeopleCount,
+                                  [editKey]: parseInt(e.target.value) || 1
+                                })}
+                                className="w-12 h-5 text-xs p-1"
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-4 w-4 p-0 text-green-500"
+                                onClick={() => saveEditingPeopleCount(selectedDay, mealType, meal.id)}
+                              >
+                                <Check className="w-2.5 h-2.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-4 w-4 p-0 text-red-400"
+                                onClick={() => cancelEditingPeopleCount(meal.id)}
+                              >
+                                <X className="w-2.5 h-2.5" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              <span className="text-gray-600">{meal.peopleCount || 2} people</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
+                                onClick={() => startEditingPeopleCount(meal.id, meal.peopleCount || 2)}
+                              >
+                                <Edit3 className="w-2.5 h-2.5" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-4 w-4 p-0 text-red-400 hover:text-red-600 ml-2"
+                        onClick={() => onRemoveMealFromDay(selectedDay, mealType, meal.id)}
+                      >
+                        <Trash2 className="w-2.5 h-2.5" />
+                      </Button>
+                    </div>
+                  );
+                })}
               </div>
 
               <select
@@ -116,7 +193,8 @@ const WeeklyPlanner: React.FC<WeeklyPlannerProps> = ({
                   if (selectedId !== "none") {
                     const selectedMeal = mealItems.find(item => item.id === parseInt(selectedId));
                     if (selectedMeal && (selectedMeal.category === mealType || selectedMeal.category === 'general')) {
-                      onAddMealToDay(selectedDay, mealType, selectedMeal);
+                      const mealWithPeopleCount = { ...selectedMeal, peopleCount: 2 };
+                      onAddMealToDay(selectedDay, mealType, mealWithPeopleCount);
                     }
                   }
                   e.target.value = "none";
