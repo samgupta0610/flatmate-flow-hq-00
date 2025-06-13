@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,170 +23,43 @@ interface GroceryItem {
   usageFrequency: number; // Track how often this item is used
 }
 
-// Smart quantity multipliers based on product type
-const getQuantityMultiplier = (category: string, name: string): number => {
-  const lowerName = name.toLowerCase();
-  
-  // 250g/ml for vegetables, fruits, dairy, oil, ghee
-  if (category === 'vegetables' || category === 'fruits' || category === 'dairy') {
-    return 250;
-  }
-  
-  // Oil and ghee
-  if (lowerName.includes('oil') || lowerName.includes('ghee')) {
-    return 250;
-  }
-  
-  // Default to 1 for grains and other items (use quantity as unit)
-  return 1;
-};
-
-const units = ["g", "ml", "kg", "l", "pcs", "packet"];
-
-// Mock grocery data with usage frequency for smart cart suggestions
-const [groceryItems, setGroceryItems] = useState<GroceryItem[]>([
-  { id: 1, name: "Onions", quantity: "500", unit: "g", critical: true, category: 'vegetables', inCart: false, usageFrequency: 8 },
-  { id: 2, name: "Milk", quantity: "500", unit: "ml", critical: true, category: 'dairy', inCart: false, usageFrequency: 9 },
-  { id: 3, name: "Butter", quantity: "250", unit: "g", critical: false, category: 'dairy', inCart: false, usageFrequency: 4 },
-  { id: 4, name: "Rice", quantity: "2", unit: "kg", critical: false, category: 'grains', inCart: false, usageFrequency: 7 },
-  { id: 5, name: "Tomatoes", quantity: "500", unit: "g", critical: true, category: 'vegetables', inCart: false, usageFrequency: 8 },
-  { id: 6, name: "Apples", quantity: "750", unit: "g", critical: false, category: 'fruits', inCart: false, usageFrequency: 5 },
-  { id: 7, name: "Bread", quantity: "1", unit: "packet", critical: false, category: 'other', inCart: false, usageFrequency: 6 },
-  { id: 8, name: "Potatoes", quantity: "750", unit: "g", critical: false, category: 'vegetables', inCart: false, usageFrequency: 7 },
-  { id: 9, name: "Curd", quantity: "500", unit: "g", critical: false, category: 'dairy', inCart: false, usageFrequency: 6 },
-  { id: 10, name: "Cooking Oil", quantity: "500", unit: "ml", critical: false, category: 'other', inCart: false, usageFrequency: 3 },
-]);
-
-const cartItems = groceryItems.filter(item => item.inCart);
-
-const addNewItem = () => {
-  if (!newItemName.trim() || !newItemQuantity.trim()) return;
-  
-  const newItem: GroceryItem = {
-    id: Math.max(...groceryItems.map(i => i.id)) + 1,
-    name: newItemName,
-    quantity: newItemQuantity,
-    unit: newItemUnit,
-    critical: false,
-    category: newItemCategory,
-    inCart: false,
-    usageFrequency: 1
-  };
-  
-  setGroceryItems([...groceryItems, newItem]);
-  setNewItemName("");
-  setNewItemQuantity("");
-  
-  toast({
-    title: "Item Added!",
-    description: `${newItemName} has been added to your inventory.`,
-  });
-};
-
-const toggleInCart = (itemId: number) => {
-  setGroceryItems(items => items.map(item => {
-    if (item.id === itemId) {
-      // Increase usage frequency when added to cart
-      const updatedUsageFrequency = item.inCart ? item.usageFrequency : item.usageFrequency + 1;
-      return { ...item, inCart: !item.inCart, usageFrequency: updatedUsageFrequency };
-    }
-    return item;
-  }));
-};
-
-const updateQuantity = (itemId: number, increment: boolean) => {
-  setGroceryItems(items => items.map(item => {
-    if (item.id === itemId) {
-      const currentQty = parseFloat(item.quantity);
-      const multiplier = getQuantityMultiplier(item.category, item.name);
-      const delta = increment ? multiplier : -multiplier;
-      const newQty = Math.max(multiplier, currentQty + delta);
-      const critical = newQty <= multiplier; // Set critical based on one unit
-      return { ...item, quantity: newQty.toString(), critical };
-    }
-    return item;
-  }));
-};
-
-const markCritical = (itemId: number) => {
-  setGroceryItems(items => items.map(item => 
-    item.id === itemId ? { ...item, critical: !item.critical } : item
-  ));
-};
-
-const deleteItem = (itemId: number) => {
-  setGroceryItems(items => items.filter(item => item.id !== itemId));
-  
-  toast({
-    title: "Item Deleted!",
-    description: "The item has been removed from your inventory.",
-  });
-};
-
-const placeOrder = () => {
-  setOrderPlaced(true);
-  
-  setTimeout(() => {
-    setOrderPlaced(false);
-    
-    toast({
-      title: "Order Placed! 🛍️",
-      description: "Your order has been placed successfully.",
-    });
-    
-    // Reset cart
-    setGroceryItems(items => items.map(item => ({ ...item, inCart: false })));
-  }, 1500);
-};
-
-const addAllLowStockToCart = () => {
-  setGroceryItems(items => items.map(item => 
-    item.critical ? { ...item, inCart: true } : item
-  ));
-  
-  toast({
-    title: "Low Stock Items Added!",
-    description: "All low stock items have been added to your cart.",
-  });
-};
-
-// Smart suggestions based on usage frequency
-const getFrequentlyUsedItems = () => {
-  return groceryItems
-    .filter(item => !item.inCart && item.usageFrequency >= 6)
-    .sort((a, b) => b.usageFrequency - a.usageFrequency)
-    .slice(0, 4);
-};
-
-const addFrequentItemsToCart = () => {
-  const frequentItems = getFrequentlyUsedItems();
-  setGroceryItems(items => items.map(item => 
-    frequentItems.some(fi => fi.id === item.id) ? { ...item, inCart: true } : item
-  ));
-  
-  toast({
-    title: "Frequent Items Added!",
-    description: `Added ${frequentItems.length} frequently used items to your cart.`,
-  });
-};
-
-// Callback function to handle when WhatsApp message is sent
-const handleWhatsAppSent = () => {
-  // This will be called from the WhatsApp component when message is sent
-  console.log('WhatsApp message sent, order logged');
-};
-
-// Group items by category for better organization
-const itemsByCategory = groceryItems.reduce((acc, item) => {
-  if (!acc[item.category]) {
-    acc[item.category] = [];
-  }
-  acc[item.category].push(item);
-  return acc;
-}, {} as {[key in GroceryItem['category']]: GroceryItem[]});
-
 const GroceryManager = () => {
   const { toast } = useToast();
+  
+  // Smart quantity multipliers based on product type
+  const getQuantityMultiplier = (category: string, name: string): number => {
+    const lowerName = name.toLowerCase();
+    
+    // 250g/ml for vegetables, fruits, dairy, oil, ghee
+    if (category === 'vegetables' || category === 'fruits' || category === 'dairy') {
+      return 250;
+    }
+    
+    // Oil and ghee
+    if (lowerName.includes('oil') || lowerName.includes('ghee')) {
+      return 250;
+    }
+    
+    // Default to 1 for grains and other items (use quantity as unit)
+    return 1;
+  };
+
+  const units = ["g", "ml", "kg", "l", "pcs", "packet"];
+
+  // Mock grocery data with usage frequency for smart cart suggestions
+  const [groceryItems, setGroceryItems] = useState<GroceryItem[]>([
+    { id: 1, name: "Onions", quantity: "500", unit: "g", critical: true, category: 'vegetables', inCart: false, usageFrequency: 8 },
+    { id: 2, name: "Milk", quantity: "500", unit: "ml", critical: true, category: 'dairy', inCart: false, usageFrequency: 9 },
+    { id: 3, name: "Butter", quantity: "250", unit: "g", critical: false, category: 'dairy', inCart: false, usageFrequency: 4 },
+    { id: 4, name: "Rice", quantity: "2", unit: "kg", critical: false, category: 'grains', inCart: false, usageFrequency: 7 },
+    { id: 5, name: "Tomatoes", quantity: "500", unit: "g", critical: true, category: 'vegetables', inCart: false, usageFrequency: 8 },
+    { id: 6, name: "Apples", quantity: "750", unit: "g", critical: false, category: 'fruits', inCart: false, usageFrequency: 5 },
+    { id: 7, name: "Bread", quantity: "1", unit: "packet", critical: false, category: 'other', inCart: false, usageFrequency: 6 },
+    { id: 8, name: "Potatoes", quantity: "750", unit: "g", critical: false, category: 'vegetables', inCart: false, usageFrequency: 7 },
+    { id: 9, name: "Curd", quantity: "500", unit: "g", critical: false, category: 'dairy', inCart: false, usageFrequency: 6 },
+    { id: 10, name: "Cooking Oil", quantity: "500", unit: "ml", critical: false, category: 'other', inCart: false, usageFrequency: 3 },
+  ]);
+
   const [newItemName, setNewItemName] = useState("");
   const [newItemQuantity, setNewItemQuantity] = useState("");
   const [newItemUnit, setNewItemUnit] = useState("g");
@@ -193,7 +67,135 @@ const GroceryManager = () => {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [activeTab, setActiveTab] = useState("inventory");
   const [selectedLanguage, setSelectedLanguage] = useState('english');
-  
+
+  const cartItems = groceryItems.filter(item => item.inCart);
+
+  const addNewItem = () => {
+    if (!newItemName.trim() || !newItemQuantity.trim()) return;
+    
+    const newItem: GroceryItem = {
+      id: Math.max(...groceryItems.map(i => i.id)) + 1,
+      name: newItemName,
+      quantity: newItemQuantity,
+      unit: newItemUnit,
+      critical: false,
+      category: newItemCategory,
+      inCart: false,
+      usageFrequency: 1
+    };
+    
+    setGroceryItems([...groceryItems, newItem]);
+    setNewItemName("");
+    setNewItemQuantity("");
+    
+    toast({
+      title: "Item Added!",
+      description: `${newItemName} has been added to your inventory.`,
+    });
+  };
+
+  const toggleInCart = (itemId: number) => {
+    setGroceryItems(items => items.map(item => {
+      if (item.id === itemId) {
+        // Increase usage frequency when added to cart
+        const updatedUsageFrequency = item.inCart ? item.usageFrequency : item.usageFrequency + 1;
+        return { ...item, inCart: !item.inCart, usageFrequency: updatedUsageFrequency };
+      }
+      return item;
+    }));
+  };
+
+  const updateQuantity = (itemId: number, increment: boolean) => {
+    setGroceryItems(items => items.map(item => {
+      if (item.id === itemId) {
+        const currentQty = parseFloat(item.quantity);
+        const multiplier = getQuantityMultiplier(item.category, item.name);
+        const delta = increment ? multiplier : -multiplier;
+        const newQty = Math.max(multiplier, currentQty + delta);
+        const critical = newQty <= multiplier; // Set critical based on one unit
+        return { ...item, quantity: newQty.toString(), critical };
+      }
+      return item;
+    }));
+  };
+
+  const markCritical = (itemId: number) => {
+    setGroceryItems(items => items.map(item => 
+      item.id === itemId ? { ...item, critical: !item.critical } : item
+    ));
+  };
+
+  const deleteItem = (itemId: number) => {
+    setGroceryItems(items => items.filter(item => item.id !== itemId));
+    
+    toast({
+      title: "Item Deleted!",
+      description: "The item has been removed from your inventory.",
+    });
+  };
+
+  const placeOrder = () => {
+    setOrderPlaced(true);
+    
+    setTimeout(() => {
+      setOrderPlaced(false);
+      
+      toast({
+        title: "Order Placed! 🛍️",
+        description: "Your order has been placed successfully.",
+      });
+      
+      // Reset cart
+      setGroceryItems(items => items.map(item => ({ ...item, inCart: false })));
+    }, 1500);
+  };
+
+  const addAllLowStockToCart = () => {
+    setGroceryItems(items => items.map(item => 
+      item.critical ? { ...item, inCart: true } : item
+    ));
+    
+    toast({
+      title: "Low Stock Items Added!",
+      description: "All low stock items have been added to your cart.",
+    });
+  };
+
+  // Smart suggestions based on usage frequency
+  const getFrequentlyUsedItems = () => {
+    return groceryItems
+      .filter(item => !item.inCart && item.usageFrequency >= 6)
+      .sort((a, b) => b.usageFrequency - a.usageFrequency)
+      .slice(0, 4);
+  };
+
+  const addFrequentItemsToCart = () => {
+    const frequentItems = getFrequentlyUsedItems();
+    setGroceryItems(items => items.map(item => 
+      frequentItems.some(fi => fi.id === item.id) ? { ...item, inCart: true } : item
+    ));
+    
+    toast({
+      title: "Frequent Items Added!",
+      description: `Added ${frequentItems.length} frequently used items to your cart.`,
+    });
+  };
+
+  // Callback function to handle when WhatsApp message is sent
+  const handleWhatsAppSent = () => {
+    // This will be called from the WhatsApp component when message is sent
+    console.log('WhatsApp message sent, order logged');
+  };
+
+  // Group items by category for better organization
+  const itemsByCategory = groceryItems.reduce((acc, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = [];
+    }
+    acc[item.category].push(item);
+    return acc;
+  }, {} as {[key in GroceryItem['category']]: GroceryItem[]});
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile Header */}

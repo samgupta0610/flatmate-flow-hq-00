@@ -52,6 +52,7 @@ const MealPlanner = () => {
   const [newItemPrepTime, setNewItemPrepTime] = useState("10");
   const [newItemCookTime, setNewItemCookTime] = useState("15");
   const [activeTab, setActiveTab] = useState("planner");
+  const [selectedLanguage, setSelectedLanguage] = useState("english");
 
   const addNewItem = () => {
     if (!newItemName.trim() || !newItemIngredients.trim()) return;
@@ -255,11 +256,10 @@ const MealPlanner = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Meal WhatsApp Reminder */}
+        {/* WhatsApp Reminder */}
         <div className="mt-6">
           <MealWhatsAppReminder 
-            weeklyPlan={weeklyPlan}
-            selectedLanguage="english"
+            selectedLanguage={selectedLanguage}
           />
         </div>
       </div>
