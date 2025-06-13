@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Plus, Trash2, UtensilsCrossed, Clock, MessageCircle, Eye, Edit3 } from 'lucide-react';
+import { Calendar, Plus, Trash2, UtensilsCrossed, Clock, MessageCircle, Eye, Edit3, Edit, Save, X } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import LanguageSelector from './LanguageSelector';
 import { getTranslatedMessage } from '@/utils/translations';
@@ -13,10 +13,11 @@ import { getTranslatedMessage } from '@/utils/translations';
 interface MealItem {
   id: number;
   name: string;
-  category: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  category: 'breakfast' | 'lunch' | 'dinner' | 'general';
   ingredients: string[];
   prepTime: number;
   cookTime: number;
+  calories: number;
 }
 
 interface DailyPlan {
@@ -31,17 +32,22 @@ type WeeklyPlan = {
 };
 
 const initialMealItems: MealItem[] = [
-  { id: 1, name: "Omelette", category: "breakfast", ingredients: ["Eggs", "Cheese", "Vegetables"], prepTime: 5, cookTime: 10 },
-  { id: 2, name: "Toast", category: "breakfast", ingredients: ["Bread", "Butter"], prepTime: 2, cookTime: 3 },
-  { id: 3, name: "Salad", category: "lunch", ingredients: ["Lettuce", "Tomatoes", "Cucumber", "Dressing"], prepTime: 10, cookTime: 0 },
-  { id: 4, name: "Sandwich", category: "lunch", ingredients: ["Bread", "Ham", "Cheese"], prepTime: 5, cookTime: 0 },
-  { id: 5, name: "Pasta", category: "dinner", ingredients: ["Pasta", "Tomato Sauce", "Meatballs"], prepTime: 15, cookTime: 20 },
-  { id: 6, name: "Rice Bowl", category: "dinner", ingredients: ["Rice", "Vegetables", "Protein"], prepTime: 10, cookTime: 25 },
-  { id: 7, name: "Fruit Salad", category: "snack", ingredients: ["Apple", "Banana", "Orange"], prepTime: 5, cookTime: 0 },
-  { id: 8, name: "Nuts", category: "snack", ingredients: ["Mixed Nuts"], prepTime: 0, cookTime: 0 },
+  { id: 1, name: "Omelette", category: "breakfast", ingredients: ["Eggs", "Cheese", "Vegetables"], prepTime: 5, cookTime: 10, calories: 250 },
+  { id: 2, name: "Toast", category: "breakfast", ingredients: ["Bread", "Butter"], prepTime: 2, cookTime: 3, calories: 150 },
+  { id: 3, name: "Salad", category: "lunch", ingredients: ["Lettuce", "Tomatoes", "Cucumber", "Dressing"], prepTime: 10, cookTime: 0, calories: 120 },
+  { id: 4, name: "Sandwich", category: "lunch", ingredients: ["Bread", "Ham", "Cheese"], prepTime: 5, cookTime: 0, calories: 320 },
+  { id: 5, name: "Pasta", category: "dinner", ingredients: ["Pasta", "Tomato Sauce", "Meatballs"], prepTime: 15, cookTime: 20, calories: 450 },
+  { id: 6, name: "Rice Bowl", category: "dinner", ingredients: ["Rice", "Vegetables", "Protein"], prepTime: 10, cookTime: 25, calories: 380 },
+  { id: 7, name: "Fruit Salad", category: "general", ingredients: ["Apple", "Banana", "Orange"], prepTime: 5, cookTime: 0, calories: 80 },
+  { id: 8, name: "Mixed Nuts", category: "general", ingredients: ["Mixed Nuts"], prepTime: 0, cookTime: 0, calories: 160 },
 ];
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+const foodSuggestions = [
+  "Pizza", "Burger", "Chicken Curry", "Fried Rice", "Noodles", "Soup", "Biryani", "Dal Rice", 
+  "Paratha", "Idli", "Dosa", "Upma", "Poha", "Maggi", "Roti Sabzi", "Khichdi", "Pulao"
+];
 
 const MealPlanner = () => {
   const { toast } = useToast();
@@ -57,17 +63,20 @@ const MealPlanner = () => {
   const [newItemIngredients, setNewItemIngredients] = useState("");
   const [newItemPrepTime, setNewItemPrepTime] = useState("10");
   const [newItemCookTime, setNewItemCookTime] = useState("15");
+  const [newItemCalories, setNewItemCalories] = useState("200");
   const [activeTab, setActiveTab] = useState("food");
   const [selectedDay, setSelectedDay] = useState("Monday");
   const [selectedLanguage, setSelectedLanguage] = useState('english');
   const [showMessagePreview, setShowMessagePreview] = useState(false);
   const [isEditingMessage, setIsEditingMessage] = useState(false);
   const [customMessage, setCustomMessage] = useState('');
+  const [editingItemId, setEditingItemId] = useState<number | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<MealItem>>({});
 
   // Get today's day name
   const getTodayName = () => {
     const today = new Date();
-    return daysOfWeek[today.getDay() === 0 ? 6 : today.getDay() - 1]; // Adjust for Monday start
+    return daysOfWeek[today.getDay() === 0 ? 6 : today.getDay() - 1];
   };
 
   const todayName = getTodayName();
@@ -82,7 +91,8 @@ const MealPlanner = () => {
       category: newItemCategory,
       ingredients: newItemIngredients.split(",").map(item => item.trim()),
       prepTime: parseInt(newItemPrepTime),
-      cookTime: parseInt(newItemCookTime)
+      cookTime: parseInt(newItemCookTime),
+      calories: parseInt(newItemCalories)
     };
 
     setMealItems([...mealItems, newItem]);
@@ -90,6 +100,7 @@ const MealPlanner = () => {
     setNewItemIngredients("");
     setNewItemPrepTime("10");
     setNewItemCookTime("15");
+    setNewItemCalories("200");
 
     toast({
       title: "Meal Added!",
@@ -97,10 +108,54 @@ const MealPlanner = () => {
     });
   };
 
+  const startEditing = (item: MealItem) => {
+    setEditingItemId(item.id);
+    setEditFormData({
+      name: item.name,
+      category: item.category,
+      ingredients: item.ingredients,
+      prepTime: item.prepTime,
+      cookTime: item.cookTime,
+      calories: item.calories
+    });
+  };
+
+  const saveEdit = () => {
+    if (!editingItemId || !editFormData.name?.trim()) return;
+
+    setMealItems(items => items.map(item => 
+      item.id === editingItemId 
+        ? { 
+            ...item, 
+            name: editFormData.name!,
+            category: editFormData.category || item.category,
+            ingredients: typeof editFormData.ingredients === 'string' 
+              ? editFormData.ingredients.split(",").map(i => i.trim())
+              : editFormData.ingredients || item.ingredients,
+            prepTime: editFormData.prepTime || item.prepTime,
+            cookTime: editFormData.cookTime || item.cookTime,
+            calories: editFormData.calories || item.calories
+          }
+        : item
+    ));
+
+    setEditingItemId(null);
+    setEditFormData({});
+
+    toast({
+      title: "Meal Updated!",
+      description: "Your meal has been updated successfully.",
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingItemId(null);
+    setEditFormData({});
+  };
+
   const deleteItem = (itemId: number) => {
     setMealItems(items => items.filter(item => item.id !== itemId));
 
-    // Also remove from weekly plan
     setWeeklyPlan(plan => {
       const updatedPlan: WeeklyPlan = { ...plan };
       Object.keys(updatedPlan).forEach(day => {
@@ -176,11 +231,16 @@ const MealPlanner = () => {
       });
       return;
     }
-    
-    const generatedMessage = generateTodayMealMessage();
-    setCustomMessage(generatedMessage);
-    setShowMessagePreview(true);
-    setIsEditingMessage(false);
+
+    if (showMessagePreview) {
+      setShowMessagePreview(false);
+      setIsEditingMessage(false);
+    } else {
+      const generatedMessage = generateTodayMealMessage();
+      setCustomMessage(generatedMessage);
+      setShowMessagePreview(true);
+      setIsEditingMessage(false);
+    }
   };
 
   const handleSendMealMessage = () => {
@@ -252,7 +312,7 @@ const MealPlanner = () => {
                 className="flex-1"
               >
                 <Eye className="w-4 h-4 mr-1" />
-                Preview
+                {showMessagePreview ? 'Hide Preview' : 'Preview'}
               </Button>
               <Button
                 onClick={handleSendMealMessage}
@@ -343,7 +403,13 @@ const MealPlanner = () => {
                   placeholder="Food item name"
                   value={newItemName}
                   onChange={(e) => setNewItemName(e.target.value)}
+                  list="food-suggestions"
                 />
+                <datalist id="food-suggestions">
+                  {foodSuggestions.map((suggestion, index) => (
+                    <option key={index} value={suggestion} />
+                  ))}
+                </datalist>
                 <select
                   value={newItemCategory}
                   onChange={(e) => setNewItemCategory(e.target.value as MealItem['category'])}
@@ -352,25 +418,31 @@ const MealPlanner = () => {
                   <option value="breakfast">Breakfast</option>
                   <option value="lunch">Lunch</option>
                   <option value="dinner">Dinner</option>
-                  <option value="snack">Snack</option>
+                  <option value="general">General (Anytime)</option>
                 </select>
                 <Input
                   placeholder="Ingredients (comma separated)"
                   value={newItemIngredients}
                   onChange={(e) => setNewItemIngredients(e.target.value)}
                 />
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <Input
                     type="number"
-                    placeholder="Prep Time (minutes)"
+                    placeholder="Prep (min)"
                     value={newItemPrepTime}
                     onChange={(e) => setNewItemPrepTime(e.target.value)}
                   />
                   <Input
                     type="number"
-                    placeholder="Cook Time (minutes)"
+                    placeholder="Cook (min)"
                     value={newItemCookTime}
                     onChange={(e) => setNewItemCookTime(e.target.value)}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Calories"
+                    value={newItemCalories}
+                    onChange={(e) => setNewItemCalories(e.target.value)}
                   />
                 </div>
                 <Button onClick={addNewItem} className="w-full">
@@ -386,27 +458,97 @@ const MealPlanner = () => {
               </CardHeader>
               <CardContent className="space-y-2">
                 {mealItems.map(item => (
-                  <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border bg-white">
-                    <div>
-                      <p className="font-medium">{item.name}</p>
-                      <div className="flex gap-2 mt-1">
-                        <Badge variant="secondary" className="text-xs capitalize">
-                          {item.category}
-                        </Badge>
-                        <span className="text-xs text-gray-500">
-                          <Clock className="w-3 h-3 inline mr-1" />
-                          {item.prepTime + item.cookTime}min
-                        </span>
+                  <div key={item.id} className="p-3 rounded-lg border bg-white">
+                    {editingItemId === item.id ? (
+                      <div className="space-y-2">
+                        <Input
+                          value={editFormData.name || ''}
+                          onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+                          placeholder="Food name"
+                        />
+                        <select
+                          value={editFormData.category || item.category}
+                          onChange={(e) => setEditFormData({...editFormData, category: e.target.value as MealItem['category']})}
+                          className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-sm"
+                        >
+                          <option value="breakfast">Breakfast</option>
+                          <option value="lunch">Lunch</option>
+                          <option value="dinner">Dinner</option>
+                          <option value="general">General</option>
+                        </select>
+                        <Input
+                          value={Array.isArray(editFormData.ingredients) ? editFormData.ingredients.join(', ') : editFormData.ingredients || ''}
+                          onChange={(e) => setEditFormData({...editFormData, ingredients: e.target.value})}
+                          placeholder="Ingredients"
+                        />
+                        <div className="grid grid-cols-3 gap-1">
+                          <Input
+                            type="number"
+                            value={editFormData.prepTime || ''}
+                            onChange={(e) => setEditFormData({...editFormData, prepTime: parseInt(e.target.value)})}
+                            placeholder="Prep"
+                          />
+                          <Input
+                            type="number"
+                            value={editFormData.cookTime || ''}
+                            onChange={(e) => setEditFormData({...editFormData, cookTime: parseInt(e.target.value)})}
+                            placeholder="Cook"
+                          />
+                          <Input
+                            type="number"
+                            value={editFormData.calories || ''}
+                            onChange={(e) => setEditFormData({...editFormData, calories: parseInt(e.target.value)})}
+                            placeholder="Cal"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button onClick={saveEdit} size="sm" className="bg-green-600 hover:bg-green-700">
+                            <Save className="w-3 h-3 mr-1" />
+                            Save
+                          </Button>
+                          <Button onClick={cancelEdit} variant="outline" size="sm">
+                            <X className="w-3 h-3 mr-1" />
+                            Cancel
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 text-red-400 hover:text-red-600"
-                      onClick={() => deleteItem(item.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-medium text-sm">{item.name}</p>
+                            <Badge variant="secondary" className="text-xs capitalize">
+                              {item.category}
+                            </Badge>
+                          </div>
+                          <div className="flex gap-3 text-xs text-gray-500">
+                            <span>
+                              <Clock className="w-3 h-3 inline mr-1" />
+                              {item.prepTime + item.cookTime}min
+                            </span>
+                            <span>{item.calories} cal</span>
+                          </div>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-blue-500 hover:text-blue-700"
+                            onClick={() => startEditing(item)}
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-red-400 hover:text-red-600"
+                            onClick={() => deleteItem(item.id)}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </CardContent>
@@ -441,7 +583,6 @@ const MealPlanner = () => {
               </CardContent>
             </Card>
 
-            {/* Selected day planning */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-base">{selectedDay} Menu</CardTitle>
@@ -458,7 +599,6 @@ const MealPlanner = () => {
                   <div key={mealType} className="border rounded-lg p-3">
                     <h4 className="font-medium capitalize mb-2">{mealType}</h4>
                     
-                    {/* Selected meals for this meal type */}
                     <div className="space-y-2 mb-3">
                       {weeklyPlan[selectedDay][mealType].map(meal => (
                         <div key={meal.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
@@ -475,14 +615,13 @@ const MealPlanner = () => {
                       ))}
                     </div>
 
-                    {/* Add meals dropdown */}
                     <select
                       className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-sm"
                       onChange={(e) => {
                         const selectedId = e.target.value;
                         if (selectedId !== "none") {
                           const selectedMeal = mealItems.find(item => item.id === parseInt(selectedId));
-                          if (selectedMeal && selectedMeal.category === mealType) {
+                          if (selectedMeal && (selectedMeal.category === mealType || selectedMeal.category === 'general')) {
                             addMealToDay(selectedDay, mealType, selectedMeal);
                           }
                         }
@@ -491,10 +630,10 @@ const MealPlanner = () => {
                     >
                       <option value="none">Add {mealType}...</option>
                       {mealItems
-                        .filter(item => item.category === mealType)
+                        .filter(item => item.category === mealType || item.category === 'general')
                         .map(item => (
                           <option key={item.id} value={item.id}>
-                            {item.name}
+                            {item.name} ({item.calories} cal)
                           </option>
                         ))
                       }

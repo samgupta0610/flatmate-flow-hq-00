@@ -4,31 +4,37 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Home, Code } from 'lucide-react';
+import { User, Home, Code, Mail } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useProfile } from '@/hooks/useProfile';
 import { useHouseGroupInfo } from '@/hooks/useHouseGroupInfo';
+import { useAuth } from '@/lib/auth';
 
 const ProfileSettings: React.FC = () => {
   const [userName, setUserName] = useState('');
   const [flatNumber, setFlatNumber] = useState('');
   const [groupCode, setGroupCode] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
   const { toast } = useToast();
   const { profile, updateProfile } = useProfile();
   const { houseGroup } = useHouseGroupInfo();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (profile) {
       setUserName(profile.username || '');
-      setFlatNumber(profile.phone_number || ''); // Using phone_number field for flat number
+      setFlatNumber(profile.phone_number || '');
     }
     if (houseGroup) {
       setGroupCode(houseGroup.join_code || '');
     }
-  }, [profile, houseGroup]);
+    if (user) {
+      setUserEmail(user.email || '');
+    }
+  }, [profile, houseGroup, user]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -36,7 +42,7 @@ const ProfileSettings: React.FC = () => {
     try {
       await updateProfile({
         username: userName,
-        phone_number: flatNumber, // Using phone_number field for flat number
+        phone_number: flatNumber,
       });
       
       setIsEditing(false);
@@ -56,10 +62,10 @@ const ProfileSettings: React.FC = () => {
   };
 
   const handleCancel = () => {
-    // Reset to original values
     setUserName(profile?.username || '');
     setFlatNumber(profile?.phone_number || '');
     setGroupCode(houseGroup?.join_code || '');
+    setUserEmail(user?.email || '');
     setIsEditing(false);
   };
 
@@ -87,6 +93,23 @@ const ProfileSettings: React.FC = () => {
               onChange={(e) => setUserName(e.target.value)}
               disabled={!isEditing}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="user-email" className="flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              Email Address
+            </Label>
+            <Input
+              id="user-email"
+              type="email"
+              value={userEmail}
+              disabled={true}
+              className="bg-gray-100"
+            />
+            <p className="text-xs text-gray-500">
+              Email cannot be changed here. Please contact support if needed.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -150,13 +173,16 @@ const ProfileSettings: React.FC = () => {
           )}
         </div>
 
-        {/* Display Current Info */}
         <div className="pt-4 border-t space-y-2">
           <h4 className="font-medium text-sm text-gray-700">Current Profile</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 gap-4 text-sm">
             <div>
               <span className="text-gray-500">Name:</span>
               <p className="font-medium">{userName || 'Not set'}</p>
+            </div>
+            <div>
+              <span className="text-gray-500">Email:</span>
+              <p className="font-medium">{userEmail || 'Not set'}</p>
             </div>
             <div>
               <span className="text-gray-500">Flat:</span>

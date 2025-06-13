@@ -1,81 +1,91 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, CalendarCheck, ChefHat, ShoppingCart } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Calendar, Home, ClipboardList, ShoppingCart, User, LogOut } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { useAuth } from '@/lib/auth';
+import { useProfile } from '@/hooks/useProfile';
 
 const NavigationBar = () => {
   const location = useLocation();
-  const isMobile = useIsMobile();
-  
-  const navItems = [
-    { path: '/', label: 'Dashboard', icon: <Home className="w-5 h-5" /> },
-    { path: '/maid-tasks', label: 'Maid Tasks', icon: <CalendarCheck className="w-5 h-5" /> },
-    { path: '/meal-planner', label: 'Meal Planner', icon: <ChefHat className="w-5 h-5" /> },
-    { path: '/grocery', label: 'Grocery', icon: <ShoppingCart className="w-5 h-5" /> },
-  ];
+  const { logout } = useAuth();
+  const { profile } = useProfile();
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Mobile header only
-  if (isMobile) {
-    return (
-      <header className="bg-white border-b border-gray-100 fixed w-full top-0 z-20 px-4 py-3">
-        <Link to="/" className="flex items-center justify-center">
-          <span className="text-2xl font-bold text-maideasy-primary">Maid<span className="text-maideasy-secondary">Easy</span></span>
-        </Link>
-      </header>
-    );
-  }
+  const menuItems = [
+    { path: '/', icon: Home, label: 'Dashboard' },
+    { path: '/maid-tasks', icon: ClipboardList, label: 'Tasks' },
+    { path: '/meal-planner', icon: Calendar, label: 'Meals' },
+    { path: '/grocery', icon: ShoppingCart, label: 'Grocery' },
+    { path: '/profile', icon: User, label: 'Profile' },
+  ];
 
-  // Desktop sidebar
+  const displayName = profile?.username || 'User';
+  const displayFlat = profile?.phone_number || 'Not set';
+
   return (
-    <>
-      <aside className="hidden md:flex flex-col fixed h-full w-64 bg-white border-r border-gray-100 z-10">
-        <div className="p-6 border-b border-gray-100">
-          <Link to="/" className="flex items-center">
-            <span className="text-2xl font-bold text-maideasy-primary">
-              Maid<span className="text-maideasy-secondary">Easy</span>
-            </span>
-          </Link>
+    <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
+      <div className="flex flex-col flex-grow pt-5 bg-white border-r border-gray-200 overflow-y-auto">
+        <div className="flex items-center flex-shrink-0 px-4">
+          <h1 className="text-xl font-bold text-maideasy-primary">MaidEasy</h1>
         </div>
         
-        <nav className="flex-1 p-4">
-          <div className="space-y-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-colors",
-                  isActive(item.path)
-                    ? "bg-maideasy-primary/10 text-maideasy-primary"
-                    : "text-gray-600 hover:bg-gray-50"
-                )}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </div>
-        </nav>
-        
-        <div className="p-4 m-4 rounded-xl bg-maideasy-card">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-maideasy-secondary text-white flex items-center justify-center">
-              <span className="font-bold">JD</span>
+        {/* User Info */}
+        <div className="px-4 py-4 border-b border-gray-200">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-maideasy-primary rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
             </div>
-            <div>
-              <p className="font-medium text-maideasy-text-primary">John Doe</p>
-              <p className="text-sm text-maideasy-text-secondary">Flat #101</p>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-900">{displayName}</p>
+              <p className="text-xs text-gray-500">Flat {displayFlat}</p>
             </div>
           </div>
         </div>
-      </aside>
-      
-      <div className="hidden md:block w-64" />
-    </>
+
+        <div className="mt-5 flex-grow flex flex-col">
+          <nav className="flex-1 px-2 space-y-1">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors ${
+                    isActive(item.path)
+                      ? 'bg-maideasy-primary text-white'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Icon
+                    className={`mr-3 flex-shrink-0 h-5 w-5 ${
+                      isActive(item.path)
+                        ? 'text-white'
+                        : 'text-gray-400 group-hover:text-gray-500'
+                    }`}
+                  />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+          
+          <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+            <Button
+              onClick={logout}
+              variant="ghost"
+              className="group flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 w-full justify-start"
+            >
+              <LogOut className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+              Sign out
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

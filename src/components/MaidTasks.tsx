@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -147,10 +146,15 @@ const MaidTasks = () => {
       return;
     }
     
-    const generatedMessage = generateMessagePreview();
-    setCustomMessage(generatedMessage);
-    setShowMessagePreview(true);
-    setIsEditingMessage(false);
+    if (showMessagePreview) {
+      setShowMessagePreview(false);
+      setIsEditingMessage(false);
+    } else {
+      const generatedMessage = generateMessagePreview();
+      setCustomMessage(generatedMessage);
+      setShowMessagePreview(true);
+      setIsEditingMessage(false);
+    }
   };
 
   const sendToMaid = () => {
@@ -254,7 +258,7 @@ const MaidTasks = () => {
                 className="flex-1"
               >
                 <Eye className="w-4 h-4 mr-1" />
-                Preview
+                {showMessagePreview ? 'Hide Preview' : 'Preview'}
               </Button>
               <Button
                 onClick={sendToMaid}
