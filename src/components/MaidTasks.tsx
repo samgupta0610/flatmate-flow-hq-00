@@ -1,10 +1,12 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, Plus, MessageCircle } from 'lucide-react';
+import { Send, Plus, MessageCircle, Eye, Edit3 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useMaidTasks } from '@/hooks/useMaidTasks';
 import { useMaidContact } from '@/hooks/useMaidContact';
@@ -38,6 +40,9 @@ const MaidTasks = () => {
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [showEditTaskModal, setShowEditTaskModal] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<MaidTask | null>(null);
+  const [showMessagePreview, setShowMessagePreview] = useState(false);
+  const [isEditingMessage, setIsEditingMessage] = useState(false);
+  const [customMessage, setCustomMessage] = useState('');
   
   const { tasks, loading, error, updateTask, addTask, deleteTask } = useMaidTasks();
   const { maidContact } = useMaidContact();
@@ -127,11 +132,34 @@ const MaidTasks = () => {
   const scheduledTasks = getScheduledTasks();
   const selectedTasks = todayTasks.filter(task => task.selected && !task.completed);
 
-  const sendToMaid = () => {
+  const generateMessagePreview = () => {
+    if (selectedTasks.length === 0) return '';
+    return generateWhatsAppMessage(selectedTasks, selectedLanguage, houseGroup?.group_name);
+  };
+
+  const handlePreviewMessage = () => {
     if (selectedTasks.length === 0) {
       toast({
         title: "No tasks selected",
-        description: "Please select at least one task to send.",
+        description: "Please select at least one task to preview message.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const generatedMessage = generateMessagePreview();
+    setCustomMessage(generatedMessage);
+    setShowMessagePreview(true);
+    setIsEditingMessage(false);
+  };
+
+  const sendToMaid = () => {
+    const messageToSend = isEditingMessage ? customMessage : generateMessagePreview();
+    
+    if (!messageToSend.trim()) {
+      toast({
+        title: "Empty message",
+        description: "Cannot send an empty message.",
         variant: "destructive"
       });
       return;
@@ -147,8 +175,7 @@ const MaidTasks = () => {
       return;
     }
 
-    const message = generateWhatsAppMessage(selectedTasks, selectedLanguage, houseGroup?.group_name);
-    const encodedMessage = encodeURIComponent(message);
+    const encodedMessage = encodeURIComponent(messageToSend);
     const cleanPhoneNumber = phoneToUse.replace(/[^\d+]/g, '');
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhoneNumber}&text=${encodedMessage}`;
     
@@ -211,23 +238,89 @@ const MaidTasks = () => {
       {selectedTasks.length > 0 && (
         <Card className="mb-4 border-2 border-green-200 bg-green-50">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <MessageCircle className="w-5 h-5 text-green-600" />
                 <span className="font-medium text-green-800">
                   {selectedTasks.length} task{selectedTasks.length > 1 ? 's' : ''} selected
                 </span>
               </div>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={handlePreviewMessage}
+                variant="outline"
+                size="sm"
+                className="flex-1"
+              >
+                <Eye className="w-4 h-4 mr-1" />
+                Preview
+              </Button>
               <Button
                 onClick={sendToMaid}
                 disabled={sendingInstructions}
                 size="sm"
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-green-600 hover:bg-green-700 flex-1"
               >
                 <Send className="w-4 h-4 mr-1" />
                 Send
               </Button>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Message Preview */}
+      {showMessagePreview && (
+        <Card className="mb-4 border-2 border-blue-200 bg-blue-50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Message Preview</CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsEditingMessage(!isEditingMessage)}
+                className="text-blue-600 hover:text-blue-700"
+              >
+                <Edit3 className="w-4 h-4 mr-1" />
+                {isEditingMessage ? 'Cancel' : 'Edit'}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isEditingMessage ? (
+              <div className="space-y-3">
+                <Textarea
+                  value={customMessage}
+                  onChange={(e) => setCustomMessage(e.target.value)}
+                  placeholder="Edit your message..."
+                  className="min-h-[120px] w-full"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setIsEditingMessage(false)}
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Save Changes
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setCustomMessage(generateMessagePreview());
+                      setIsEditingMessage(false);
+                    }}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Reset
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white p-3 rounded border whitespace-pre-wrap text-sm">
+                {customMessage || generateMessagePreview()}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
