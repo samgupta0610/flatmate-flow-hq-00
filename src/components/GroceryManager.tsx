@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShoppingCart, Plus, Minus, Trash, Check, AlertTriangle, ClipboardCheck, IndianRupee, Users } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash, AlertTriangle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { SheetsSyncButton } from "@/components/ui/sheets-sync-button";
 import GroceryWhatsAppReminder from './GroceryWhatsAppReminder';
@@ -21,49 +21,54 @@ interface GroceryItem {
   unit: string;
   category: 'dairy' | 'vegetables' | 'fruits' | 'grains' | 'other';
   inCart: boolean;
-  estimatedCost?: number;
+  usageFrequency: number; // Track how often this item is used
 }
 
 const GroceryManager = () => {
   const { toast } = useToast();
   const [newItemName, setNewItemName] = useState("");
   const [newItemQuantity, setNewItemQuantity] = useState("");
-  const [newItemUnit, setNewItemUnit] = useState("kg");
+  const [newItemUnit, setNewItemUnit] = useState("g");
   const [newItemCategory, setNewItemCategory] = useState<GroceryItem['category']>('vegetables');
   const [orderPlaced, setOrderPlaced] = useState(false);
-  const [selectedDeliveryApp, setSelectedDeliveryApp] = useState("zepto");
   const [activeTab, setActiveTab] = useState("inventory");
   const [selectedLanguage, setSelectedLanguage] = useState('english');
-  const [totalBudget, setTotalBudget] = useState("500");
-  const [splitBetween, setSplitBetween] = useState("2");
   
-  // Unit multiplication factors for intuitive quantity updates
-  const unitFactors = {
-    "kg": 0.5,
-    "g": 100,
-    "pcs": 1,
-    "l": 0.25,
-    "ml": 100,
-    "packet": 1
+  // Smart quantity multipliers based on product type
+  const getQuantityMultiplier = (category: string, name: string): number => {
+    const lowerName = name.toLowerCase();
+    
+    // 250g/ml for vegetables, fruits, dairy, oil, ghee
+    if (category === 'vegetables' || category === 'fruits' || category === 'dairy') {
+      return 250;
+    }
+    
+    // Oil and ghee
+    if (lowerName.includes('oil') || lowerName.includes('ghee')) {
+      return 250;
+    }
+    
+    // Default to 1 for grains and other items (use quantity as unit)
+    return 1;
   };
   
-  const units = ["kg", "g", "pcs", "l", "ml", "packet"];
+  const units = ["g", "ml", "kg", "l", "pcs", "packet"];
   
-  // Mock grocery data with estimated costs
+  // Mock grocery data with usage frequency for smart cart suggestions
   const [groceryItems, setGroceryItems] = useState<GroceryItem[]>([
-    { id: 1, name: "Onions", quantity: "1", unit: "kg", critical: true, category: 'vegetables', inCart: true, estimatedCost: 30 },
-    { id: 2, name: "Milk", quantity: "500", unit: "ml", critical: true, category: 'dairy', inCart: true, estimatedCost: 25 },
-    { id: 3, name: "Butter", quantity: "100", unit: "g", critical: false, category: 'dairy', inCart: false, estimatedCost: 45 },
-    { id: 4, name: "Rice", quantity: "2", unit: "kg", critical: false, category: 'grains', inCart: false, estimatedCost: 120 },
-    { id: 5, name: "Tomatoes", quantity: "500", unit: "g", critical: true, category: 'vegetables', inCart: true, estimatedCost: 40 },
-    { id: 6, name: "Apples", quantity: "4", unit: "pcs", critical: false, category: 'fruits', inCart: false, estimatedCost: 80 },
-    { id: 7, name: "Bread", quantity: "1", unit: "packet", critical: false, category: 'other', inCart: false, estimatedCost: 35 },
-    { id: 8, name: "Potatoes", quantity: "2", unit: "kg", critical: false, category: 'vegetables', inCart: false, estimatedCost: 50 },
+    { id: 1, name: "Onions", quantity: "500", unit: "g", critical: true, category: 'vegetables', inCart: false, usageFrequency: 8 },
+    { id: 2, name: "Milk", quantity: "500", unit: "ml", critical: true, category: 'dairy', inCart: false, usageFrequency: 9 },
+    { id: 3, name: "Butter", quantity: "250", unit: "g", critical: false, category: 'dairy', inCart: false, usageFrequency: 4 },
+    { id: 4, name: "Rice", quantity: "2", unit: "kg", critical: false, category: 'grains', inCart: false, usageFrequency: 7 },
+    { id: 5, name: "Tomatoes", quantity: "500", unit: "g", critical: true, category: 'vegetables', inCart: false, usageFrequency: 8 },
+    { id: 6, name: "Apples", quantity: "750", unit: "g", critical: false, category: 'fruits', inCart: false, usageFrequency: 5 },
+    { id: 7, name: "Bread", quantity: "1", unit: "packet", critical: false, category: 'other', inCart: false, usageFrequency: 6 },
+    { id: 8, name: "Potatoes", quantity: "750", unit: "g", critical: false, category: 'vegetables', inCart: false, usageFrequency: 7 },
+    { id: 9, name: "Curd", quantity: "500", unit: "g", critical: false, category: 'dairy', inCart: false, usageFrequency: 6 },
+    { id: 10, name: "Cooking Oil", quantity: "500", unit: "ml", critical: false, category: 'other', inCart: false, usageFrequency: 3 },
   ]);
   
   const cartItems = groceryItems.filter(item => item.inCart);
-  const cartTotal = cartItems.reduce((sum, item) => sum + (item.estimatedCost || 0), 0);
-  const splitCost = cartTotal / parseInt(splitBetween);
   
   const addNewItem = () => {
     if (!newItemName.trim() || !newItemQuantity.trim()) return;
@@ -76,7 +81,7 @@ const GroceryManager = () => {
       critical: false,
       category: newItemCategory,
       inCart: false,
-      estimatedCost: 0
+      usageFrequency: 1
     };
     
     setGroceryItems([...groceryItems, newItem]);
@@ -90,29 +95,28 @@ const GroceryManager = () => {
   };
   
   const toggleInCart = (itemId: number) => {
-    setGroceryItems(items => items.map(item => 
-      item.id === itemId ? { ...item, inCart: !item.inCart } : item
-    ));
+    setGroceryItems(items => items.map(item => {
+      if (item.id === itemId) {
+        // Increase usage frequency when added to cart
+        const updatedUsageFrequency = item.inCart ? item.usageFrequency : item.usageFrequency + 1;
+        return { ...item, inCart: !item.inCart, usageFrequency: updatedUsageFrequency };
+      }
+      return item;
+    }));
   };
   
   const updateQuantity = (itemId: number, increment: boolean) => {
     setGroceryItems(items => items.map(item => {
       if (item.id === itemId) {
         const currentQty = parseFloat(item.quantity);
-        const factor = unitFactors[item.unit as keyof typeof unitFactors] || 1;
-        const delta = increment ? factor : -factor;
-        const newQty = Math.max(0, currentQty + delta);
-        const critical = newQty <= factor; // Set critical based on one unit
+        const multiplier = getQuantityMultiplier(item.category, item.name);
+        const delta = increment ? multiplier : -multiplier;
+        const newQty = Math.max(multiplier, currentQty + delta);
+        const critical = newQty <= multiplier; // Set critical based on one unit
         return { ...item, quantity: newQty.toString(), critical };
       }
       return item;
     }));
-  };
-  
-  const updateCost = (itemId: number, cost: string) => {
-    setGroceryItems(items => items.map(item => 
-      item.id === itemId ? { ...item, estimatedCost: parseFloat(cost) || 0 } : item
-    ));
   };
   
   const markCritical = (itemId: number) => {
@@ -138,7 +142,7 @@ const GroceryManager = () => {
       
       toast({
         title: "Order Placed! 🛍️",
-        description: `Your order has been placed through ${selectedDeliveryApp.charAt(0).toUpperCase() + selectedDeliveryApp.slice(1)}.`,
+        description: "Your order has been placed successfully.",
       });
       
       // Reset cart
@@ -154,6 +158,26 @@ const GroceryManager = () => {
     toast({
       title: "Low Stock Items Added!",
       description: "All low stock items have been added to your cart.",
+    });
+  };
+  
+  // Smart suggestions based on usage frequency
+  const getFrequentlyUsedItems = () => {
+    return groceryItems
+      .filter(item => !item.inCart && item.usageFrequency >= 6)
+      .sort((a, b) => b.usageFrequency - a.usageFrequency)
+      .slice(0, 4);
+  };
+  
+  const addFrequentItemsToCart = () => {
+    const frequentItems = getFrequentlyUsedItems();
+    setGroceryItems(items => items.map(item => 
+      frequentItems.some(fi => fi.id === item.id) ? { ...item, inCart: true } : item
+    ));
+    
+    toast({
+      title: "Frequent Items Added!",
+      description: `Added ${frequentItems.length} frequently used items to your cart.`,
     });
   };
   
@@ -173,38 +197,12 @@ const GroceryManager = () => {
         <div className="flex justify-between items-center mb-3">
           <div>
             <h1 className="text-xl font-bold text-gray-900">Grocery Manager</h1>
-            <p className="text-sm text-gray-500">Manage your groceries smartly</p>
+            <p className="text-sm text-gray-500">Smart grocery shopping</p>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="bg-green-50 text-green-700">
               {cartItems.length} items
             </Badge>
-          </div>
-        </div>
-        
-        {/* Budget and Split Cost Card */}
-        <div className="bg-blue-50 rounded-lg p-3 mb-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs text-gray-600">Total Cart</Label>
-              <div className="flex items-center gap-1">
-                <IndianRupee className="w-4 h-4 text-green-600" />
-                <span className="font-bold text-green-600">₹{cartTotal}</span>
-              </div>
-            </div>
-            <div>
-              <Label className="text-xs text-gray-600">Split Between</Label>
-              <div className="flex items-center gap-1">
-                <Users className="w-4 h-4 text-blue-600" />
-                <span className="font-bold text-blue-600">{splitBetween} people</span>
-              </div>
-            </div>
-          </div>
-          <div className="mt-2 pt-2 border-t border-blue-200">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Per person:</span>
-              <span className="font-bold text-lg text-blue-600">₹{splitCost.toFixed(0)}</span>
-            </div>
           </div>
         </div>
 
@@ -218,6 +216,14 @@ const GroceryManager = () => {
           >
             <AlertTriangle className="w-3 h-3 mr-1" /> 
             Add Low Stock
+          </Button>
+          <Button 
+            onClick={addFrequentItemsToCart} 
+            variant="outline"
+            size="sm"
+            className="flex-1 text-xs"
+          >
+            Add Frequent
           </Button>
           <Button 
             onClick={placeOrder} 
@@ -239,49 +245,33 @@ const GroceryManager = () => {
           />
         </div>
 
-        {/* Split Cost Settings */}
-        <Card className="mb-4">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Cost Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-sm">Split Between</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={splitBetween}
-                  onChange={(e) => setSplitBetween(e.target.value)}
-                  className="mt-1"
-                />
+        {/* Smart Suggestions */}
+        {getFrequentlyUsedItems().length > 0 && (
+          <Card className="mb-4">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Frequently Used Items</CardTitle>
+              <CardDescription className="text-sm">Based on your shopping history</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-2">
+                {getFrequentlyUsedItems().map((item) => (
+                  <Button
+                    key={item.id}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toggleInCart(item.id)}
+                    className="h-auto p-2 text-left"
+                  >
+                    <div className="flex flex-col items-start w-full">
+                      <span className="text-sm font-medium">{item.name}</span>
+                      <span className="text-xs text-gray-500">{item.quantity} {item.unit}</span>
+                    </div>
+                  </Button>
+                ))}
               </div>
-              <div>
-                <Label className="text-sm">Budget</Label>
-                <Input
-                  type="number"
-                  placeholder="₹500"
-                  value={totalBudget}
-                  onChange={(e) => setTotalBudget(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            <div className="bg-gray-50 p-2 rounded-lg">
-              <div className="flex justify-between text-sm">
-                <span>Budget per person:</span>
-                <span className="font-medium">₹{(parseInt(totalBudget) / parseInt(splitBetween)).toFixed(0)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Current per person:</span>
-                <span className={`font-medium ${splitCost > (parseInt(totalBudget) / parseInt(splitBetween)) ? 'text-red-600' : 'text-green-600'}`}>
-                  ₹{splitCost.toFixed(0)}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
         
         <Tabs defaultValue="inventory" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 mb-4">
@@ -358,6 +348,11 @@ const GroceryManager = () => {
                           <span className={`font-medium ${item.critical ? 'text-red-700' : ''}`}>
                             {item.name}
                           </span>
+                          {item.usageFrequency >= 7 && (
+                            <Badge variant="secondary" className="text-xs px-1 py-0">
+                              Frequent
+                            </Badge>
+                          )}
                         </div>
                         <Button
                           variant="ghost"
@@ -392,23 +387,14 @@ const GroceryManager = () => {
                           </Button>
                         </div>
                         
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            placeholder="₹0"
-                            value={item.estimatedCost || ''}
-                            onChange={(e) => updateCost(item.id, e.target.value)}
-                            className="w-16 h-6 text-xs px-2"
-                          />
-                          <Button
-                            variant={item.inCart ? "default" : "outline"}
-                            size="sm"
-                            className={`h-6 text-xs px-2 ${item.inCart ? 'bg-green-600 hover:bg-green-700' : ''}`}
-                            onClick={() => toggleInCart(item.id)}
-                          >
-                            {item.inCart ? 'Added' : 'Add'}
-                          </Button>
-                        </div>
+                        <Button
+                          variant={item.inCart ? "default" : "outline"}
+                          size="sm"
+                          className={`h-6 text-xs px-2 ${item.inCart ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                          onClick={() => toggleInCart(item.id)}
+                        >
+                          {item.inCart ? 'Added' : 'Add'}
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -424,7 +410,7 @@ const GroceryManager = () => {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base">Shopping Cart</CardTitle>
                     <CardDescription className="text-sm">
-                      {cartItems.length} items • Total: ₹{cartTotal}
+                      {cartItems.length} items ready for order
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-2">
@@ -440,8 +426,8 @@ const GroceryManager = () => {
                               {item.quantity} {item.unit}
                             </Badge>
                           </div>
-                          <div className="text-sm text-green-600 font-medium">
-                            ₹{item.estimatedCost || 0}
+                          <div className="text-sm text-gray-500 capitalize">
+                            {item.category}
                           </div>
                         </div>
                         
@@ -483,7 +469,7 @@ const GroceryManager = () => {
                       disabled={orderPlaced} 
                       className="w-full bg-green-600 hover:bg-green-700"
                     >
-                      {orderPlaced ? "Placing Order..." : `Order Now - ₹${cartTotal}`}
+                      {orderPlaced ? "Placing Order..." : `Order ${cartItems.length} Items`}
                     </Button>
                   </CardFooter>
                 </Card>
