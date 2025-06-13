@@ -47,31 +47,29 @@ const GroceryManager = () => {
       </div>
 
       <div className="px-4 pb-24">
-        {/* Vendor Contact and Language */}
-        <div className="mb-4 space-y-3">
-          <div className="grid grid-cols-1 gap-3">
-            <div>
-              <Label htmlFor="vendor-contact" className="text-sm font-medium">
-                Vendor Contact Number
-              </Label>
-              <Input
-                id="vendor-contact"
-                type="tel"
-                placeholder="e.g. +919876543210"
-                value={vendorContact}
-                onChange={(e) => setVendorContact(e.target.value)}
-                className="h-8 text-sm"
-              />
-            </div>
-            <div>
-              <Label className="text-sm font-medium mb-2 block">
-                Preferred Language
-              </Label>
-              <LanguageSelector 
-                selectedLanguage={selectedLanguage}
-                onLanguageChange={setSelectedLanguage}
-              />
-            </div>
+        {/* Vendor Contact and Language - Half width each */}
+        <div className="mb-4 grid grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="vendor-contact" className="text-sm font-medium">
+              Vendor Contact
+            </Label>
+            <Input
+              id="vendor-contact"
+              type="tel"
+              placeholder="+919876543210"
+              value={vendorContact}
+              onChange={(e) => setVendorContact(e.target.value)}
+              className="h-8 text-sm"
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-medium mb-2 block">
+              Language
+            </Label>
+            <LanguageSelector 
+              selectedLanguage={selectedLanguage}
+              onLanguageChange={setSelectedLanguage}
+            />
           </div>
         </div>
 

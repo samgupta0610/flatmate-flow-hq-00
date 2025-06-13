@@ -2,9 +2,12 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { MessageCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import LanguageSelector from './LanguageSelector';
+import MessagePreview from './MessagePreview';
 import { getTranslatedMessage } from '@/utils/translations';
 
 interface MealWhatsAppReminderProps {
@@ -14,11 +17,14 @@ interface MealWhatsAppReminderProps {
 
 const MealWhatsAppReminder: React.FC<MealWhatsAppReminderProps> = ({ mealPlan, selectedDay }) => {
   const [selectedLanguage, setSelectedLanguage] = useState('english');
+  const [contactNumber, setContactNumber] = useState('');
+  const [isEditingMessage, setIsEditingMessage] = useState(false);
+  const [customMessage, setCustomMessage] = useState('');
   const { toast } = useToast();
 
   const selectedDayPlan = mealPlan.find((day: any) => day.date === selectedDay);
 
-  const generateMealMessage = () => {
+  const generateM ealMessage = () => {
     if (!selectedDayPlan) return 'No meals planned for today';
 
     const meals = [];
@@ -39,11 +45,20 @@ const MealWhatsAppReminder: React.FC<MealWhatsAppReminderProps> = ({ mealPlan, s
   };
 
   const handleSendMealReminder = () => {
-    const message = generateMealMessage();
+    if (!contactNumber.trim()) {
+      toast({
+        title: "Contact number required",
+        description: "Please enter a contact number.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const message = customMessage || generateMealMessage();
     const encodedMessage = encodeURIComponent(message);
+    const cleanPhoneNumber = contactNumber.replace(/[^\d+]/g, '');
     
-    // For demo purposes, using a placeholder phone number
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhoneNumber}&text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
 
     toast({
@@ -53,34 +68,73 @@ const MealWhatsAppReminder: React.FC<MealWhatsAppReminderProps> = ({ mealPlan, s
   };
 
   return (
-    <Card className="mt-6">
-      <CardHeader>
-        <CardTitle>Send Meal Plan Reminder</CardTitle>
-        <CardDescription>Share today's meal plan via WhatsApp</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <LanguageSelector 
-          selectedLanguage={selectedLanguage}
-          onLanguageChange={setSelectedLanguage}
+    <div className="space-y-4">
+      {/* Contact and Language - Half width each */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label htmlFor="contact-number" className="text-sm font-medium">
+            Contact Number
+          </Label>
+          <Input
+            id="contact-number"
+            type="tel"
+            placeholder="+919876543210"
+            value={contactNumber}
+            onChange={(e) => setContactNumber(e.target.value)}
+            className="h-8 text-sm"
+          />
+        </div>
+        <div>
+          <Label className="text-sm font-medium mb-2 block">
+            Language
+          </Label>
+          <LanguageSelector 
+            selectedLanguage={selectedLanguage}
+            onLanguageChange={setSelectedLanguage}
+          />
+        </div>
+      </div>
+
+      {/* Message Preview and Send Button */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <MessagePreview
+          title="Meal Plan Message"
+          generateMessage={generateMealMessage}
+          isEditingMessage={isEditingMessage}
+          customMessage={customMessage}
+          onToggleEdit={() => setIsEditingMessage(!isEditingMessage)}
+          onMessageChange={setCustomMessage}
+          onSaveChanges={() => setIsEditingMessage(false)}
+          onReset={() => {
+            setCustomMessage('');
+            setIsEditingMessage(false);
+          }}
         />
         
-        <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-          <p className="font-medium text-sm mb-2">Meal Plan Message Preview:</p>
-          <p className="text-sm text-gray-600 whitespace-pre-line">
-            {generateMealMessage()}
-          </p>
-        </div>
-        
-        <Button
-          onClick={handleSendMealReminder}
-          className="w-full"
-          style={{ backgroundColor: '#25D366', color: 'white' }}
-        >
-          <MessageCircle className="w-4 h-4 mr-2" />
-          Send Meal Plan Reminder
-        </Button>
-      </CardContent>
-    </Card>
+        <Card className="h-fit">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <MessageCircle className="w-4 h-4" />
+              Send Reminder
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Send meal plan via WhatsApp
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <Button
+              onClick={handleSendMealReminder}
+              disabled={!contactNumber.trim()}
+              className="w-full h-8 text-sm"
+              style={{ backgroundColor: '#25D366', color: 'white' }}
+            >
+              <MessageCircle className="w-3 h-3 mr-1" />
+              Send Plan
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 
