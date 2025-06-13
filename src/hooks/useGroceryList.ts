@@ -11,6 +11,7 @@ interface GroceryItem {
   inCart: boolean;
   fromMealPlanner?: boolean;
   frequentlyBought?: boolean;
+  remarks?: string;
 }
 
 const initialGroceryItems: GroceryItem[] = [
@@ -25,65 +26,82 @@ const initialGroceryItems: GroceryItem[] = [
   { id: 8, name: "Cauliflower", quantity: "500", unit: "g", category: "vegetables", inCart: false },
   { id: 9, name: "Cabbage", quantity: "500", unit: "g", category: "vegetables", inCart: false },
   { id: 10, name: "Green Beans", quantity: "250", unit: "g", category: "vegetables", inCart: false },
+  { id: 11, name: "Cucumber", quantity: "300", unit: "g", category: "vegetables", inCart: false },
+  { id: 12, name: "Eggplant", quantity: "400", unit: "g", category: "vegetables", inCart: false },
+  { id: 13, name: "Okra (Bhindi)", quantity: "250", unit: "g", category: "vegetables", inCart: false },
+  { id: 14, name: "Ginger", quantity: "100", unit: "g", category: "vegetables", inCart: false },
+  { id: 15, name: "Garlic", quantity: "100", unit: "g", category: "vegetables", inCart: false },
 
   // Fruits
-  { id: 11, name: "Apples", quantity: "500", unit: "g", category: "fruits", inCart: false, frequentlyBought: true },
-  { id: 12, name: "Bananas", quantity: "6", unit: "pcs", category: "fruits", inCart: false, frequentlyBought: true },
-  { id: 13, name: "Oranges", quantity: "500", unit: "g", category: "fruits", inCart: false },
-  { id: 14, name: "Grapes", quantity: "500", unit: "g", category: "fruits", inCart: false },
-  { id: 15, name: "Mangoes", quantity: "3", unit: "pcs", category: "fruits", inCart: false },
-  { id: 16, name: "Lemons", quantity: "250", unit: "g", category: "fruits", inCart: false },
-  { id: 17, name: "Pomegranate", quantity: "2", unit: "pcs", category: "fruits", inCart: false },
-  { id: 18, name: "Papaya", quantity: "1", unit: "pcs", category: "fruits", inCart: false },
+  { id: 16, name: "Apples", quantity: "500", unit: "g", category: "fruits", inCart: false, frequentlyBought: true },
+  { id: 17, name: "Bananas", quantity: "6", unit: "pcs", category: "fruits", inCart: false, frequentlyBought: true },
+  { id: 18, name: "Oranges", quantity: "500", unit: "g", category: "fruits", inCart: false },
+  { id: 19, name: "Grapes", quantity: "500", unit: "g", category: "fruits", inCart: false },
+  { id: 20, name: "Mangoes", quantity: "3", unit: "pcs", category: "fruits", inCart: false },
+  { id: 21, name: "Lemons", quantity: "250", unit: "g", category: "fruits", inCart: false },
+  { id: 22, name: "Pomegranate", quantity: "2", unit: "pcs", category: "fruits", inCart: false },
+  { id: 23, name: "Papaya", quantity: "1", unit: "pcs", category: "fruits", inCart: false },
+  { id: 24, name: "Watermelon", quantity: "1", unit: "pcs", category: "fruits", inCart: false },
+  { id: 25, name: "Pineapple", quantity: "1", unit: "pcs", category: "fruits", inCart: false },
+  { id: 26, name: "Strawberries", quantity: "250", unit: "g", category: "fruits", inCart: false },
+  { id: 27, name: "Kiwi", quantity: "4", unit: "pcs", category: "fruits", inCart: false },
 
   // Dairy
-  { id: 19, name: "Milk", quantity: "1", unit: "l", category: "dairy", inCart: false, frequentlyBought: true },
-  { id: 20, name: "Butter", quantity: "250", unit: "g", category: "dairy", inCart: false },
-  { id: 21, name: "Cheese", quantity: "200", unit: "g", category: "dairy", inCart: false },
-  { id: 22, name: "Yogurt", quantity: "500", unit: "g", category: "dairy", inCart: false },
-  { id: 23, name: "Paneer", quantity: "250", unit: "g", category: "dairy", inCart: false },
+  { id: 28, name: "Milk", quantity: "1", unit: "l", category: "dairy", inCart: false, frequentlyBought: true },
+  { id: 29, name: "Butter", quantity: "250", unit: "g", category: "dairy", inCart: false },
+  { id: 30, name: "Cheese", quantity: "200", unit: "g", category: "dairy", inCart: false },
+  { id: 31, name: "Yogurt", quantity: "500", unit: "g", category: "dairy", inCart: false },
+  { id: 32, name: "Paneer", quantity: "250", unit: "g", category: "dairy", inCart: false },
+  { id: 33, name: "Eggs", quantity: "12", unit: "pcs", category: "dairy", inCart: false, frequentlyBought: true },
+  { id: 34, name: "Cream", quantity: "200", unit: "ml", category: "dairy", inCart: false },
 
   // Grains & Cereals
-  { id: 24, name: "Rice", quantity: "5", unit: "kg", category: "grains", inCart: false, frequentlyBought: true },
-  { id: 25, name: "Wheat Flour", quantity: "5", unit: "kg", category: "grains", inCart: false },
-  { id: 26, name: "Bread", quantity: "1", unit: "packet", category: "grains", inCart: false },
-  { id: 27, name: "Oats", quantity: "500", unit: "g", category: "grains", inCart: false },
-  { id: 28, name: "Quinoa", quantity: "500", unit: "g", category: "grains", inCart: false },
+  { id: 35, name: "Rice", quantity: "5", unit: "kg", category: "grains", inCart: false, frequentlyBought: true },
+  { id: 36, name: "Wheat Flour", quantity: "5", unit: "kg", category: "grains", inCart: false },
+  { id: 37, name: "Bread", quantity: "1", unit: "packet", category: "grains", inCart: false },
+  { id: 38, name: "Oats", quantity: "500", unit: "g", category: "grains", inCart: false },
+  { id: 39, name: "Quinoa", quantity: "500", unit: "g", category: "grains", inCart: false },
+  { id: 40, name: "Lentils (Dal)", quantity: "1", unit: "kg", category: "grains", inCart: false },
+  { id: 41, name: "Chickpeas", quantity: "500", unit: "g", category: "grains", inCart: false },
+  { id: 42, name: "Black Beans", quantity: "500", unit: "g", category: "grains", inCart: false },
 
   // Spices
-  { id: 29, name: "Turmeric Powder", quantity: "100", unit: "g", category: "spices", inCart: false },
-  { id: 30, name: "Red Chili Powder", quantity: "100", unit: "g", category: "spices", inCart: false },
-  { id: 31, name: "Cumin Seeds", quantity: "100", unit: "g", category: "spices", inCart: false },
-  { id: 32, name: "Coriander Seeds", quantity: "100", unit: "g", category: "spices", inCart: false },
-  { id: 33, name: "Garam Masala", quantity: "50", unit: "g", category: "spices", inCart: false },
-  { id: 34, name: "Bay Leaves", quantity: "10", unit: "g", category: "spices", inCart: false },
-  { id: 35, name: "Cardamom", quantity: "50", unit: "g", category: "spices", inCart: false },
-  { id: 36, name: "Cinnamon", quantity: "50", unit: "g", category: "spices", inCart: false },
+  { id: 43, name: "Turmeric Powder", quantity: "100", unit: "g", category: "spices", inCart: false },
+  { id: 44, name: "Red Chili Powder", quantity: "100", unit: "g", category: "spices", inCart: false },
+  { id: 45, name: "Cumin Seeds", quantity: "100", unit: "g", category: "spices", inCart: false },
+  { id: 46, name: "Coriander Seeds", quantity: "100", unit: "g", category: "spices", inCart: false },
+  { id: 47, name: "Garam Masala", quantity: "50", unit: "g", category: "spices", inCart: false },
+  { id: 48, name: "Bay Leaves", quantity: "10", unit: "g", category: "spices", inCart: false },
+  { id: 49, name: "Cardamom", quantity: "50", unit: "g", category: "spices", inCart: false },
+  { id: 50, name: "Cinnamon", quantity: "50", unit: "g", category: "spices", inCart: false },
+  { id: 51, name: "Black Pepper", quantity: "50", unit: "g", category: "spices", inCart: false },
+  { id: 52, name: "Mustard Seeds", quantity: "100", unit: "g", category: "spices", inCart: false },
 
   // Kitchen Essentials
-  { id: 37, name: "Cooking Oil", quantity: "1", unit: "l", category: "kitchen-essentials", inCart: false, frequentlyBought: true },
-  { id: 38, name: "Salt", quantity: "1", unit: "kg", category: "kitchen-essentials", inCart: false },
-  { id: 39, name: "Sugar", quantity: "1", unit: "kg", category: "kitchen-essentials", inCart: false },
-  { id: 40, name: "Tea", quantity: "250", unit: "g", category: "kitchen-essentials", inCart: false },
-  { id: 41, name: "Coffee", quantity: "200", unit: "g", category: "kitchen-essentials", inCart: false },
-  { id: 42, name: "Vinegar", quantity: "500", unit: "ml", category: "kitchen-essentials", inCart: false },
-  { id: 43, name: "Ghee", quantity: "500", unit: "ml", category: "kitchen-essentials", inCart: false },
+  { id: 53, name: "Cooking Oil", quantity: "1", unit: "l", category: "kitchen-essentials", inCart: false, frequentlyBought: true },
+  { id: 54, name: "Salt", quantity: "1", unit: "kg", category: "kitchen-essentials", inCart: false },
+  { id: 55, name: "Sugar", quantity: "1", unit: "kg", category: "kitchen-essentials", inCart: false },
+  { id: 56, name: "Tea", quantity: "250", unit: "g", category: "kitchen-essentials", inCart: false },
+  { id: 57, name: "Coffee", quantity: "200", unit: "g", category: "kitchen-essentials", inCart: false },
+  { id: 58, name: "Vinegar", quantity: "500", unit: "ml", category: "kitchen-essentials", inCart: false },
+  { id: 59, name: "Ghee", quantity: "500", unit: "ml", category: "kitchen-essentials", inCart: false },
+  { id: 60, name: "Baking Soda", quantity: "100", unit: "g", category: "kitchen-essentials", inCart: false },
 
   // Home Essentials
-  { id: 44, name: "Toilet Paper", quantity: "12", unit: "rolls", category: "home-essentials", inCart: false },
-  { id: 45, name: "Laundry Detergent", quantity: "1", unit: "packet", category: "home-essentials", inCart: false },
-  { id: 46, name: "Dish Soap", quantity: "500", unit: "ml", category: "home-essentials", inCart: false },
-  { id: 47, name: "Hand Sanitizer", quantity: "250", unit: "ml", category: "home-essentials", inCart: false },
-  { id: 48, name: "Toothpaste", quantity: "2", unit: "tubes", category: "home-essentials", inCart: false },
-  { id: 49, name: "Shampoo", quantity: "400", unit: "ml", category: "home-essentials", inCart: false },
-  { id: 50, name: "Paper Towels", quantity: "6", unit: "rolls", category: "home-essentials", inCart: false },
+  { id: 61, name: "Toilet Paper", quantity: "12", unit: "rolls", category: "home-essentials", inCart: false },
+  { id: 62, name: "Laundry Detergent", quantity: "1", unit: "packet", category: "home-essentials", inCart: false },
+  { id: 63, name: "Dish Soap", quantity: "500", unit: "ml", category: "home-essentials", inCart: false },
+  { id: 64, name: "Hand Sanitizer", quantity: "250", unit: "ml", category: "home-essentials", inCart: false },
+  { id: 65, name: "Toothpaste", quantity: "2", unit: "tubes", category: "home-essentials", inCart: false },
+  { id: 66, name: "Shampoo", quantity: "400", unit: "ml", category: "home-essentials", inCart: false },
+  { id: 67, name: "Paper Towels", quantity: "6", unit: "rolls", category: "home-essentials", inCart: false },
+  { id: 68, name: "All-Purpose Cleaner", quantity: "500", unit: "ml", category: "home-essentials", inCart: false },
 
-  // Additional items
-  { id: 51, name: "Eggs", quantity: "12", unit: "pcs", category: "dairy", inCart: false, frequentlyBought: true },
-  { id: 52, name: "Chicken", quantity: "1", unit: "kg", category: "meat", inCart: false },
-  { id: 53, name: "Fish", quantity: "500", unit: "g", category: "meat", inCart: false },
-  { id: 54, name: "Lentils (Dal)", quantity: "1", unit: "kg", category: "grains", inCart: false },
-  { id: 55, name: "Chickpeas", quantity: "500", unit: "g", category: "grains", inCart: false },
+  // Meat & Seafood
+  { id: 69, name: "Chicken", quantity: "1", unit: "kg", category: "meat", inCart: false },
+  { id: 70, name: "Fish", quantity: "500", unit: "g", category: "meat", inCart: false },
+  { id: 71, name: "Mutton", quantity: "500", unit: "g", category: "meat", inCart: false },
+  { id: 72, name: "Prawns", quantity: "250", unit: "g", category: "meat", inCart: false },
 ];
 
 export const useGroceryList = () => {
@@ -140,14 +158,15 @@ export const useGroceryList = () => {
     ));
   };
 
-  const addNewItem = (name: string, quantity: string, unit: string, category: string) => {
+  const addNewItem = (name: string, quantity: string, unit: string, category: string, remarks?: string) => {
     const newItem: GroceryItem = {
       id: Date.now(),
       name,
       quantity,
       unit,
       category,
-      inCart: false
+      inCart: false,
+      remarks
     };
     
     setGroceryItems(prev => [...prev, newItem]);

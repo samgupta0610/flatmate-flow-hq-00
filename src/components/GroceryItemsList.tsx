@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Minus, ShoppingCart, Trash } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -14,6 +15,7 @@ interface GroceryItem {
   unit: string;
   category: string;
   inCart: boolean;
+  remarks?: string;
 }
 
 interface GroceryItemsListProps {
@@ -21,7 +23,7 @@ interface GroceryItemsListProps {
   onToggleInCart: (itemId: number) => void;
   onUpdateQuantity: (itemId: number, quantity: string) => void;
   onDeleteItem: (itemId: number) => void;
-  onAddNewItem: (name: string, quantity: string, unit: string, category: string) => void;
+  onAddNewItem: (name: string, quantity: string, unit: string, category: string, remarks?: string) => void;
 }
 
 const categoryLabels = {
@@ -49,6 +51,7 @@ const GroceryItemsList: React.FC<GroceryItemsListProps> = ({
   const [newItemQuantity, setNewItemQuantity] = useState("");
   const [newItemUnit, setNewItemUnit] = useState("g");
   const [newItemCategory, setNewItemCategory] = useState("vegetables");
+  const [newItemRemarks, setNewItemRemarks] = useState("");
   const [openCategories, setOpenCategories] = useState<string[]>(['vegetables', 'fruits']);
 
   const toggleCategory = (category: string) => {
@@ -62,9 +65,10 @@ const GroceryItemsList: React.FC<GroceryItemsListProps> = ({
   const handleAddItem = () => {
     if (!newItemName.trim() || !newItemQuantity.trim()) return;
     
-    onAddNewItem(newItemName, newItemQuantity, newItemUnit, newItemCategory);
+    onAddNewItem(newItemName, newItemQuantity, newItemUnit, newItemCategory, newItemRemarks);
     setNewItemName("");
     setNewItemQuantity("");
+    setNewItemRemarks("");
   };
 
   // Group items by category
@@ -83,16 +87,14 @@ const GroceryItemsList: React.FC<GroceryItemsListProps> = ({
         <CardHeader className="pb-2">
           <CardTitle className="text-sm">Add New Item</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2">
+          <Input 
+            placeholder="Item name"
+            value={newItemName}
+            onChange={(e) => setNewItemName(e.target.value)}
+            className="h-8 text-sm"
+          />
           <div className="grid grid-cols-2 gap-2">
-            <div className="col-span-2">
-              <Input 
-                placeholder="Item name"
-                value={newItemName}
-                onChange={(e) => setNewItemName(e.target.value)}
-                className="h-8 text-sm"
-              />
-            </div>
             <Input 
               type="number"
               placeholder="Quantity"
@@ -119,6 +121,12 @@ const GroceryItemsList: React.FC<GroceryItemsListProps> = ({
               <option key={key} value={key}>{label}</option>
             ))}
           </select>
+          <Textarea
+            placeholder="Remarks (optional - e.g., preferred brand)"
+            value={newItemRemarks}
+            onChange={(e) => setNewItemRemarks(e.target.value)}
+            className="h-16 text-sm"
+          />
           <Button onClick={handleAddItem} size="sm" className="w-full h-8">
             <Plus className="w-3 h-3 mr-1" />
             Add Item
@@ -147,7 +155,7 @@ const GroceryItemsList: React.FC<GroceryItemsListProps> = ({
                 </CardHeader>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <CardContent className="pt-0 space-y-2">
+                <CardContent className="pt-0 space-y-1">
                   {categoryItems.map((item) => (
                     <div
                       key={item.id}
@@ -189,6 +197,9 @@ const GroceryItemsList: React.FC<GroceryItemsListProps> = ({
                             <Plus className="w-2 h-2" />
                           </Button>
                         </div>
+                        {item.remarks && (
+                          <p className="text-xs text-gray-500 mt-1">{item.remarks}</p>
+                        )}
                       </div>
                       
                       <div className="flex items-center gap-1 ml-2">
