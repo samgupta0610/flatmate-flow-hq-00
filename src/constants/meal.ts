@@ -1,7 +1,14 @@
-
 import { MealItem, WeeklyPlan } from '@/types/meal';
 
 export const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+export const foodSuggestions = [
+  'Idli', 'Dosa', 'Upma', 'Poha', 'Chapati', 'Roti', 'Dal Rice', 'Chicken Curry',
+  'Biryani', 'Chole Bhature', 'Pav Bhaji', 'Rajma', 'Palak Paneer', 'Fish Curry',
+  'Samosa', 'Paratha', 'Aloo Gobi', 'Butter Chicken', 'Masala Dosa', 'Uttapam',
+  'Vada', 'Rasam', 'Sambhar', 'Curd Rice', 'Fried Rice', 'Noodles', 'Pasta',
+  'Sandwich', 'Toast', 'Omelette', 'Boiled Eggs', 'Tea', 'Coffee', 'Juice'
+];
 
 export const initialMealItems: MealItem[] = [
   { id: 1, name: "Idli", category: "breakfast", ingredients: ["rice", "urad dal"], calories: 150, suggestions: "Serve with sambar and chutney" },

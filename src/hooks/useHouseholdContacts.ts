@@ -30,7 +30,16 @@ export const useHouseholdContacts = () => {
         .order('contact_type', { ascending: true });
 
       if (error) throw error;
-      setContacts(data || []);
+      
+      // Type cast the data to match our interface
+      const typedContacts = (data || []).map(contact => ({
+        id: contact.id,
+        contact_type: contact.contact_type as 'cook' | 'maid',
+        name: contact.name,
+        phone_number: contact.phone_number
+      }));
+      
+      setContacts(typedContacts);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -52,8 +61,16 @@ export const useHouseholdContacts = () => {
         .single();
 
       if (error) throw error;
-      setContacts(prev => [...prev, data]);
-      return data;
+      
+      const typedContact: HouseholdContact = {
+        id: data.id,
+        contact_type: data.contact_type as 'cook' | 'maid',
+        name: data.name,
+        phone_number: data.phone_number
+      };
+      
+      setContacts(prev => [...prev, typedContact]);
+      return typedContact;
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -70,10 +87,18 @@ export const useHouseholdContacts = () => {
         .single();
 
       if (error) throw error;
+      
+      const typedContact: HouseholdContact = {
+        id: data.id,
+        contact_type: data.contact_type as 'cook' | 'maid',
+        name: data.name,
+        phone_number: data.phone_number
+      };
+      
       setContacts(prev => prev.map(contact => 
-        contact.id === id ? { ...contact, ...data } : contact
+        contact.id === id ? typedContact : contact
       ));
-      return data;
+      return typedContact;
     } catch (err: any) {
       setError(err.message);
       throw err;
