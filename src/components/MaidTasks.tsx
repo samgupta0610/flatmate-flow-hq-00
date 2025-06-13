@@ -13,8 +13,20 @@ import { useMaidProfiles } from '@/hooks/useMaidProfiles';
 import TaskItem from './TaskItem';
 import LanguageSelector from './LanguageSelector';
 import AddTaskModal from './AddTaskModal';
+import EditTaskModal from './EditTaskModal';
 import ScheduledTasksView from './ScheduledTasksView';
 import { generateWhatsAppMessage } from '@/utils/translations';
+
+interface MaidTask {
+  id: string;
+  title: string;
+  selected: boolean;
+  category: string;
+  completed?: boolean;
+  days_of_week?: string[];
+  task_category?: string;
+  remarks?: string;
+}
 
 const MaidTasks = () => {
   const { toast } = useToast();
@@ -23,6 +35,8 @@ const MaidTasks = () => {
   const [activeTab, setActiveTab] = useState('today');
   const [maidPhoneNumber, setMaidPhoneNumber] = useState('');
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [showEditTaskModal, setShowEditTaskModal] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState<MaidTask | null>(null);
   
   const { tasks, loading, error, updateTask, addTask, deleteTask } = useMaidTasks();
   const { maidContact } = useMaidContact();
@@ -40,6 +54,31 @@ const MaidTasks = () => {
       title: "Task Added! ✨",
       description: `${taskData.title} has been added to your tasks.`,
     });
+  };
+
+  const handleEditTask = (task: MaidTask) => {
+    setTaskToEdit(task);
+    setShowEditTaskModal(true);
+  };
+
+  const handleSaveEditTask = async (taskId: string, taskData: {
+    title: string;
+    daysOfWeek: string[];
+    category: string;
+    remarks: string;
+  }) => {
+    await updateTask(taskId, {
+      title: taskData.title,
+      days_of_week: taskData.daysOfWeek,
+      task_category: taskData.category,
+      remarks: taskData.remarks
+    });
+    toast({
+      title: "Task Updated! ✨",
+      description: `${taskData.title} has been updated successfully.`,
+    });
+    setShowEditTaskModal(false);
+    setTaskToEdit(null);
   };
 
   // Get current day of week
@@ -72,7 +111,8 @@ const MaidTasks = () => {
   
   // Get selected tasks from today's tasks only
   const selectedTasks = todayTasks.filter(task => task.selected && !task.completed);
-  
+
+  // ... keep existing code (sendToMaid function and other handlers)
   const sendToMaid = () => {
     if (selectedTasks.length === 0) {
       toast({
@@ -203,6 +243,7 @@ const MaidTasks = () => {
                 <ScheduledTasksView 
                   tasks={scheduledTasks}
                   onDeleteTask={deleteTask}
+                  onEditTask={handleEditTask}
                 />
               </TabsContent>
             </Tabs>
@@ -318,6 +359,18 @@ const MaidTasks = () => {
         isOpen={showAddTaskModal}
         onClose={() => setShowAddTaskModal(false)}
         onSave={handleAddTask}
+        existingTasks={existingTasksForSuggestions}
+      />
+
+      {/* Edit Task Modal */}
+      <EditTaskModal
+        isOpen={showEditTaskModal}
+        onClose={() => {
+          setShowEditTaskModal(false);
+          setTaskToEdit(null);
+        }}
+        onSave={handleSaveEditTask}
+        task={taskToEdit}
         existingTasks={existingTasksForSuggestions}
       />
     </div>
