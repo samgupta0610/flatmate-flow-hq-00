@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useHouseGroupInfo } from '@/hooks/useHouseGroupInfo';
@@ -86,34 +85,21 @@ const GroceryWhatsAppReminder: React.FC<GroceryWhatsAppReminderProps> = ({
   };
 
   return (
-    <Card className="h-fit">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <MessageCircle className="w-4 h-4" />
-          WhatsApp Send
-        </CardTitle>
-        <CardDescription className="text-xs">
-          Send cart to vendor
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <Button
-          onClick={handleSendToVendor}
-          disabled={isSending || cartItems.length === 0 || !vendorContact.trim()}
-          className="w-full h-8 text-sm"
-          style={{ backgroundColor: '#25D366', color: 'white' }}
-        >
-          {isSending ? (
-            "Sending..."
-          ) : (
-            <>
-              <MessageCircle className="w-3 h-3 mr-1" />
-              Send ({cartItems.length})
-            </>
-          )}
-        </Button>
-      </CardContent>
-    </Card>
+    <Button
+      onClick={handleSendToVendor}
+      disabled={isSending || cartItems.length === 0 || !vendorContact.trim()}
+      className="w-full h-8 text-sm"
+      style={{ backgroundColor: '#25D366', color: 'white' }}
+    >
+      {isSending ? (
+        "Sending..."
+      ) : (
+        <>
+          <MessageCircle className="w-3 h-3 mr-1" />
+          Send ({cartItems.length})
+        </>
+      )}
+    </Button>
   );
 };
 

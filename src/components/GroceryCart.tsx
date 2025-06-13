@@ -38,6 +38,18 @@ const GroceryCart: React.FC<GroceryCartProps> = ({
   const { toast } = useToast();
   const { houseGroup } = useHouseGroupInfo();
 
+  const getIncrementValue = (item: GroceryItem) => {
+    if ((item.category === 'fruits' || item.category === 'vegetables') && 
+        (item.unit === 'g' || item.unit === 'ml')) {
+      return 250;
+    } else if (item.unit === 'ml' && 
+               (item.category === 'dairy' || item.category === 'kitchen-essentials' || 
+                item.category === 'home-essentials')) {
+      return 250;
+    }
+    return 1;
+  };
+
   const handlePlaceOrder = () => {
     if (!vendorContact.trim()) {
       toast({
@@ -114,54 +126,60 @@ const GroceryCart: React.FC<GroceryCartProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-1">
-        {cartItems.map((item) => (
-          <div
-            key={item.id}
-            className="flex items-center justify-between p-2 bg-white border rounded-lg"
-          >
-            <div className="flex-1 min-w-0">
-              <span className="text-sm font-medium truncate block">
-                {item.name}
-              </span>
-              <Badge variant="outline" className="text-xs mt-1">
-                {item.quantity} {item.unit}
-              </Badge>
+        {cartItems.map((item) => {
+          const incrementValue = getIncrementValue(item);
+          
+          return (
+            <div
+              key={item.id}
+              className="flex items-center justify-between p-2 bg-white border rounded-lg"
+            >
+              <div className="flex-1 min-w-0">
+                <span className="text-sm font-medium truncate block">
+                  {item.name}
+                </span>
+                <Badge variant="outline" className="text-xs mt-1">
+                  {item.quantity} {item.unit}
+                </Badge>
+              </div>
+              
+              <div className="flex items-center gap-1 ml-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-5 w-5 p-0"
+                  onClick={() => {
+                    const currentQty = parseInt(item.quantity) || incrementValue;
+                    const newQty = Math.max(incrementValue, currentQty - incrementValue).toString();
+                    onUpdateQuantity(item.id, newQty);
+                  }}
+                >
+                  <Minus className="w-2 h-2" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-5 w-5 p-0"
+                  onClick={() => {
+                    const currentQty = parseInt(item.quantity) || 0;
+                    const newQty = (currentQty + incrementValue).toString();
+                    onUpdateQuantity(item.id, newQty);
+                  }}
+                >
+                  <Plus className="w-2 h-2" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-5 w-5 p-0 text-red-400 hover:text-red-600 ml-1"
+                  onClick={() => onToggleInCart(item.id)}
+                >
+                  <Trash className="w-2 h-2" />
+                </Button>
+              </div>
             </div>
-            
-            <div className="flex items-center gap-1 ml-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-5 w-5 p-0"
-                onClick={() => {
-                  const newQty = Math.max(1, parseInt(item.quantity) - 1).toString();
-                  onUpdateQuantity(item.id, newQty);
-                }}
-              >
-                <Minus className="w-2 h-2" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-5 w-5 p-0"
-                onClick={() => {
-                  const newQty = (parseInt(item.quantity) + 1).toString();
-                  onUpdateQuantity(item.id, newQty);
-                }}
-              >
-                <Plus className="w-2 h-2" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-5 w-5 p-0 text-red-400 hover:text-red-600 ml-1"
-                onClick={() => onToggleInCart(item.id)}
-              >
-                <Trash className="w-2 h-2" />
-              </Button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </CardContent>
       <CardFooter className="pt-2">
         <Button 

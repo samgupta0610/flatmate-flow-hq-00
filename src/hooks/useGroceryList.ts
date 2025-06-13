@@ -161,24 +161,8 @@ export const useGroceryList = () => {
   };
 
   const updateQuantity = (itemId: number, newQuantity: string) => {
-    const item = groceryItems.find(item => item.id === itemId);
-    if (!item) return;
-
-    // Apply 250g/ml multiplier for fruits, vegetables, and liquid items
-    let quantity = newQuantity;
-    if ((item.category === 'fruits' || item.category === 'vegetables') && 
-        (item.unit === 'g' || item.unit === 'ml')) {
-      const numericQuantity = parseInt(newQuantity) || 1;
-      quantity = (numericQuantity * 250).toString();
-    } else if (item.unit === 'ml' && 
-               (item.category === 'dairy' || item.category === 'kitchen-essentials' || 
-                item.category === 'home-essentials')) {
-      const numericQuantity = parseInt(newQuantity) || 1;
-      quantity = (numericQuantity * 250).toString();
-    }
-
     setGroceryItems(items => items.map(item => 
-      item.id === itemId ? { ...item, quantity } : item
+      item.id === itemId ? { ...item, quantity: newQuantity } : item
     ));
   };
 

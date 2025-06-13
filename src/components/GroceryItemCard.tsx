@@ -27,6 +27,20 @@ const GroceryItemCard: React.FC<GroceryItemCardProps> = ({
   onUpdateQuantity,
   onDeleteItem
 }) => {
+  const getIncrementValue = () => {
+    if ((item.category === 'fruits' || item.category === 'vegetables') && 
+        (item.unit === 'g' || item.unit === 'ml')) {
+      return 250;
+    } else if (item.unit === 'ml' && 
+               (item.category === 'dairy' || item.category === 'kitchen-essentials' || 
+                item.category === 'home-essentials')) {
+      return 250;
+    }
+    return 1;
+  };
+
+  const incrementValue = getIncrementValue();
+
   return (
     <div className="flex items-center justify-between p-2 bg-white border rounded-lg hover:shadow-sm transition-shadow">
       <div className="flex-1 min-w-0">
@@ -49,7 +63,8 @@ const GroceryItemCard: React.FC<GroceryItemCardProps> = ({
           size="sm"
           className="h-6 w-6 p-0"
           onClick={() => {
-            const newQty = Math.max(1, parseInt(item.quantity) - 1).toString();
+            const currentQty = parseInt(item.quantity) || incrementValue;
+            const newQty = Math.max(incrementValue, currentQty - incrementValue).toString();
             onUpdateQuantity(item.id, newQty);
           }}
         >
@@ -60,7 +75,8 @@ const GroceryItemCard: React.FC<GroceryItemCardProps> = ({
           size="sm"
           className="h-6 w-6 p-0"
           onClick={() => {
-            const newQty = (parseInt(item.quantity) + 1).toString();
+            const currentQty = parseInt(item.quantity) || 0;
+            const newQty = (currentQty + incrementValue).toString();
             onUpdateQuantity(item.id, newQty);
           }}
         >
