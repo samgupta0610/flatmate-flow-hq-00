@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShoppingCart, Plus, Minus, Trash, Check, AlertTriangle, ClipboardCheck } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash, Check, AlertTriangle, ClipboardCheck, IndianRupee, Users } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { SheetsSyncButton } from "@/components/ui/sheets-sync-button";
 import GroceryWhatsAppReminder from './GroceryWhatsAppReminder';
@@ -20,6 +21,7 @@ interface GroceryItem {
   unit: string;
   category: 'dairy' | 'vegetables' | 'fruits' | 'grains' | 'other';
   inCart: boolean;
+  estimatedCost?: number;
 }
 
 const GroceryManager = () => {
@@ -32,22 +34,36 @@ const GroceryManager = () => {
   const [selectedDeliveryApp, setSelectedDeliveryApp] = useState("zepto");
   const [activeTab, setActiveTab] = useState("inventory");
   const [selectedLanguage, setSelectedLanguage] = useState('english');
+  const [totalBudget, setTotalBudget] = useState("500");
+  const [splitBetween, setSplitBetween] = useState("2");
+  
+  // Unit multiplication factors for intuitive quantity updates
+  const unitFactors = {
+    "kg": 0.5,
+    "g": 100,
+    "pcs": 1,
+    "l": 0.25,
+    "ml": 100,
+    "packet": 1
+  };
   
   const units = ["kg", "g", "pcs", "l", "ml", "packet"];
   
-  // Mock grocery data
+  // Mock grocery data with estimated costs
   const [groceryItems, setGroceryItems] = useState<GroceryItem[]>([
-    { id: 1, name: "Onions", quantity: "1", unit: "kg", critical: true, category: 'vegetables', inCart: true },
-    { id: 2, name: "Milk", quantity: "500", unit: "ml", critical: true, category: 'dairy', inCart: true },
-    { id: 3, name: "Butter", quantity: "100", unit: "g", critical: false, category: 'dairy', inCart: false },
-    { id: 4, name: "Rice", quantity: "2", unit: "kg", critical: false, category: 'grains', inCart: false },
-    { id: 5, name: "Tomatoes", quantity: "500", unit: "g", critical: true, category: 'vegetables', inCart: true },
-    { id: 6, name: "Apples", quantity: "4", unit: "pcs", critical: false, category: 'fruits', inCart: false },
-    { id: 7, name: "Bread", quantity: "1", unit: "packet", critical: false, category: 'other', inCart: false },
-    { id: 8, name: "Potatoes", quantity: "2", unit: "kg", critical: false, category: 'vegetables', inCart: false },
+    { id: 1, name: "Onions", quantity: "1", unit: "kg", critical: true, category: 'vegetables', inCart: true, estimatedCost: 30 },
+    { id: 2, name: "Milk", quantity: "500", unit: "ml", critical: true, category: 'dairy', inCart: true, estimatedCost: 25 },
+    { id: 3, name: "Butter", quantity: "100", unit: "g", critical: false, category: 'dairy', inCart: false, estimatedCost: 45 },
+    { id: 4, name: "Rice", quantity: "2", unit: "kg", critical: false, category: 'grains', inCart: false, estimatedCost: 120 },
+    { id: 5, name: "Tomatoes", quantity: "500", unit: "g", critical: true, category: 'vegetables', inCart: true, estimatedCost: 40 },
+    { id: 6, name: "Apples", quantity: "4", unit: "pcs", critical: false, category: 'fruits', inCart: false, estimatedCost: 80 },
+    { id: 7, name: "Bread", quantity: "1", unit: "packet", critical: false, category: 'other', inCart: false, estimatedCost: 35 },
+    { id: 8, name: "Potatoes", quantity: "2", unit: "kg", critical: false, category: 'vegetables', inCart: false, estimatedCost: 50 },
   ]);
   
   const cartItems = groceryItems.filter(item => item.inCart);
+  const cartTotal = cartItems.reduce((sum, item) => sum + (item.estimatedCost || 0), 0);
+  const splitCost = cartTotal / parseInt(splitBetween);
   
   const addNewItem = () => {
     if (!newItemName.trim() || !newItemQuantity.trim()) return;
@@ -59,7 +75,8 @@ const GroceryManager = () => {
       unit: newItemUnit,
       critical: false,
       category: newItemCategory,
-      inCart: false
+      inCart: false,
+      estimatedCost: 0
     };
     
     setGroceryItems([...groceryItems, newItem]);
@@ -78,16 +95,24 @@ const GroceryManager = () => {
     ));
   };
   
-  const updateQuantity = (itemId: number, delta: number) => {
+  const updateQuantity = (itemId: number, increment: boolean) => {
     setGroceryItems(items => items.map(item => {
       if (item.id === itemId) {
         const currentQty = parseFloat(item.quantity);
+        const factor = unitFactors[item.unit as keyof typeof unitFactors] || 1;
+        const delta = increment ? factor : -factor;
         const newQty = Math.max(0, currentQty + delta);
-        const critical = newQty <= 1; // Set critical flag based on quantity
+        const critical = newQty <= factor; // Set critical based on one unit
         return { ...item, quantity: newQty.toString(), critical };
       }
       return item;
     }));
+  };
+  
+  const updateCost = (itemId: number, cost: string) => {
+    setGroceryItems(items => items.map(item => 
+      item.id === itemId ? { ...item, estimatedCost: parseFloat(cost) || 0 } : item
+    ));
   };
   
   const markCritical = (itemId: number) => {
@@ -106,10 +131,8 @@ const GroceryManager = () => {
   };
   
   const placeOrder = () => {
-    // In a real app, this would connect to delivery app APIs
     setOrderPlaced(true);
     
-    // Simulate API call
     setTimeout(() => {
       setOrderPlaced(false);
       
@@ -144,453 +167,366 @@ const GroceryManager = () => {
   }, {} as {[key in GroceryItem['category']]: GroceryItem[]});
 
   return (
-    <div className="p-4 md:p-8 pb-32 md:pb-8">
-      <div className="flex flex-col md:flex-row justify-between items-start mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-maideasy-navy">Grocery Manager</h1>
-          <p className="text-gray-500 mt-1">Manage your groceries and order essentials</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile Header */}
+      <div className="bg-white shadow-sm border-b p-4 mb-4">
+        <div className="flex justify-between items-center mb-3">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Grocery Manager</h1>
+            <p className="text-sm text-gray-500">Manage your groceries smartly</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="bg-green-50 text-green-700">
+              {cartItems.length} items
+            </Badge>
+          </div>
         </div>
         
-        <div className="mt-4 md:mt-0 flex flex-col md:flex-row gap-2">
+        {/* Budget and Split Cost Card */}
+        <div className="bg-blue-50 rounded-lg p-3 mb-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs text-gray-600">Total Cart</Label>
+              <div className="flex items-center gap-1">
+                <IndianRupee className="w-4 h-4 text-green-600" />
+                <span className="font-bold text-green-600">₹{cartTotal}</span>
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-gray-600">Split Between</Label>
+              <div className="flex items-center gap-1">
+                <Users className="w-4 h-4 text-blue-600" />
+                <span className="font-bold text-blue-600">{splitBetween} people</span>
+              </div>
+            </div>
+          </div>
+          <div className="mt-2 pt-2 border-t border-blue-200">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Per person:</span>
+              <span className="font-bold text-lg text-blue-600">₹{splitCost.toFixed(0)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="flex gap-2">
           <Button 
             onClick={addAllLowStockToCart} 
             variant="outline"
-            className="border-maideasy-secondary text-maideasy-secondary hover:bg-maideasy-secondary/10 flex items-center gap-2"
+            size="sm"
+            className="flex-1 text-xs"
           >
-            <AlertTriangle className="w-4 h-4" /> Add Low Stock to Cart
+            <AlertTriangle className="w-3 h-3 mr-1" /> 
+            Add Low Stock
           </Button>
           <Button 
             onClick={placeOrder} 
             disabled={cartItems.length === 0 || orderPlaced}
-            className="bg-maideasy-secondary hover:bg-maideasy-secondary/90 flex items-center gap-2"
+            size="sm"
+            className="flex-1 bg-green-600 hover:bg-green-700 text-xs"
           >
-            {orderPlaced ? "Placing Order..." : 
-              <>
-                <ShoppingCart className="w-4 h-4" /> Checkout ({cartItems.length})
-              </>
-            }
+            {orderPlaced ? "Placing..." : "Checkout"}
           </Button>
         </div>
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
-          <Card>
-            <CardHeader className="pb-2">
-              {/* Language Selector */}
-              <div className="mb-4">
-                <LanguageSelector 
-                  selectedLanguage={selectedLanguage}
-                  onLanguageChange={setSelectedLanguage}
+
+      <div className="px-4 pb-24">
+        {/* Language Selector */}
+        <div className="mb-4">
+          <LanguageSelector 
+            selectedLanguage={selectedLanguage}
+            onLanguageChange={setSelectedLanguage}
+          />
+        </div>
+
+        {/* Split Cost Settings */}
+        <Card className="mb-4">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Cost Settings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sm">Split Between</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={splitBetween}
+                  onChange={(e) => setSplitBetween(e.target.value)}
+                  className="mt-1"
                 />
               </div>
-              
-              <Tabs defaultValue="inventory" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="inventory">Inventory</TabsTrigger>
-                  <TabsTrigger value="cart">Shopping Cart</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="inventory" className="mt-4">
-                  <div className="mb-6">
-                    <div className="flex items-end gap-2">
-                      <div className="flex-grow">
-                        <Label htmlFor="item-name">Item Name</Label>
-                        <Input 
-                          id="item-name" 
-                          placeholder="e.g. Onions"
-                          value={newItemName}
-                          onChange={(e) => setNewItemName(e.target.value)}
-                        />
-                      </div>
-                      <div className="w-24">
-                        <Label htmlFor="item-quantity">Quantity</Label>
-                        <Input 
-                          id="item-quantity" 
-                          type="number"
-                          placeholder="e.g. 2"
-                          value={newItemQuantity}
-                          onChange={(e) => setNewItemQuantity(e.target.value)}
-                        />
-                      </div>
-                      <div className="w-24">
-                        <Label htmlFor="item-unit">Unit</Label>
-                        <select
-                          id="item-unit"
-                          value={newItemUnit}
-                          onChange={(e) => setNewItemUnit(e.target.value)}
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {units.map(unit => (
-                            <option key={unit} value={unit}>{unit}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="w-32">
-                        <Label htmlFor="item-category">Category</Label>
-                        <select
-                          id="item-category"
-                          value={newItemCategory}
-                          onChange={(e) => setNewItemCategory(e.target.value as GroceryItem['category'])}
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          <option value="vegetables">Vegetables</option>
-                          <option value="fruits">Fruits</option>
-                          <option value="dairy">Dairy</option>
-                          <option value="grains">Grains</option>
-                          <option value="other">Other</option>
-                        </select>
-                      </div>
-                      <Button 
-                        onClick={addNewItem} 
-                        className="bg-maideasy-blue hover:bg-maideasy-blue/90 h-10"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
+              <div>
+                <Label className="text-sm">Budget</Label>
+                <Input
+                  type="number"
+                  placeholder="₹500"
+                  value={totalBudget}
+                  onChange={(e) => setTotalBudget(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            <div className="bg-gray-50 p-2 rounded-lg">
+              <div className="flex justify-between text-sm">
+                <span>Budget per person:</span>
+                <span className="font-medium">₹{(parseInt(totalBudget) / parseInt(splitBetween)).toFixed(0)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Current per person:</span>
+                <span className={`font-medium ${splitCost > (parseInt(totalBudget) / parseInt(splitBetween)) ? 'text-red-600' : 'text-green-600'}`}>
+                  ₹{splitCost.toFixed(0)}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Tabs defaultValue="inventory" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="inventory">Inventory</TabsTrigger>
+            <TabsTrigger value="cart">Cart ({cartItems.length})</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="inventory" className="space-y-4">
+            {/* Add New Item */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Add New Item</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="col-span-2">
+                    <Input 
+                      placeholder="Item name"
+                      value={newItemName}
+                      onChange={(e) => setNewItemName(e.target.value)}
+                    />
                   </div>
-                  
-                  {Object.entries(itemsByCategory).map(([category, items]) => (
-                    <div key={category} className="mb-6">
-                      <h3 className="font-medium text-lg mb-2 capitalize">{category}</h3>
-                      <div className="space-y-2">
-                        {items.map((item) => (
-                          <div
-                            key={item.id}
-                            className={`flex items-center justify-between p-3 rounded-lg ${
-                              item.critical ? 'bg-red-50 border border-red-100' : 'bg-gray-50'
-                            }`}
+                  <Input 
+                    type="number"
+                    placeholder="Qty"
+                    value={newItemQuantity}
+                    onChange={(e) => setNewItemQuantity(e.target.value)}
+                  />
+                  <select
+                    value={newItemUnit}
+                    onChange={(e) => setNewItemUnit(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    {units.map(unit => (
+                      <option key={unit} value={unit}>{unit}</option>
+                    ))}
+                  </select>
+                </div>
+                <select
+                  value={newItemCategory}
+                  onChange={(e) => setNewItemCategory(e.target.value as GroceryItem['category'])}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="vegetables">Vegetables</option>
+                  <option value="fruits">Fruits</option>
+                  <option value="dairy">Dairy</option>
+                  <option value="grains">Grains</option>
+                  <option value="other">Other</option>
+                </select>
+                <Button onClick={addNewItem} className="w-full">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Item
+                </Button>
+              </CardContent>
+            </Card>
+            
+            {/* Items by Category */}
+            {Object.entries(itemsByCategory).map(([category, items]) => (
+              <Card key={category}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base capitalize">{category}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {items.map((item) => (
+                    <div
+                      key={item.id}
+                      className={`p-3 rounded-lg border ${
+                        item.critical ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          {item.critical && <span className="text-red-500 text-sm">🚨</span>}
+                          <span className={`font-medium ${item.critical ? 'text-red-700' : ''}`}>
+                            {item.name}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-red-400 hover:text-red-600"
+                          onClick={() => deleteItem(item.id)}
+                        >
+                          <Trash className="w-3 h-3" />
+                        </Button>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={() => updateQuantity(item.id, false)}
                           >
-                            <div className="flex items-center gap-2">
-                              {item.critical && <span className="text-red-500">🚨</span>}
-                              <span className={item.critical ? 'font-medium' : ''}>{item.name}</span>
-                            </div>
-                            
-                            <div className="flex items-center gap-3">
-                              <span className="text-sm text-gray-500">
-                                {item.quantity} {item.unit}
-                              </span>
-                              
-                              <div className="flex items-center">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  onClick={() => updateQuantity(item.id, -0.5)}
-                                >
-                                  <Minus className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  onClick={() => updateQuantity(item.id, 0.5)}
-                                >
-                                  <Plus className="w-3 h-3" />
-                                </Button>
-                              </div>
-                              
-                              <Button
-                                variant={item.inCart ? "default" : "outline"}
-                                size="sm"
-                                className={`h-8 ${item.inCart ? 'bg-maideasy-secondary hover:bg-maideasy-secondary/90' : ''}`}
-                                onClick={() => toggleInCart(item.id)}
-                              >
-                                {item.inCart ? 'In Cart' : 'Add to Cart'}
-                              </Button>
-                              
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
-                                onClick={() => deleteItem(item.id)}
-                              >
-                                <Trash className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
+                            <Minus className="w-3 h-3" />
+                          </Button>
+                          <span className="text-sm min-w-[4rem] text-center">
+                            {item.quantity} {item.unit}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={() => updateQuantity(item.id, true)}
+                          >
+                            <Plus className="w-3 h-3" />
+                          </Button>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            placeholder="₹0"
+                            value={item.estimatedCost || ''}
+                            onChange={(e) => updateCost(item.id, e.target.value)}
+                            className="w-16 h-6 text-xs px-2"
+                          />
+                          <Button
+                            variant={item.inCart ? "default" : "outline"}
+                            size="sm"
+                            className={`h-6 text-xs px-2 ${item.inCart ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                            onClick={() => toggleInCart(item.id)}
+                          >
+                            {item.inCart ? 'Added' : 'Add'}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
-                </TabsContent>
-                
-                <TabsContent value="cart" className="mt-4">
-                  {cartItems.length > 0 ? (
-                    <div className="space-y-4">
-                      {cartItems.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                        >
-                          <div className="flex items-center gap-2">
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+          
+          <TabsContent value="cart" className="space-y-4">
+            {cartItems.length > 0 ? (
+              <>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Shopping Cart</CardTitle>
+                    <CardDescription className="text-sm">
+                      {cartItems.length} items • Total: ₹{cartTotal}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {cartItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between p-3 bg-white border rounded-lg"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
                             <span className="font-medium">{item.name}</span>
-                            <Badge variant="outline" className="ml-2">
+                            <Badge variant="outline" className="text-xs">
                               {item.quantity} {item.unit}
                             </Badge>
                           </div>
-                          
-                          <div className="flex items-center gap-2">
-                            <div className="flex items-center">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                onClick={() => updateQuantity(item.id, -0.5)}
-                              >
-                                <Minus className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                onClick={() => updateQuantity(item.id, 0.5)}
-                              >
-                                <Plus className="w-3 h-3" />
-                              </Button>
-                            </div>
-                            
+                          <div className="text-sm text-green-600 font-medium">
+                            ₹{item.estimatedCost || 0}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center">
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
-                              onClick={() => toggleInCart(item.id)}
+                              className="h-6 w-6 p-0"
+                              onClick={() => updateQuantity(item.id, false)}
                             >
-                              <Trash className="w-3 h-3" />
+                              <Minus className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => updateQuantity(item.id, true)}
+                            >
+                              <Plus className="w-3 h-3" />
                             </Button>
                           </div>
+                          
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-red-400 hover:text-red-600"
+                            onClick={() => toggleInCart(item.id)}
+                          >
+                            <Trash className="w-3 h-3" />
+                          </Button>
                         </div>
-                      ))}
-                      
-                      <div className="mt-6 flex justify-end">
-                        <Button 
-                          onClick={placeOrder}
-                          disabled={orderPlaced} 
-                          className="bg-maideasy-secondary hover:bg-maideasy-secondary/90"
-                        >
-                          {orderPlaced ? "Placing Order..." : "Order Like a Boss"}
-                        </Button>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-10">
-                      <div className="bg-gray-100 p-4 rounded-full mb-4">
-                        <ShoppingCart className="w-8 h-8 text-gray-400" />
-                      </div>
-                      <h3 className="text-xl font-medium mb-2">Your cart is empty</h3>
-                      <p className="text-gray-500 mb-4">Add items from your inventory to place an order</p>
-                      <Button
-                        variant="outline"
-                        onClick={addAllLowStockToCart}
-                        className="border-maideasy-secondary text-maideasy-secondary hover:bg-maideasy-secondary/10"
-                      >
-                        Add Low Stock Items to Cart
-                      </Button>
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
-            </CardHeader>
-          </Card>
-          
-          {/* Google Sheets Sync Button */}
-          <SheetsSyncButton type="grocery" />
-          
-          {/* WhatsApp Vendor Reminder */}
-          <div className="mt-6">
-            <GroceryWhatsAppReminder 
-              cartItems={cartItems} 
-              selectedLanguage={selectedLanguage}
-            />
-          </div>
-
-          {/* Grocery Order Log */}
-          <div className="mt-6">
-            <GroceryOrderLog />
-          </div>
-          
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Smart Shopping Suggestions</CardTitle>
-              <CardDescription>Based on your usage patterns</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">Frequently Bought Together</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span>Tomatoes + Onions + Ginger</span>
-                      <Button size="sm" variant="ghost" className="h-8">
-                        <Plus className="w-3 h-3 mr-1" /> Add All
-                      </Button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Milk + Bread + Eggs</span>
-                      <Button size="sm" variant="ghost" className="h-8">
-                        <Plus className="w-3 h-3 mr-1" /> Add All
-                      </Button>
-                    </div>
+                    ))}
+                  </CardContent>
+                  <CardFooter className="pt-4 border-t">
+                    <Button 
+                      onClick={placeOrder}
+                      disabled={orderPlaced} 
+                      className="w-full bg-green-600 hover:bg-green-700"
+                    >
+                      {orderPlaced ? "Placing Order..." : `Order Now - ₹${cartTotal}`}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </>
+            ) : (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-10">
+                  <div className="bg-gray-100 p-4 rounded-full mb-4">
+                    <ShoppingCart className="w-8 h-8 text-gray-400" />
                   </div>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">Weekly Essentials</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span>Rice (5kg Bag)</span>
-                      <Button size="sm" variant="ghost" className="h-8">
-                        <Plus className="w-3 h-3 mr-1" /> Add
-                      </Button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Cooking Oil (1L)</span>
-                      <Button size="sm" variant="ghost" className="h-8">
-                        <Plus className="w-3 h-3 mr-1" /> Add
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <div className="md:col-span-1 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Delivery Apps</CardTitle>
-              <CardDescription>Choose your preferred service</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div
-                  className={`flex items-center justify-between p-3 rounded-lg border ${
-                    selectedDeliveryApp === 'zepto' ? 'border-maideasy-blue bg-maideasy-blue/5' : 'border-gray-200'
-                  }`}
-                  onClick={() => setSelectedDeliveryApp('zepto')}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white">
-                      Z
-                    </div>
-                    <div>
-                      <p className="font-medium">Zepto</p>
-                      <p className="text-xs text-gray-500">10 min delivery</p>
-                    </div>
-                  </div>
-                  {selectedDeliveryApp === 'zepto' && (
-                    <Check className="w-5 h-5 text-maideasy-blue" />
-                  )}
-                </div>
-                
-                <div
-                  className={`flex items-center justify-between p-3 rounded-lg border ${
-                    selectedDeliveryApp === 'blinkit' ? 'border-maideasy-blue bg-maideasy-blue/5' : 'border-gray-200'
-                  }`}
-                  onClick={() => setSelectedDeliveryApp('blinkit')}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-white">
-                      B
-                    </div>
-                    <div>
-                      <p className="font-medium">Blinkit</p>
-                      <p className="text-xs text-gray-500">15 min delivery</p>
-                    </div>
-                  </div>
-                  {selectedDeliveryApp === 'blinkit' && (
-                    <Check className="w-5 h-5 text-maideasy-blue" />
-                  )}
-                </div>
-                
-                <div
-                  className={`flex items-center justify-between p-3 rounded-lg border ${
-                    selectedDeliveryApp === 'bigbasket' ? 'border-maideasy-blue bg-maideasy-blue/5' : 'border-gray-200'
-                  }`}
-                  onClick={() => setSelectedDeliveryApp('bigbasket')}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white">
-                      BB
-                    </div>
-                    <div>
-                      <p className="font-medium">BigBasket</p>
-                      <p className="text-xs text-gray-500">2-hour delivery</p>
-                    </div>
-                  </div>
-                  {selectedDeliveryApp === 'bigbasket' && (
-                    <Check className="w-5 h-5 text-maideasy-blue" />
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Google Sheets</CardTitle>
-              <CardDescription>Grocery inventory sync</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="border rounded-md overflow-hidden">
-                <div className="p-3 bg-green-50 flex items-center justify-between">
-                  <p className="text-sm font-medium text-green-800">Grocery Inventory Sheet</p>
-                  <Badge variant="outline" className="bg-white">Connected</Badge>
-                </div>
-                <div className="p-4">
-                  <p className="text-sm mb-4">
-                    Your grocery inventory is synced with Google Sheets. Changes made here will be synced automatically.
+                  <h3 className="text-lg font-medium mb-2">Your cart is empty</h3>
+                  <p className="text-gray-500 text-center mb-4">
+                    Add items from your inventory to place an order
                   </p>
-                  <Button variant="outline" className="w-full">
-                    Open in Google Sheets
+                  <Button
+                    variant="outline"
+                    onClick={addAllLowStockToCart}
+                    className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                  >
+                    Add Low Stock Items
                   </Button>
-                </div>
-              </div>
-              
-              <div className="mt-6">
-                <Button variant="outline" className="w-full">
-                  Sync Now
-                </Button>
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  Last synced: Today at 3:15 PM
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Shopping Stats</CardTitle>
-              <CardDescription>Your grocery insights</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span>Most purchased items:</span>
-                  <span className="text-sm font-medium">Milk, Onions, Tomatoes</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Avg. weekly spend:</span>
-                  <span className="text-sm font-medium">₹1,245</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Food waste avoided:</span>
-                  <span className="text-sm font-medium text-green-600">12% improvement</span>
-                </div>
-              </div>
-              
-              <div className="mt-6 pt-4 border-t">
-                <div className="flex items-center mb-2">
-                  <ClipboardCheck className="w-4 h-4 mr-2 text-maideasy-secondary" />
-                  <h4 className="font-medium">Zero Waste Hero Badge</h4>
-                </div>
-                <p className="text-sm text-gray-500">You're 2 weeks away from earning this badge!</p>
-                <div className="w-full bg-gray-200 h-2 rounded-full mt-2">
-                  <div className="bg-maideasy-secondary h-full rounded-full" style={{ width: "70%" }}></div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
+
+        {/* WhatsApp Vendor Reminder */}
+        <div className="mt-6">
+          <GroceryWhatsAppReminder 
+            cartItems={cartItems} 
+            selectedLanguage={selectedLanguage}
+          />
+        </div>
+
+        {/* Grocery Order Log */}
+        <div className="mt-6">
+          <GroceryOrderLog />
+        </div>
+
+        {/* Google Sheets Sync */}
+        <div className="mt-6">
+          <SheetsSyncButton type="grocery" />
         </div>
       </div>
     </div>
