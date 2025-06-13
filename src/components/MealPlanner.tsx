@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -10,15 +9,56 @@ import MessagePreview from './MessagePreview';
 import WeeklyPlanner from './WeeklyPlanner';
 import FoodItemsManager from './FoodItemsManager';
 
+// Sample weekly plan data
+const sampleWeeklyPlan: WeeklyPlan = {
+  Monday: {
+    breakfast: [initialMealItems[0], initialMealItems[1]], // Idli, Dosa
+    lunch: [initialMealItems[6]], // Dal Rice
+    dinner: [initialMealItems[5], initialMealItems[7]], // Roti, Chicken Curry
+    snack: [initialMealItems[14]] // Tea
+  },
+  Tuesday: {
+    breakfast: [initialMealItems[2]], // Upma
+    lunch: [initialMealItems[8]], // Biryani
+    dinner: [initialMealItems[4], initialMealItems[11]], // Chapati, Rajma
+    snack: [initialMealItems[15]] // Coffee
+  },
+  Wednesday: {
+    breakfast: [initialMealItems[3]], // Poha
+    lunch: [initialMealItems[9]], // Chole Bhature
+    dinner: [initialMealItems[5], initialMealItems[12]], // Roti, Palak Paneer
+    snack: [initialMealItems[16]] // Samosa
+  },
+  Thursday: {
+    breakfast: [initialMealItems[0]], // Idli
+    lunch: [initialMealItems[10]], // Pav Bhaji
+    dinner: [initialMealItems[4], initialMealItems[13]], // Chapati, Fish Curry
+    snack: [initialMealItems[17]] // Biscuits
+  },
+  Friday: {
+    breakfast: [initialMealItems[1]], // Dosa
+    lunch: [initialMealItems[6]], // Dal Rice
+    dinner: [initialMealItems[5], initialMealItems[7]], // Roti, Chicken Curry
+    snack: [initialMealItems[14]] // Tea
+  },
+  Saturday: {
+    breakfast: [initialMealItems[2], initialMealItems[3]], // Upma, Poha
+    lunch: [initialMealItems[8]], // Biryani
+    dinner: [initialMealItems[9]], // Chole Bhature
+    snack: [initialMealItems[16]] // Samosa
+  },
+  Sunday: {
+    breakfast: [initialMealItems[1]], // Dosa
+    lunch: [initialMealItems[10]], // Pav Bhaji
+    dinner: [initialMealItems[4], initialMealItems[12]], // Chapati, Palak Paneer
+    snack: [initialMealItems[15]] // Coffee
+  }
+};
+
 const MealPlanner = () => {
   const { toast } = useToast();
   const [mealItems, setMealItems] = useState<MealItem[]>(initialMealItems);
-  const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan>(
-    daysOfWeek.reduce((acc, day) => {
-      acc[day] = { breakfast: [], lunch: [], dinner: [], snack: [] };
-      return acc;
-    }, {} as WeeklyPlan)
-  );
+  const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan>(sampleWeeklyPlan);
   const [newItemName, setNewItemName] = useState("");
   const [newItemCategory, setNewItemCategory] = useState<MealItem['category']>("breakfast");
   const [newItemIngredients, setNewItemIngredients] = useState("");

@@ -36,6 +36,36 @@ export type Database = {
         }
         Relationships: []
       }
+      household_contacts: {
+        Row: {
+          contact_type: string
+          created_at: string
+          id: string
+          name: string
+          phone_number: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contact_type: string
+          created_at?: string
+          id?: string
+          name: string
+          phone_number: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contact_type?: string
+          created_at?: string
+          id?: string
+          name?: string
+          phone_number?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       maid_contacts: {
         Row: {
           auto_send: boolean | null
@@ -154,6 +184,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vendor_contacts: {
+        Row: {
+          address: string | null
+          contact_person: string | null
+          created_at: string
+          id: string
+          phone_number: string
+          shop_name: string
+          shop_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          id?: string
+          phone_number: string
+          shop_name: string
+          shop_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          id?: string
+          phone_number?: string
+          shop_name?: string
+          shop_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

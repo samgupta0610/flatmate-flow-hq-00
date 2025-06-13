@@ -4,25 +4,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Home, Users, Copy, Check, User } from 'lucide-react';
+import { Home, Users, Copy, Check, User, Phone, UserCheck } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useHouseGroup } from '@/hooks/useHouseGroup';
 import { useProfile } from '@/hooks/useProfile';
+import { useHouseholdContacts } from '@/hooks/useHouseholdContacts';
 
 interface HouseGroupOnboardingProps {
   onComplete: () => void;
 }
 
 const HouseGroupOnboarding: React.FC<HouseGroupOnboardingProps> = ({ onComplete }) => {
-  const [step, setStep] = useState<'name' | 'choose' | 'create' | 'join' | 'success'>('name');
+  const [step, setStep] = useState<'name' | 'choose' | 'create' | 'join' | 'contacts' | 'success'>('name');
   const [userName, setUserName] = useState('');
   const [groupName, setGroupName] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [createdCode, setCreatedCode] = useState('');
   const [copied, setCopied] = useState(false);
+  
+  // Household contacts state
+  const [cookName, setCookName] = useState('');
+  const [cookPhone, setCookPhone] = useState('');
+  const [maidName, setMaidName] = useState('');
+  const [maidPhone, setMaidPhone] = useState('');
+  
   const { toast } = useToast();
   const { createHouseGroup, joinHouseGroup, loading, error } = useHouseGroup();
   const { updateProfile } = useProfile();
+  const { addContact } = useHouseholdContacts();
 
   const handleNameSubmit = async () => {
     if (!userName.trim()) return;
@@ -38,11 +47,7 @@ const HouseGroupOnboarding: React.FC<HouseGroupOnboardingProps> = ({ onComplete 
     const houseGroup = await createHouseGroup(groupName.trim());
     if (houseGroup) {
       setCreatedCode(houseGroup.join_code);
-      setStep('success');
-      toast({
-        title: "House Group Created! 🏠",
-        description: `Share the code "${houseGroup.join_code}" with your housemates`,
-      });
+      setStep('contacts');
     }
   };
 
@@ -51,11 +56,47 @@ const HouseGroupOnboarding: React.FC<HouseGroupOnboardingProps> = ({ onComplete 
 
     const success = await joinHouseGroup(joinCode.trim().toUpperCase());
     if (success) {
-      onComplete();
-      toast({
-        title: "Successfully Joined! 🎉",
-        description: "Welcome to your house group",
-      });
+      setStep('contacts');
+    }
+  };
+
+  const handleContactsSubmit = async () => {
+    try {
+      // Add cook contact if provided
+      if (cookName.trim() && cookPhone.trim()) {
+        await addContact({
+          contact_type: 'cook',
+          name: cookName.trim(),
+          phone_number: cookPhone.trim()
+        });
+      }
+
+      // Add maid contact if provided
+      if (maidName.trim() && maidPhone.trim()) {
+        await addContact({
+          contact_type: 'maid',
+          name: maidName.trim(),
+          phone_number: maidPhone.trim()
+        });
+      }
+
+      if (createdCode) {
+        setStep('success');
+      } else {
+        onComplete();
+        toast({
+          title: "Setup Complete! 🎉",
+          description: "Welcome to your house group",
+        });
+      }
+    } catch (error) {
+      console.error('Error saving contacts:', error);
+      // Continue anyway since contacts are optional
+      if (createdCode) {
+        setStep('success');
+      } else {
+        onComplete();
+      }
     }
   };
 
@@ -246,6 +287,76 @@ const HouseGroupOnboarding: React.FC<HouseGroupOnboardingProps> = ({ onComplete 
                 className="flex-1 h-12 bg-maideasy-primary hover:bg-maideasy-primary/90 text-white font-medium shadow-lg"
               >
                 {loading ? 'Joining...' : 'Join Group'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (step === 'contacts') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-maideasy-background p-4">
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold text-maideasy-secondary flex items-center gap-2">
+              <UserCheck className="w-5 h-5" />
+              Add Household Contacts
+            </CardTitle>
+            <CardDescription>
+              Add your cook and maid contacts (optional - you can skip this step)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Cook Details (Optional)</Label>
+                <Input
+                  placeholder="Cook's name"
+                  value={cookName}
+                  onChange={(e) => setCookName(e.target.value)}
+                  className="h-10"
+                />
+                <Input
+                  placeholder="Cook's phone number"
+                  value={cookPhone}
+                  onChange={(e) => setCookPhone(e.target.value)}
+                  className="h-10"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Maid Details (Optional)</Label>
+                <Input
+                  placeholder="Maid's name"
+                  value={maidName}
+                  onChange={(e) => setMaidName(e.target.value)}
+                  className="h-10"
+                />
+                <Input
+                  placeholder="Maid's phone number"
+                  value={maidPhone}
+                  onChange={(e) => setMaidPhone(e.target.value)}
+                  className="h-10"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleContactsSubmit}
+                className="flex-1 h-12 font-medium"
+              >
+                Skip
+              </Button>
+              <Button
+                onClick={handleContactsSubmit}
+                className="flex-1 h-12 bg-maideasy-primary hover:bg-maideasy-primary/90 text-white font-medium shadow-lg"
+              >
+                <Phone className="w-4 h-4 mr-2" />
+                Continue
               </Button>
             </div>
           </CardContent>

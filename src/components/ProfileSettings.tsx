@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useProfile } from '@/hooks/useProfile';
 import { useHouseGroupInfo } from '@/hooks/useHouseGroupInfo';
 import { useAuth } from '@/lib/auth';
+import HouseholdContactsManager from './HouseholdContactsManager';
+import VendorContactsManager from './VendorContactsManager';
 
 const ProfileSettings: React.FC = () => {
   const [userName, setUserName] = useState('');
@@ -70,128 +72,137 @@ const ProfileSettings: React.FC = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <User className="w-5 h-5" />
-          Profile Settings
-        </CardTitle>
-        <CardDescription>Manage your personal information and preferences</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="user-name" className="flex items-center gap-2">
-              <User className="w-4 h-4" />
-              Full Name
-            </Label>
-            <Input
-              id="user-name"
-              type="text"
-              placeholder="Enter your full name"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              disabled={!isEditing}
-            />
+    <div className="space-y-6">
+      {/* Personal Information Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="w-5 h-5" />
+            Personal Information
+          </CardTitle>
+          <CardDescription>Manage your personal information and preferences</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="user-name" className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Full Name
+              </Label>
+              <Input
+                id="user-name"
+                type="text"
+                placeholder="Enter your full name"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                disabled={!isEditing}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="user-email" className="flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                Email Address
+              </Label>
+              <Input
+                id="user-email"
+                type="email"
+                value={userEmail}
+                disabled={true}
+                className="bg-gray-100"
+              />
+              <p className="text-xs text-gray-500">
+                Email cannot be changed here. Please contact support if needed.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="flat-number" className="flex items-center gap-2">
+                <Home className="w-4 h-4" />
+                Flat Number
+              </Label>
+              <Input
+                id="flat-number"
+                type="text"
+                placeholder="e.g. 101, A-25, etc."
+                value={flatNumber}
+                onChange={(e) => setFlatNumber(e.target.value)}
+                disabled={!isEditing}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="group-code" className="flex items-center gap-2">
+                <Code className="w-4 h-4" />
+                House Group Code
+              </Label>
+              <Input
+                id="group-code"
+                type="text"
+                value={groupCode}
+                disabled={true}
+                className="bg-gray-100"
+              />
+              <p className="text-xs text-gray-500">
+                This is your house group's unique code. Share it with others to invite them.
+              </p>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="user-email" className="flex items-center gap-2">
-              <Mail className="w-4 h-4" />
-              Email Address
-            </Label>
-            <Input
-              id="user-email"
-              type="email"
-              value={userEmail}
-              disabled={true}
-              className="bg-gray-100"
-            />
-            <p className="text-xs text-gray-500">
-              Email cannot be changed here. Please contact support if needed.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="flat-number" className="flex items-center gap-2">
-              <Home className="w-4 h-4" />
-              Flat Number
-            </Label>
-            <Input
-              id="flat-number"
-              type="text"
-              placeholder="e.g. 101, A-25, etc."
-              value={flatNumber}
-              onChange={(e) => setFlatNumber(e.target.value)}
-              disabled={!isEditing}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="group-code" className="flex items-center gap-2">
-              <Code className="w-4 h-4" />
-              House Group Code
-            </Label>
-            <Input
-              id="group-code"
-              type="text"
-              value={groupCode}
-              disabled={true}
-              className="bg-gray-100"
-            />
-            <p className="text-xs text-gray-500">
-              This is your house group's unique code. Share it with others to invite them.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          {!isEditing ? (
-            <Button 
-              onClick={() => setIsEditing(true)}
-              className="bg-maideasy-primary hover:bg-maideasy-primary/90"
-            >
-              Edit Profile
-            </Button>
-          ) : (
-            <>
+          <div className="flex gap-2">
+            {!isEditing ? (
               <Button 
-                onClick={handleSave}
-                disabled={isSaving}
-                className="bg-green-600 hover:bg-green-700"
+                onClick={() => setIsEditing(true)}
+                className="bg-maideasy-primary hover:bg-maideasy-primary/90"
               >
-                {isSaving ? "Saving..." : "Save Changes"}
+                Edit Profile
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleCancel}
-                disabled={isSaving}
-              >
-                Cancel
-              </Button>
-            </>
-          )}
-        </div>
+            ) : (
+              <>
+                <Button 
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isSaving ? "Saving..." : "Save Changes"}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                >
+                  Cancel
+                </Button>
+              </>
+            )}
+          </div>
 
-        <div className="pt-4 border-t space-y-2">
-          <h4 className="font-medium text-sm text-gray-700">Current Profile</h4>
-          <div className="grid grid-cols-1 gap-4 text-sm">
-            <div>
-              <span className="text-gray-500">Name:</span>
-              <p className="font-medium">{userName || 'Not set'}</p>
-            </div>
-            <div>
-              <span className="text-gray-500">Email:</span>
-              <p className="font-medium">{userEmail || 'Not set'}</p>
-            </div>
-            <div>
-              <span className="text-gray-500">Flat:</span>
-              <p className="font-medium">{flatNumber || 'Not set'}</p>
+          <div className="pt-4 border-t space-y-2">
+            <h4 className="font-medium text-sm text-gray-700">Current Profile</h4>
+            <div className="grid grid-cols-1 gap-4 text-sm">
+              <div>
+                <span className="text-gray-500">Name:</span>
+                <p className="font-medium">{userName || 'Not set'}</p>
+              </div>
+              <div>
+                <span className="text-gray-500">Email:</span>
+                <p className="font-medium">{userEmail || 'Not set'}</p>
+              </div>
+              <div>
+                <span className="text-gray-500">Flat:</span>
+                <p className="font-medium">{flatNumber || 'Not set'}</p>
+              </div>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Household Contacts Manager */}
+      <HouseholdContactsManager />
+
+      {/* Vendor Contacts Manager */}
+      <VendorContactsManager />
+    </div>
   );
 };
 
