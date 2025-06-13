@@ -12,6 +12,7 @@ interface MaidTask {
   days_of_week?: string[];
   task_category?: string;
   remarks?: string;
+  favorite?: boolean;
 }
 
 export const useMaidTasks = () => {
@@ -104,7 +105,8 @@ export const useMaidTasks = () => {
           completed: false,
           days_of_week: daysOfWeek,
           task_category: taskCategory,
-          remarks
+          remarks,
+          favorite: false
         })
         .select()
         .single();

@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pencil } from 'lucide-react';
+import { Pencil, Star } from 'lucide-react';
 
 interface MaidTask {
   id: string;
@@ -17,6 +18,7 @@ interface MaidTask {
   days_of_week?: string[];
   task_category?: string;
   remarks?: string;
+  favorite?: boolean;
 }
 
 interface EditTaskModalProps {
@@ -27,6 +29,7 @@ interface EditTaskModalProps {
     daysOfWeek: string[];
     category: string;
     remarks: string;
+    favorite: boolean;
   }) => Promise<void>;
   task: MaidTask | null;
   existingTasks?: Array<{ title: string; id: string }>;
@@ -43,6 +46,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [category, setCategory] = useState('common_area');
   const [remarks, setRemarks] = useState('');
+  const [favorite, setFavorite] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -74,6 +78,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
       setSelectedDays(task.days_of_week || []);
       setCategory(task.task_category || 'common_area');
       setRemarks(task.remarks || '');
+      setFavorite(task.favorite || false);
     }
   }, [task]);
 
@@ -98,7 +103,8 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
         title: taskName,
         daysOfWeek: selectedDays,
         category,
-        remarks
+        remarks,
+        favorite
       });
       
       onClose();
@@ -155,6 +161,19 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Favorite Toggle */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="favorite"
+              checked={favorite}
+              onCheckedChange={setFavorite}
+            />
+            <Label htmlFor="favorite" className="flex items-center gap-2">
+              <Star className={`w-4 h-4 ${favorite ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`} />
+              Mark as Favorite (op)
+            </Label>
           </div>
 
           {/* Weekday Selectors */}

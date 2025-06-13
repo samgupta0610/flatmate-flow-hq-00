@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trash2, Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Trash2, Pencil, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 
 interface MaidTask {
   id: string;
@@ -14,6 +14,7 @@ interface MaidTask {
   days_of_week?: string[];
   task_category?: string;
   remarks?: string;
+  favorite?: boolean;
 }
 
 interface ScheduledTasksViewProps {
@@ -66,10 +67,17 @@ const ScheduledTasksView: React.FC<ScheduledTasksViewProps> = ({
     sunday: 'S'
   };
 
-  const totalPages = Math.ceil(tasks.length / tasksPerPage);
+  // Sort tasks to show favorites first
+  const sortedTasks = [...tasks].sort((a, b) => {
+    if (a.favorite && !b.favorite) return -1;
+    if (!a.favorite && b.favorite) return 1;
+    return 0;
+  });
+
+  const totalPages = Math.ceil(sortedTasks.length / tasksPerPage);
   const startIndex = currentPage * tasksPerPage;
   const endIndex = startIndex + tasksPerPage;
-  const currentTasks = tasks.slice(startIndex, endIndex);
+  const currentTasks = sortedTasks.slice(startIndex, endIndex);
 
   const nextPage = () => {
     if (currentPage < totalPages - 1) {
@@ -96,7 +104,7 @@ const ScheduledTasksView: React.FC<ScheduledTasksViewProps> = ({
       {/* Task Counter */}
       <div className="flex items-center justify-between text-sm text-gray-600">
         <span>
-          Showing {startIndex + 1}-{Math.min(endIndex, tasks.length)} of {tasks.length} tasks
+          Showing {startIndex + 1}-{Math.min(endIndex, sortedTasks.length)} of {sortedTasks.length} tasks
         </span>
         {totalPages > 1 && (
           <div className="flex items-center gap-2">
@@ -128,7 +136,14 @@ const ScheduledTasksView: React.FC<ScheduledTasksViewProps> = ({
       {/* Tasks Grid */}
       <div className="space-y-3">
         {currentTasks.map((task) => (
-          <Card key={task.id} className="border-l-4 border-l-green-500">
+          <Card 
+            key={task.id} 
+            className={`border-l-4 ${
+              task.favorite 
+                ? 'border-l-yellow-500 bg-yellow-50' 
+                : 'border-l-green-500'
+            }`}
+          >
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -143,6 +158,14 @@ const ScheduledTasksView: React.FC<ScheduledTasksViewProps> = ({
                     >
                       {task.task_category || 'other'}
                     </Badge>
+                    {task.favorite && (
+                      <>
+                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                        <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-800">
+                          op
+                        </Badge>
+                      </>
+                    )}
                   </div>
                   
                   {/* Frequency Display */}

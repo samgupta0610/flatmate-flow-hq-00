@@ -26,6 +26,7 @@ interface MaidTask {
   days_of_week?: string[];
   task_category?: string;
   remarks?: string;
+  favorite?: boolean;
 }
 
 const MaidTasks = () => {
@@ -66,12 +67,14 @@ const MaidTasks = () => {
     daysOfWeek: string[];
     category: string;
     remarks: string;
+    favorite: boolean;
   }) => {
     await updateTask(taskId, {
       title: taskData.title,
       days_of_week: taskData.daysOfWeek,
       task_category: taskData.category,
-      remarks: taskData.remarks
+      remarks: taskData.remarks,
+      favorite: taskData.favorite
     });
     toast({
       title: "Task Updated! ✨",
@@ -92,13 +95,20 @@ const MaidTasks = () => {
 
   // Filter tasks dynamically based on current day and scheduling
   const getTodaysTasks = () => {
-    return tasks.filter(task => {
+    const todaysTasks = tasks.filter(task => {
       // If task has no days_of_week or empty array, it's a one-time task for today
       if (!task.days_of_week || task.days_of_week.length === 0) {
         return true;
       }
       // If task has days_of_week, check if today is included
       return task.days_of_week.includes(currentDay);
+    });
+
+    // Sort to show favorites first
+    return todaysTasks.sort((a, b) => {
+      if (a.favorite && !b.favorite) return -1;
+      if (!a.favorite && b.favorite) return 1;
+      return 0;
     });
   };
 
