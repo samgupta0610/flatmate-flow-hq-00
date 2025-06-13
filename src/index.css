@@ -16,7 +16,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 196 85% 49%;  /* Electric Blue - MaidEasy main color */
+    --primary: 196 85% 49%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -25,7 +25,7 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 142 62% 60%;  /* Lime Green */
+    --accent: 142 62% 60%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
@@ -76,10 +76,49 @@
 
   body {
     @apply bg-maideasy-background text-foreground font-inter;
+    /* Prevent overscroll on mobile */
+    overscroll-behavior: none;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-poppins font-bold;
+  }
+
+  /* Mobile-first responsive text sizing */
+  html {
+    font-size: 14px;
+  }
+
+  @screen md {
+    html {
+      font-size: 16px;
+    }
+  }
+
+  /* Touch targets for mobile */
+  button, a, input, select, textarea {
+    min-height: 44px;
+  }
+
+  /* Improved tap highlights */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Safe area handling for mobile */
+  @supports (padding: max(0px)) {
+    .safe-top {
+      padding-top: max(env(safe-area-inset-top), 1rem);
+    }
+    
+    .safe-bottom {
+      padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+    }
   }
 }
 
@@ -94,5 +133,18 @@
   
   .maideasy-icon {
     @apply flex items-center justify-center w-12 h-12 rounded-full bg-opacity-20 text-2xl;
+  }
+
+  /* Mobile-optimized components */
+  .mobile-card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-100 p-4 active:scale-95 transition-transform duration-150;
+  }
+
+  .mobile-button {
+    @apply min-h-[44px] px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+  }
+
+  .mobile-input {
+    @apply min-h-[44px] px-3 py-2 rounded-lg border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20;
   }
 }

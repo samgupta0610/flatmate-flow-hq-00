@@ -30,11 +30,11 @@ const App = () => (
               <div className="flex min-h-screen bg-maideasy-background">
                 <NavigationBar />
                 <div className="flex-1 md:ml-64">
-                  <div className="flex-1 overflow-auto">
-                    <MobileNav />
+                  <div className="flex-1 overflow-auto pt-16 md:pt-0 pb-20 md:pb-0">
                     <Outlet />
                   </div>
                 </div>
+                <MobileNav />
               </div>
             </ProtectedRoute>
           }>

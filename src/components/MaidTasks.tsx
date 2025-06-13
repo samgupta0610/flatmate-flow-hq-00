@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, Plus } from 'lucide-react';
+import { Send, Plus, MessageCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useMaidTasks } from '@/hooks/useMaidTasks';
 import { useMaidContact } from '@/hooks/useMaidContact';
@@ -96,7 +96,6 @@ const MaidTasks = () => {
     setTaskToEdit(null);
   };
 
-  // Get current day of week
   const getCurrentDayOfWeek = () => {
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const today = new Date();
@@ -105,18 +104,14 @@ const MaidTasks = () => {
 
   const currentDay = getCurrentDayOfWeek();
 
-  // Filter tasks dynamically based on current day and scheduling
   const getTodaysTasks = () => {
     const todaysTasks = tasks.filter(task => {
-      // If task has no days_of_week or empty array, it's a one-time task for today
       if (!task.days_of_week || task.days_of_week.length === 0) {
         return true;
       }
-      // If task has days_of_week, check if today is included
       return task.days_of_week.includes(currentDay);
     });
 
-    // Sort to show favorites first
     return todaysTasks.sort((a, b) => {
       if (a.favorite && !b.favorite) return -1;
       if (!a.favorite && b.favorite) return 1;
@@ -130,11 +125,8 @@ const MaidTasks = () => {
 
   const todayTasks = getTodaysTasks();
   const scheduledTasks = getScheduledTasks();
-  
-  // Get selected tasks from today's tasks only
   const selectedTasks = todayTasks.filter(task => task.selected && !task.completed);
 
-  // ... keep existing code (sendToMaid function and other handlers)
   const sendToMaid = () => {
     if (selectedTasks.length === 0) {
       toast({
@@ -155,7 +147,6 @@ const MaidTasks = () => {
       return;
     }
 
-    // Generate WhatsApp message and open WhatsApp
     const message = generateWhatsAppMessage(selectedTasks, selectedLanguage, houseGroup?.group_name);
     const encodedMessage = encodeURIComponent(message);
     const cleanPhoneNumber = phoneToUse.replace(/[^\d+]/g, '');
@@ -176,12 +167,10 @@ const MaidTasks = () => {
 
   if (loading) {
     return (
-      <div className="p-4 md:p-8 pb-32 md:pb-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-maideasy-primary mx-auto mb-4"></div>
-            <p>Loading tasks...</p>
-          </div>
+      <div className="p-4 flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-maideasy-primary mx-auto mb-4"></div>
+          <p>Loading tasks...</p>
         </div>
       </div>
     );
@@ -189,194 +178,128 @@ const MaidTasks = () => {
 
   if (error) {
     return (
-      <div className="p-4 md:p-8 pb-32 md:pb-8">
-        <div className="text-center py-8">
-          <p className="text-red-500 mb-4">Error loading tasks: {error}</p>
-          <Button onClick={() => window.location.reload()}>Retry</Button>
-        </div>
+      <div className="p-4 text-center py-8">
+        <p className="text-red-500 mb-4">Error loading tasks: {error}</p>
+        <Button onClick={() => window.location.reload()}>Retry</Button>
       </div>
     );
   }
 
-  // Prepare existing tasks for suggestions
   const existingTasksForSuggestions = tasks.map(task => ({
     title: task.title,
     id: task.id
   }));
 
   return (
-    <div className="p-3 md:p-8 pb-32 md:pb-8 max-w-4xl mx-auto">
+    <div className="p-4 max-w-md mx-auto md:max-w-4xl">
       {/* Mobile-optimized header */}
-      <div className="flex flex-col space-y-4 mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-maideasy-secondary">Maid Tasks</h1>
-            <p className="text-gray-500 mt-1 text-sm md:text-base">Manage your maid's daily tasks</p>
-          </div>
-          <Button
-            onClick={() => setShowAddTaskModal(true)}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 flex items-center gap-2 shadow-lg"
-          >
-            <Plus className="w-4 h-4" />
-            Add Task
-          </Button>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-xl md:text-3xl font-bold text-maideasy-secondary">Tasks</h1>
+          <p className="text-gray-500 text-sm">Manage your daily tasks</p>
         </div>
+        <Button
+          onClick={() => setShowAddTaskModal(true)}
+          size="sm"
+          className="bg-green-600 hover:bg-green-700 text-white"
+        >
+          <Plus className="w-4 h-4" />
+        </Button>
       </div>
 
-      <div className="space-y-6">
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg md:text-xl">Maid Tasks</CardTitle>
-            <CardDescription className="text-sm">Manage today's tasks and scheduled tasks</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Task Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="today" className="text-xs md:text-sm">
-                  Today's Tasks ({todayTasks.length})
-                </TabsTrigger>
-                <TabsTrigger value="scheduled" className="text-xs md:text-sm">
-                  Scheduled Tasks ({scheduledTasks.length})
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="today" className="space-y-4">
-                <div className="space-y-3">
-                  {todayTasks.map((task) => (
-                    <TaskItem
-                      key={task.id}
-                      task={task}
-                      selectedLanguage={selectedLanguage}
-                      onUpdate={updateTask}
-                      onDelete={deleteTask}
-                    />
-                  ))}
-                  
-                  {todayTasks.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <p className="text-sm md:text-base">No tasks for today. Add your first task!</p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="scheduled" className="space-y-4">
-                <ScheduledTasksView 
-                  tasks={scheduledTasks}
-                  onDeleteTask={deleteTask}
-                  onEditTask={handleEditTask}
-                />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-
-        {/* WhatsApp Message Section - Moved to top */}
-        {selectedTasks.length > 0 && (
-          <Card className="border-2 border-green-200 bg-green-50">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Send className="w-5 h-5 text-green-600" />
-                WhatsApp Message
-              </CardTitle>
-              <CardDescription>Send selected tasks to your maid via WhatsApp</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Message Preview */}
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <p className="font-medium mb-2 text-sm md:text-base">Message Preview:</p>
-                <p className="text-xs md:text-sm text-gray-600 whitespace-pre-line">
-                  {generateWhatsAppMessage(selectedTasks, selectedLanguage, houseGroup?.group_name)}
-                </p>
+      {/* Quick Send Button - Mobile First */}
+      {selectedTasks.length > 0 && (
+        <Card className="mb-4 border-2 border-green-200 bg-green-50">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <MessageCircle className="w-5 h-5 text-green-600" />
+                <span className="font-medium text-green-800">
+                  {selectedTasks.length} task{selectedTasks.length > 1 ? 's' : ''} selected
+                </span>
               </div>
-
-              {/* Phone Number Input */}
-              <div className="space-y-2">
-                <Label htmlFor="maid-phone" className="text-sm font-medium">
-                  Enter Maid's WhatsApp Number
-                </Label>
-                <Input
-                  id="maid-phone"
-                  type="tel"
-                  value={maidPhoneNumber}
-                  onChange={(e) => setMaidPhoneNumber(e.target.value)}
-                  placeholder={maidContact?.phone || "Enter phone number (e.g., +91XXXXXXXXXX)"}
-                  className="w-full"
-                />
-              </div>
-
-              {/* Send Button and Language Selector Row */}
-              <div className="flex flex-col md:flex-row gap-4 items-end">
-                <div className="flex-1">
-                  <LanguageSelector 
-                    selectedLanguage={selectedLanguage}
-                    onLanguageChange={setSelectedLanguage}
-                  />
-                </div>
-                <Button
-                  onClick={sendToMaid}
-                  disabled={sendingInstructions}
-                  className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white px-6 py-3 flex items-center justify-center gap-2"
-                  size="lg"
-                >
-                  {sendingInstructions ? (
-                    "Opening WhatsApp..."
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      Send Message ({selectedTasks.length})
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              {/* Individual Maid Profiles */}
-              {maidProfiles.length > 0 && (
-                <div className="space-y-2 pt-4 border-t border-gray-200">
-                  <p className="text-sm font-medium text-gray-600">Or send to registered maids:</p>
-                  <div className="grid gap-2">
-                    {maidProfiles.map((maid) => (
-                      <Button
-                        key={maid.id}
-                        onClick={() => {
-                          if (maid.phone_number) {
-                            setMaidPhoneNumber(maid.phone_number);
-                            sendToMaid();
-                          }
-                        }}
-                        disabled={!maid.phone_number}
-                        className="w-full py-2 text-sm bg-white border border-green-600 text-green-600 hover:bg-green-50"
-                        variant="outline"
-                      >
-                        Send to {maid.username || 'Maid'} {!maid.phone_number && '(No phone number)'}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Contact Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Contact Settings</CardTitle>
-            <CardDescription className="text-sm">Saved maid contact information</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Label htmlFor="saved-contact" className="text-sm">Saved WhatsApp Number</Label>
-              <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded border">
-                {maidContact?.phone || 'Not set yet'}
-              </div>
+              <Button
+                onClick={sendToMaid}
+                disabled={sendingInstructions}
+                size="sm"
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Send className="w-4 h-4 mr-1" />
+                Send
+              </Button>
             </div>
           </CardContent>
         </Card>
-      </div>
+      )}
 
-      {/* Add Task Modal */}
+      {/* Task Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="today" className="text-sm">
+            Today ({todayTasks.length})
+          </TabsTrigger>
+          <TabsTrigger value="scheduled" className="text-sm">
+            All ({scheduledTasks.length})
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="today" className="space-y-3">
+          {todayTasks.map((task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
+              selectedLanguage={selectedLanguage}
+              onUpdate={updateTask}
+              onDelete={deleteTask}
+            />
+          ))}
+          
+          {todayTasks.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              <p className="text-sm">No tasks for today. Add your first task!</p>
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="scheduled" className="space-y-4">
+          <ScheduledTasksView 
+            tasks={scheduledTasks}
+            onDeleteTask={deleteTask}
+            onEditTask={handleEditTask}
+          />
+        </TabsContent>
+      </Tabs>
+
+      {/* WhatsApp Settings - Collapsible */}
+      {selectedTasks.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Message Settings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="maid-phone" className="text-sm">
+                Maid's WhatsApp Number
+              </Label>
+              <Input
+                id="maid-phone"
+                type="tel"
+                value={maidPhoneNumber}
+                onChange={(e) => setMaidPhoneNumber(e.target.value)}
+                placeholder={maidContact?.phone || "Enter phone number"}
+                className="w-full"
+              />
+            </div>
+
+            <LanguageSelector 
+              selectedLanguage={selectedLanguage}
+              onLanguageChange={setSelectedLanguage}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Modals */}
       <AddTaskModal
         isOpen={showAddTaskModal}
         onClose={() => setShowAddTaskModal(false)}
@@ -384,7 +307,6 @@ const MaidTasks = () => {
         existingTasks={existingTasksForSuggestions}
       />
 
-      {/* Edit Task Modal */}
       <EditTaskModal
         isOpen={showEditTaskModal}
         onClose={() => {

@@ -1,7 +1,8 @@
 
 import { useNavigate } from "react-router-dom";
-import { CalendarCheck, ShoppingCart, ChefHat, Plus } from "lucide-react";
+import { CalendarCheck, ShoppingCart, ChefHat, Plus, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -11,129 +12,118 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto animate-fade-in">
-      {/* Header */}
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-3xl md:text-4xl font-bold text-maideasy-text-primary">Welcome to MaidEasy! 👋</h1>
-        <p className="text-maideasy-text-secondary mt-2 text-lg">Your smart home management companion</p>
+    <div className="p-4 max-w-md mx-auto md:max-w-6xl animate-fade-in">
+      {/* Welcome Header */}
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl md:text-4xl font-bold text-maideasy-text-primary mb-2">
+          Welcome Home! 👋
+        </h1>
+        <p className="text-maideasy-text-secondary text-sm md:text-lg">
+          Manage your home with ease
+        </p>
       </div>
 
-      {/* Main Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <div 
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600">5</div>
+            <div className="text-xs text-blue-500">Tasks Today</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-green-600">3</div>
+            <div className="text-xs text-green-500">Meals Planned</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Action Cards */}
+      <div className="space-y-4 mb-6">
+        <Card 
           onClick={() => handleNavigation("/maid-tasks")}
-          className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
+          className="bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer active:scale-95"
         >
-          <div className="bg-[#E0F7FA] p-6 flex items-center justify-center">
-            <CalendarCheck className="w-16 h-16 text-maideasy-secondary" />
-          </div>
-          <div className="p-6">
-            <h2 className="text-xl font-semibold mb-2 text-maideasy-text-primary">Maid Tasks</h2>
-            <p className="text-maideasy-text-secondary">Organize and schedule tasks for your household help</p>
-            <Button 
-              className="mt-4 bg-maideasy-secondary/10 text-maideasy-secondary hover:bg-maideasy-secondary hover:text-white transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleNavigation("/maid-tasks");
-              }}
-            >
-              Manage Tasks
-            </Button>
-          </div>
-        </div>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-4">
+              <div className="bg-blue-100 p-3 rounded-full">
+                <CalendarCheck className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-800">Maid Tasks</h3>
+                <p className="text-sm text-gray-500">Manage daily cleaning tasks</p>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-medium text-blue-600">5 pending</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div 
+        <Card 
           onClick={() => handleNavigation("/meal-planner")}
-          className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
+          className="bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer active:scale-95"
         >
-          <div className="bg-[#E8F5E9] p-6 flex items-center justify-center">
-            <ChefHat className="w-16 h-16 text-maideasy-primary" />
-          </div>
-          <div className="p-6">
-            <h2 className="text-xl font-semibold mb-2 text-maideasy-text-primary">Meal Planner</h2>
-            <p className="text-maideasy-text-secondary">Plan meals for the week and organize your menu</p>
-            <Button 
-              className="mt-4 bg-maideasy-primary/10 text-maideasy-primary hover:bg-maideasy-primary hover:text-white transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleNavigation("/meal-planner");
-              }}
-            >
-              Plan Meals
-            </Button>
-          </div>
-        </div>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-4">
+              <div className="bg-green-100 p-3 rounded-full">
+                <ChefHat className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-800">Meal Planner</h3>
+                <p className="text-sm text-gray-500">Plan your weekly meals</p>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-medium text-green-600">3/7 days</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div 
+        <Card 
           onClick={() => handleNavigation("/grocery")}
-          className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
+          className="bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer active:scale-95"
         >
-          <div className="bg-[#D3E4FD] p-6 flex items-center justify-center">
-            <ShoppingCart className="w-16 h-16 text-[#64B5F6]" />
-          </div>
-          <div className="p-6">
-            <h2 className="text-xl font-semibold mb-2 text-maideasy-text-primary">Grocery Manager</h2>
-            <p className="text-maideasy-text-secondary">Keep track of groceries and shopping lists</p>
-            <Button 
-              className="mt-4 bg-[#64B5F6]/10 text-[#64B5F6] hover:bg-[#64B5F6] hover:text-white transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleNavigation("/grocery");
-              }}
-            >
-              Manage Groceries
-            </Button>
-          </div>
-        </div>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-4">
+              <div className="bg-orange-100 p-3 rounded-full">
+                <ShoppingCart className="w-6 h-6 text-orange-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-800">Grocery List</h3>
+                <p className="text-sm text-gray-500">Track your shopping needs</p>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-medium text-orange-600">4 items</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Stats Overview (Simplified) */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-        <h3 className="text-lg font-medium mb-4 text-maideasy-text-primary">Today's Overview</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="flex items-center p-3 bg-[#E0F7FA]/50 rounded-lg">
-            <div className="mr-4 bg-[#64B5F6] rounded-full p-2">
-              <CalendarCheck className="w-5 h-5 text-white" />
+      {/* Today's Tip */}
+      <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 mb-6">
+        <CardContent className="p-4">
+          <div className="flex items-start space-x-3">
+            <div className="bg-purple-100 p-2 rounded-full">
+              <TrendingUp className="w-4 h-4 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-maideasy-text-secondary">Maid Tasks</p>
-              <p className="font-medium">5 pending</p>
+              <h4 className="font-medium text-purple-800 mb-1">Today's Tip</h4>
+              <p className="text-sm text-purple-600">
+                Add tasks to favorites for quick access and better organization!
+              </p>
             </div>
           </div>
-          <div className="flex items-center p-3 bg-[#E8F5E9]/50 rounded-lg">
-            <div className="mr-4 bg-[#81C784] rounded-full p-2">
-              <ChefHat className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="text-sm text-maideasy-text-secondary">Meals Planned</p>
-              <p className="font-medium">3/3 complete</p>
-            </div>
-          </div>
-          <div className="flex items-center p-3 bg-[#D3E4FD]/50 rounded-lg">
-            <div className="mr-4 bg-[#64B5F6] rounded-full p-2">
-              <ShoppingCart className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="text-sm text-maideasy-text-secondary">Grocery Items</p>
-              <p className="font-medium">4 low stock</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Tips */}
-      <div className="bg-[#F2FCE2] rounded-xl p-6">
-        <h3 className="text-lg font-medium mb-2 text-maideasy-text-primary">Quick Tip</h3>
-        <p className="text-maideasy-text-secondary">Keep your grocery list updated to avoid running out of essentials. Use the Grocery Manager to track your inventory!</p>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Floating Action Button */}
       <Button
         size="icon"
-        className="fixed bottom-20 right-4 md:bottom-8 md:right-8 w-14 h-14 rounded-full shadow-lg bg-maideasy-primary hover:bg-maideasy-primary/90 text-white"
-        onClick={() => {
-          // TODO: Implement quick add modal
-        }}
+        className="fixed bottom-24 right-4 w-14 h-14 rounded-full shadow-lg bg-maideasy-primary hover:bg-maideasy-primary/90 text-white z-40"
+        onClick={() => handleNavigation("/maid-tasks")}
       >
         <Plus className="w-6 h-6" />
       </Button>
