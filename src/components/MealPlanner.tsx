@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,14 +31,14 @@ type WeeklyPlan = {
 };
 
 const initialMealItems: MealItem[] = [
-  { id: 1, name: "Omelette", category: "breakfast", ingredients: ["Eggs", "Cheese", "Vegetables"], prepTime: 15, calories: 250, suggestions: "Make it fluffy and well-seasoned" },
-  { id: 2, name: "Toast", category: "breakfast", ingredients: ["Bread", "Butter"], prepTime: 5, calories: 150, suggestions: "Golden brown and crispy" },
-  { id: 3, name: "Salad", category: "lunch", ingredients: ["Lettuce", "Tomatoes", "Cucumber", "Dressing"], prepTime: 10, calories: 120, suggestions: "Fresh vegetables, light dressing" },
-  { id: 4, name: "Sandwich", category: "lunch", ingredients: ["Bread", "Ham", "Cheese"], prepTime: 5, calories: 320, suggestions: "Toasted bread, fresh ingredients" },
-  { id: 5, name: "Pasta", category: "dinner", ingredients: ["Pasta", "Tomato Sauce", "Meatballs"], prepTime: 35, calories: 450, suggestions: "Al dente pasta, rich sauce" },
-  { id: 6, name: "Rice Bowl", category: "dinner", ingredients: ["Rice", "Vegetables", "Protein"], prepTime: 35, calories: 380, suggestions: "Fluffy rice, colorful vegetables" },
-  { id: 7, name: "Fruit Salad", category: "general", ingredients: ["Apple", "Banana", "Orange"], prepTime: 5, calories: 80, suggestions: "Fresh seasonal fruits" },
-  { id: 8, name: "Mixed Nuts", category: "general", ingredients: ["Mixed Nuts"], prepTime: 0, calories: 160, suggestions: "Lightly salted or roasted" },
+  { id: 1, name: "Omelette", category: "breakfast", ingredients: ["Eggs", "Cheese", "Vegetables"], calories: 250, suggestions: "Make it fluffy and well-seasoned" },
+  { id: 2, name: "Toast", category: "breakfast", ingredients: ["Bread", "Butter"], calories: 150, suggestions: "Golden brown and crispy" },
+  { id: 3, name: "Salad", category: "lunch", ingredients: ["Lettuce", "Tomatoes", "Cucumber", "Dressing"], calories: 120, suggestions: "Fresh vegetables, light dressing" },
+  { id: 4, name: "Sandwich", category: "lunch", ingredients: ["Bread", "Ham", "Cheese"], calories: 320, suggestions: "Toasted bread, fresh ingredients" },
+  { id: 5, name: "Pasta", category: "dinner", ingredients: ["Pasta", "Tomato Sauce", "Meatballs"], calories: 450, suggestions: "Al dente pasta, rich sauce" },
+  { id: 6, name: "Rice Bowl", category: "dinner", ingredients: ["Rice", "Vegetables", "Protein"], calories: 380, suggestions: "Fluffy rice, colorful vegetables" },
+  { id: 7, name: "Fruit Salad", category: "general", ingredients: ["Apple", "Banana", "Orange"], calories: 80, suggestions: "Fresh seasonal fruits" },
+  { id: 8, name: "Mixed Nuts", category: "general", ingredients: ["Mixed Nuts"], calories: 160, suggestions: "Lightly salted or roasted" },
 ];
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -59,7 +60,6 @@ const MealPlanner = () => {
   const [newItemName, setNewItemName] = useState("");
   const [newItemCategory, setNewItemCategory] = useState<MealItem['category']>("breakfast");
   const [newItemIngredients, setNewItemIngredients] = useState("");
-  const [newItemPrepTime, setNewItemPrepTime] = useState("15");
   const [newItemCalories, setNewItemCalories] = useState("200");
   const [newItemSuggestions, setNewItemSuggestions] = useState("");
   const [activeTab, setActiveTab] = useState("weekly");
@@ -88,7 +88,6 @@ const MealPlanner = () => {
       name: newItemName,
       category: newItemCategory,
       ingredients: newItemIngredients.split(",").map(item => item.trim()),
-      prepTime: parseInt(newItemPrepTime),
       calories: parseInt(newItemCalories),
       suggestions: newItemSuggestions
     };
@@ -96,7 +95,6 @@ const MealPlanner = () => {
     setMealItems([...mealItems, newItem]);
     setNewItemName("");
     setNewItemIngredients("");
-    setNewItemPrepTime("15");
     setNewItemCalories("200");
     setNewItemSuggestions("");
 
@@ -523,20 +521,12 @@ const MealPlanner = () => {
                   value={newItemSuggestions}
                   onChange={(e) => setNewItemSuggestions(e.target.value)}
                 />
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    type="number"
-                    placeholder="Prep time (min)"
-                    value={newItemPrepTime}
-                    onChange={(e) => setNewItemPrepTime(e.target.value)}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Calories per person"
-                    value={newItemCalories}
-                    onChange={(e) => setNewItemCalories(e.target.value)}
-                  />
-                </div>
+                <Input
+                  type="number"
+                  placeholder="Calories per person"
+                  value={newItemCalories}
+                  onChange={(e) => setNewItemCalories(e.target.value)}
+                />
                 <Button onClick={addNewItem} className="w-full">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Food Item
@@ -572,7 +562,9 @@ const MealPlanner = () => {
                         <Input
                           value={Array.isArray(editFormData.ingredients) 
                             ? editFormData.ingredients.join(', ') 
-                            : editFormData.ingredients || ''}
+                            : typeof editFormData.ingredients === 'string'
+                            ? editFormData.ingredients
+                            : item.ingredients.join(', ')}
                           onChange={(e) => setEditFormData({...editFormData, ingredients: e.target.value})}
                           placeholder="Ingredients (comma separated)"
                           className="text-sm"
