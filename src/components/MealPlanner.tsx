@@ -16,8 +16,8 @@ interface MealItem {
   category: 'breakfast' | 'lunch' | 'dinner' | 'general';
   ingredients: string[];
   prepTime: number;
-  cookTime: number;
   calories: number;
+  suggestions: string;
 }
 
 interface DailyPlan {
@@ -32,14 +32,14 @@ type WeeklyPlan = {
 };
 
 const initialMealItems: MealItem[] = [
-  { id: 1, name: "Omelette", category: "breakfast", ingredients: ["Eggs", "Cheese", "Vegetables"], prepTime: 5, cookTime: 10, calories: 250 },
-  { id: 2, name: "Toast", category: "breakfast", ingredients: ["Bread", "Butter"], prepTime: 2, cookTime: 3, calories: 150 },
-  { id: 3, name: "Salad", category: "lunch", ingredients: ["Lettuce", "Tomatoes", "Cucumber", "Dressing"], prepTime: 10, cookTime: 0, calories: 120 },
-  { id: 4, name: "Sandwich", category: "lunch", ingredients: ["Bread", "Ham", "Cheese"], prepTime: 5, cookTime: 0, calories: 320 },
-  { id: 5, name: "Pasta", category: "dinner", ingredients: ["Pasta", "Tomato Sauce", "Meatballs"], prepTime: 15, cookTime: 20, calories: 450 },
-  { id: 6, name: "Rice Bowl", category: "dinner", ingredients: ["Rice", "Vegetables", "Protein"], prepTime: 10, cookTime: 25, calories: 380 },
-  { id: 7, name: "Fruit Salad", category: "general", ingredients: ["Apple", "Banana", "Orange"], prepTime: 5, cookTime: 0, calories: 80 },
-  { id: 8, name: "Mixed Nuts", category: "general", ingredients: ["Mixed Nuts"], prepTime: 0, cookTime: 0, calories: 160 },
+  { id: 1, name: "Omelette", category: "breakfast", ingredients: ["Eggs", "Cheese", "Vegetables"], prepTime: 15, calories: 250, suggestions: "Make it fluffy and well-seasoned" },
+  { id: 2, name: "Toast", category: "breakfast", ingredients: ["Bread", "Butter"], prepTime: 5, calories: 150, suggestions: "Golden brown and crispy" },
+  { id: 3, name: "Salad", category: "lunch", ingredients: ["Lettuce", "Tomatoes", "Cucumber", "Dressing"], prepTime: 10, calories: 120, suggestions: "Fresh vegetables, light dressing" },
+  { id: 4, name: "Sandwich", category: "lunch", ingredients: ["Bread", "Ham", "Cheese"], prepTime: 5, calories: 320, suggestions: "Toasted bread, fresh ingredients" },
+  { id: 5, name: "Pasta", category: "dinner", ingredients: ["Pasta", "Tomato Sauce", "Meatballs"], prepTime: 35, calories: 450, suggestions: "Al dente pasta, rich sauce" },
+  { id: 6, name: "Rice Bowl", category: "dinner", ingredients: ["Rice", "Vegetables", "Protein"], prepTime: 35, calories: 380, suggestions: "Fluffy rice, colorful vegetables" },
+  { id: 7, name: "Fruit Salad", category: "general", ingredients: ["Apple", "Banana", "Orange"], prepTime: 5, calories: 80, suggestions: "Fresh seasonal fruits" },
+  { id: 8, name: "Mixed Nuts", category: "general", ingredients: ["Mixed Nuts"], prepTime: 0, calories: 160, suggestions: "Lightly salted or roasted" },
 ];
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -61,10 +61,10 @@ const MealPlanner = () => {
   const [newItemName, setNewItemName] = useState("");
   const [newItemCategory, setNewItemCategory] = useState<MealItem['category']>("breakfast");
   const [newItemIngredients, setNewItemIngredients] = useState("");
-  const [newItemPrepTime, setNewItemPrepTime] = useState("10");
-  const [newItemCookTime, setNewItemCookTime] = useState("15");
+  const [newItemPrepTime, setNewItemPrepTime] = useState("15");
   const [newItemCalories, setNewItemCalories] = useState("200");
-  const [activeTab, setActiveTab] = useState("food");
+  const [newItemSuggestions, setNewItemSuggestions] = useState("");
+  const [activeTab, setActiveTab] = useState("weekly");
   const [selectedDay, setSelectedDay] = useState("Monday");
   const [selectedLanguage, setSelectedLanguage] = useState('english');
   const [showMessagePreview, setShowMessagePreview] = useState(false);
@@ -91,16 +91,16 @@ const MealPlanner = () => {
       category: newItemCategory,
       ingredients: newItemIngredients.split(",").map(item => item.trim()),
       prepTime: parseInt(newItemPrepTime),
-      cookTime: parseInt(newItemCookTime),
-      calories: parseInt(newItemCalories)
+      calories: parseInt(newItemCalories),
+      suggestions: newItemSuggestions
     };
 
     setMealItems([...mealItems, newItem]);
     setNewItemName("");
     setNewItemIngredients("");
-    setNewItemPrepTime("10");
-    setNewItemCookTime("15");
+    setNewItemPrepTime("15");
     setNewItemCalories("200");
+    setNewItemSuggestions("");
 
     toast({
       title: "Meal Added!",
@@ -115,8 +115,8 @@ const MealPlanner = () => {
       category: item.category,
       ingredients: item.ingredients,
       prepTime: item.prepTime,
-      cookTime: item.cookTime,
-      calories: item.calories
+      calories: item.calories,
+      suggestions: item.suggestions
     });
   };
 
@@ -133,8 +133,8 @@ const MealPlanner = () => {
               ? editFormData.ingredients.split(",").map(i => i.trim())
               : editFormData.ingredients || item.ingredients,
             prepTime: editFormData.prepTime || item.prepTime,
-            cookTime: editFormData.cookTime || item.cookTime,
-            calories: editFormData.calories || item.calories
+            calories: editFormData.calories || item.calories,
+            suggestions: editFormData.suggestions || item.suggestions
           }
         : item
     ));
@@ -270,6 +270,12 @@ const MealPlanner = () => {
     return Object.values(dayPlan).reduce((total, meals) => total + meals.length, 0);
   };
 
+  const getTodayNutritionSummary = () => {
+    const totalCalories = Object.values(todaysPlan).flat().reduce((sum, meal) => sum + meal.calories, 0);
+    const totalMeals = Object.values(todaysPlan).flat().length;
+    return { totalCalories, totalMeals };
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile Header */}
@@ -387,173 +393,11 @@ const MealPlanner = () => {
           </Card>
         )}
 
-        <Tabs defaultValue="food" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs defaultValue="weekly" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="food">Food Items ({mealItems.length})</TabsTrigger>
             <TabsTrigger value="weekly">Weekly Menu</TabsTrigger>
+            <TabsTrigger value="food">Food Items ({mealItems.length})</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="food" className="space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Add New Food Item</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Input
-                  placeholder="Food item name"
-                  value={newItemName}
-                  onChange={(e) => setNewItemName(e.target.value)}
-                  list="food-suggestions"
-                />
-                <datalist id="food-suggestions">
-                  {foodSuggestions.map((suggestion, index) => (
-                    <option key={index} value={suggestion} />
-                  ))}
-                </datalist>
-                <select
-                  value={newItemCategory}
-                  onChange={(e) => setNewItemCategory(e.target.value as MealItem['category'])}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="breakfast">Breakfast</option>
-                  <option value="lunch">Lunch</option>
-                  <option value="dinner">Dinner</option>
-                  <option value="general">General (Anytime)</option>
-                </select>
-                <Input
-                  placeholder="Ingredients (comma separated)"
-                  value={newItemIngredients}
-                  onChange={(e) => setNewItemIngredients(e.target.value)}
-                />
-                <div className="grid grid-cols-3 gap-2">
-                  <Input
-                    type="number"
-                    placeholder="Prep (min)"
-                    value={newItemPrepTime}
-                    onChange={(e) => setNewItemPrepTime(e.target.value)}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Cook (min)"
-                    value={newItemCookTime}
-                    onChange={(e) => setNewItemCookTime(e.target.value)}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Calories"
-                    value={newItemCalories}
-                    onChange={(e) => setNewItemCalories(e.target.value)}
-                  />
-                </div>
-                <Button onClick={addNewItem} className="w-full">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Food Item
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Available Food Items</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {mealItems.map(item => (
-                  <div key={item.id} className="p-3 rounded-lg border bg-white">
-                    {editingItemId === item.id ? (
-                      <div className="space-y-2">
-                        <Input
-                          value={editFormData.name || ''}
-                          onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
-                          placeholder="Food name"
-                        />
-                        <select
-                          value={editFormData.category || item.category}
-                          onChange={(e) => setEditFormData({...editFormData, category: e.target.value as MealItem['category']})}
-                          className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-sm"
-                        >
-                          <option value="breakfast">Breakfast</option>
-                          <option value="lunch">Lunch</option>
-                          <option value="dinner">Dinner</option>
-                          <option value="general">General</option>
-                        </select>
-                        <Input
-                          value={Array.isArray(editFormData.ingredients) ? editFormData.ingredients.join(', ') : editFormData.ingredients || ''}
-                          onChange={(e) => setEditFormData({...editFormData, ingredients: e.target.value})}
-                          placeholder="Ingredients"
-                        />
-                        <div className="grid grid-cols-3 gap-1">
-                          <Input
-                            type="number"
-                            value={editFormData.prepTime || ''}
-                            onChange={(e) => setEditFormData({...editFormData, prepTime: parseInt(e.target.value)})}
-                            placeholder="Prep"
-                          />
-                          <Input
-                            type="number"
-                            value={editFormData.cookTime || ''}
-                            onChange={(e) => setEditFormData({...editFormData, cookTime: parseInt(e.target.value)})}
-                            placeholder="Cook"
-                          />
-                          <Input
-                            type="number"
-                            value={editFormData.calories || ''}
-                            onChange={(e) => setEditFormData({...editFormData, calories: parseInt(e.target.value)})}
-                            placeholder="Cal"
-                          />
-                        </div>
-                        <div className="flex gap-2">
-                          <Button onClick={saveEdit} size="sm" className="bg-green-600 hover:bg-green-700">
-                            <Save className="w-3 h-3 mr-1" />
-                            Save
-                          </Button>
-                          <Button onClick={cancelEdit} variant="outline" size="sm">
-                            <X className="w-3 h-3 mr-1" />
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-medium text-sm">{item.name}</p>
-                            <Badge variant="secondary" className="text-xs capitalize">
-                              {item.category}
-                            </Badge>
-                          </div>
-                          <div className="flex gap-3 text-xs text-gray-500">
-                            <span>
-                              <Clock className="w-3 h-3 inline mr-1" />
-                              {item.prepTime + item.cookTime}min
-                            </span>
-                            <span>{item.calories} cal</span>
-                          </div>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0 text-blue-500 hover:text-blue-700"
-                            onClick={() => startEditing(item)}
-                          >
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0 text-red-400 hover:text-red-600"
-                            onClick={() => deleteItem(item.id)}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="weekly" className="space-y-4">
             {/* Day selector */}
@@ -571,7 +415,7 @@ const MealPlanner = () => {
                       onClick={() => setSelectedDay(day)}
                       className="relative"
                     >
-                      {day}
+                      {day.slice(0, 3)}
                       {getTotalMealsForDay(weeklyPlan[day]) > 0 && (
                         <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs">
                           {getTotalMealsForDay(weeklyPlan[day])}
@@ -638,6 +482,174 @@ const MealPlanner = () => {
                         ))
                       }
                     </select>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="food" className="space-y-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Add New Food Item</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Input
+                  placeholder="Food item name"
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  list="food-suggestions"
+                />
+                <datalist id="food-suggestions">
+                  {foodSuggestions.map((suggestion, index) => (
+                    <option key={index} value={suggestion} />
+                  ))}
+                </datalist>
+                <select
+                  value={newItemCategory}
+                  onChange={(e) => setNewItemCategory(e.target.value as MealItem['category'])}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="breakfast">Breakfast</option>
+                  <option value="lunch">Lunch</option>
+                  <option value="dinner">Dinner</option>
+                  <option value="general">General (Anytime)</option>
+                </select>
+                <Input
+                  placeholder="Ingredients (comma separated)"
+                  value={newItemIngredients}
+                  onChange={(e) => setNewItemIngredients(e.target.value)}
+                />
+                <Input
+                  placeholder="Cooking suggestions (e.g., spicy, sweet, thin chapati)"
+                  value={newItemSuggestions}
+                  onChange={(e) => setNewItemSuggestions(e.target.value)}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    type="number"
+                    placeholder="Prep time (min)"
+                    value={newItemPrepTime}
+                    onChange={(e) => setNewItemPrepTime(e.target.value)}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Calories per person"
+                    value={newItemCalories}
+                    onChange={(e) => setNewItemCalories(e.target.value)}
+                  />
+                </div>
+                <Button onClick={addNewItem} className="w-full">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Food Item
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Available Food Items</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {mealItems.map(item => (
+                  <div key={item.id} className="p-2 rounded-lg border bg-white">
+                    {editingItemId === item.id ? (
+                      <div className="space-y-2">
+                        <Input
+                          value={editFormData.name || ''}
+                          onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+                          placeholder="Food name"
+                          className="text-sm"
+                        />
+                        <select
+                          value={editFormData.category || item.category}
+                          onChange={(e) => setEditFormData({...editFormData, category: e.target.value as MealItem['category']})}
+                          className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-sm"
+                        >
+                          <option value="breakfast">Breakfast</option>
+                          <option value="lunch">Lunch</option>
+                          <option value="dinner">Dinner</option>
+                          <option value="general">General</option>
+                        </select>
+                        <Input
+                          value={Array.isArray(editFormData.ingredients) ? editFormData.ingredients.join(', ') : (editFormData.ingredients as string) || ''}
+                          onChange={(e) => setEditFormData({...editFormData, ingredients: e.target.value})}
+                          placeholder="Ingredients"
+                          className="text-sm"
+                        />
+                        <Input
+                          value={editFormData.suggestions || ''}
+                          onChange={(e) => setEditFormData({...editFormData, suggestions: e.target.value})}
+                          placeholder="Suggestions"
+                          className="text-sm"
+                        />
+                        <div className="grid grid-cols-2 gap-1">
+                          <Input
+                            type="number"
+                            value={editFormData.prepTime || ''}
+                            onChange={(e) => setEditFormData({...editFormData, prepTime: parseInt(e.target.value)})}
+                            placeholder="Prep time"
+                            className="text-sm"
+                          />
+                          <Input
+                            type="number"
+                            value={editFormData.calories || ''}
+                            onChange={(e) => setEditFormData({...editFormData, calories: parseInt(e.target.value)})}
+                            placeholder="Calories"
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button onClick={saveEdit} size="sm" className="bg-green-600 hover:bg-green-700">
+                            <Save className="w-3 h-3 mr-1" />
+                            Save
+                          </Button>
+                          <Button onClick={cancelEdit} variant="outline" size="sm">
+                            <X className="w-3 h-3 mr-1" />
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-medium text-sm">{item.name}</p>
+                            <Badge variant="secondary" className="text-xs capitalize">
+                              {item.category}
+                            </Badge>
+                          </div>
+                          <div className="flex gap-3 text-xs text-gray-500 mb-1">
+                            <span>
+                              <Clock className="w-3 h-3 inline mr-1" />
+                              {item.prepTime}min
+                            </span>
+                            <span>{item.calories} cal</span>
+                          </div>
+                          {item.suggestions && (
+                            <p className="text-xs text-gray-600 italic">{item.suggestions}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-blue-500 hover:text-blue-700"
+                            onClick={() => startEditing(item)}
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-red-400 hover:text-red-600"
+                            onClick={() => deleteItem(item.id)}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </CardContent>

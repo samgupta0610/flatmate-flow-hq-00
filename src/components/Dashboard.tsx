@@ -11,6 +11,13 @@ const Dashboard = () => {
     navigate(path);
   };
 
+  // Mock data for today's nutrition - in real app this would come from meal planner
+  const todayNutrition = {
+    totalCalories: 1250,
+    totalMeals: 4,
+    mealsPlanned: 3
+  };
+
   return (
     <div className="p-4 max-w-md mx-auto md:max-w-6xl animate-fade-in">
       {/* Welcome Header */}
@@ -33,11 +40,38 @@ const Dashboard = () => {
         </Card>
         <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">3</div>
+            <div className="text-2xl font-bold text-green-600">{todayNutrition.mealsPlanned}</div>
             <div className="text-xs text-green-500">Meals Planned</div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Today's Nutrition Summary */}
+      <Card className="bg-gradient-to-r from-orange-50 to-yellow-50 border-orange-200 mb-6">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold text-orange-800">Today's Nutrition</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleNavigation("/meal-planner")}
+              className="text-orange-600 hover:text-orange-700 p-0 h-auto"
+            >
+              View Details →
+            </Button>
+          </div>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <div className="text-xl font-bold text-orange-600">{todayNutrition.totalCalories}</div>
+              <div className="text-xs text-orange-500">Total Calories</div>
+            </div>
+            <div>
+              <div className="text-xl font-bold text-orange-600">{todayNutrition.totalMeals}</div>
+              <div className="text-xs text-orange-500">Meals/Snacks</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Main Action Cards */}
       <div className="space-y-4 mb-6">
