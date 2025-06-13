@@ -1,3 +1,4 @@
+
 export interface TaskTranslations {
   [key: string]: {
     hindi: string;
@@ -142,7 +143,6 @@ const predefinedTasks = {
   // Washroom tasks
   'clean toilet': { hindi: 'शौचालय साफ करना', bengali: 'টয়লেট পরিষ্কার', emoji: '🚽' },
   'clean bathroom': { hindi: 'स्नानघर साफ करना', bengali: 'বাথরুম পরিষ্কার', emoji: '🛁' },
-  'mop floor': { hindi: 'फर्श पोंछना', bengali: 'মেঝে মোছা', emoji: '🧽' },
   'clean mirror': { hindi: 'दर्पण साफ करना', bengali: 'আয়না পরিষ্কার', emoji: '🪞' },
   
   // Bedroom tasks
@@ -169,7 +169,7 @@ const predefinedTasks = {
   'dust surfaces': { hindi: 'सतह साफ करना', bengali: 'পৃষ্ঠ পরিষ্কার', emoji: '🪶' },
   'empty trash': { hindi: 'कूड़ा खाली करना', bengali: 'আবর্জনা খালি করা', emoji: '🗑️' },
   'clean windows': { hindi: 'खिड़की साफ करना', bengali: 'জানালা পরিষ্কার', emoji: '🪟' },
-  'clean common area': { hindi: 'सामान्य क्षेत्र साफ करना', bengali: 'সাধারণ এলাকা পরিষ্কার', emoji: '🏠' },
+  'clean common area': { hindi: 'सामान्य क्षेत্র साफ करना', bengali: 'সাধারণ এলাকা পরিষ্কার', emoji: '🏠' },
   
   // Personal care tasks
   'organize belongings': { hindi: 'सामान व्यवस्थित करना', bengali: 'জিনিসপত্র গোছানো', emoji: '🧴' },
@@ -279,6 +279,58 @@ export const generateGroceryWhatsAppMessage = (
     .join('\n');
   
   return `${greeting}${houseInfo}\n${listHeader}\n${itemList}\n\n${thankYou}`;
+};
+
+// Function to translate meal messages for the meal planner
+export const getTranslatedMessage = (message: string, language: string): string => {
+  if (language === 'english') {
+    return message;
+  }
+  
+  // Basic translation mapping for meal messages
+  const translations: { [key: string]: { [lang: string]: string } } = {
+    'Hello! Here are today\'s meal plans:': {
+      hindi: 'नमस्ते! यहाँ आज के भोजन की योजना है:',
+      kannada: 'ನಮಸ್ಕಾರ! ಇಂದಿನ ಊಟದ ಯೋಜನೆಗಳು ಇಲ್ಲಿವೆ:',
+      telugu: 'నమస్కారం! ఇవే నేటి భోజన ప్రణాళికలు:'
+    },
+    'Breakfast': {
+      hindi: 'नाश्ता',
+      kannada: 'ಬೆಳಗಿನ ಉಪಾಹಾರ',
+      telugu: 'అల్పాహారం'
+    },
+    'Lunch': {
+      hindi: 'दोपहर का खाना',
+      kannada: 'ಮಧ್ಯಾಹ್ನದ ಊಟ',
+      telugu: 'మధ్యాహ్న భోజనం'
+    },
+    'Dinner': {
+      hindi: 'रात का खाना',
+      kannada: 'ರಾತ್ರಿಯ ಊಟ',
+      telugu: 'రాత్రి భోజనం'
+    },
+    'people': {
+      hindi: 'लोग',
+      kannada: 'ಜನರು',
+      telugu: 'వ్యక్తులు'
+    },
+    'Please prepare accordingly. Thank you!': {
+      hindi: 'कृपया तदनुसार तैयारी करें। धन्यवाد!',
+      kannada: 'ದಯವಿಟ್ಟು ಅದಕ್ಕೆ ಅನುಗುಣವಾಗಿ ತಯಾರಿ ಮಾಡಿ. ಧನ್ಯವಾದಗಳು!',
+      telugu: 'దయచేసి తదనుగుణంగా సిద్ధం చేయండి. ధన్యవాదాలు!'
+    }
+  };
+  
+  let translatedMessage = message;
+  
+  // Replace common phrases
+  Object.entries(translations).forEach(([english, langTranslations]) => {
+    if (langTranslations[language]) {
+      translatedMessage = translatedMessage.replace(new RegExp(english, 'g'), langTranslations[language]);
+    }
+  });
+  
+  return translatedMessage;
 };
 
 // Helper function to add custom translations (for future enhancement)
