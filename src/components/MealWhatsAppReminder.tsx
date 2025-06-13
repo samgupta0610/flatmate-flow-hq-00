@@ -24,7 +24,7 @@ const MealWhatsAppReminder: React.FC<MealWhatsAppReminderProps> = ({ mealPlan, s
 
   const selectedDayPlan = mealPlan.find((day: any) => day.date === selectedDay);
 
-  const generateM ealMessage = () => {
+  const generateMealMessage = () => {
     if (!selectedDayPlan) return 'No meals planned for today';
 
     const meals = [];
