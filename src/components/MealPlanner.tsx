@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -109,7 +108,7 @@ const MealPlanner = () => {
     setEditFormData({
       name: item.name,
       category: item.category,
-      ingredients: item.ingredients,
+      ingredients: item.ingredients.join(', '), // Convert array to string for editing
       calories: item.calories,
       suggestions: item.suggestions
     });
@@ -124,11 +123,9 @@ const MealPlanner = () => {
             ...item, 
             name: editFormData.name!,
             category: editFormData.category || item.category,
-            ingredients: Array.isArray(editFormData.ingredients) 
-              ? editFormData.ingredients
-              : typeof editFormData.ingredients === 'string'
-                ? editFormData.ingredients.split(',').map(i => i.trim()).filter(i => i.length > 0)
-                : item.ingredients,
+            ingredients: typeof editFormData.ingredients === 'string'
+              ? editFormData.ingredients.split(',').map(i => i.trim()).filter(i => i.length > 0)
+              : item.ingredients,
             calories: editFormData.calories || item.calories,
             suggestions: editFormData.suggestions || item.suggestions
           }
@@ -560,10 +557,8 @@ const MealPlanner = () => {
                           <option value="general">General</option>
                         </select>
                         <Input
-                          value={Array.isArray(editFormData.ingredients) 
-                            ? editFormData.ingredients.join(', ') 
-                            : typeof editFormData.ingredients === 'string'
-                            ? editFormData.ingredients
+                          value={typeof editFormData.ingredients === 'string' 
+                            ? editFormData.ingredients 
                             : item.ingredients.join(', ')}
                           onChange={(e) => setEditFormData({...editFormData, ingredients: e.target.value})}
                           placeholder="Ingredients (comma separated)"
