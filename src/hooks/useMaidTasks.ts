@@ -9,6 +9,9 @@ interface MaidTask {
   selected: boolean;
   category: string;
   completed?: boolean;
+  days_of_week?: string[];
+  task_category?: string;
+  remarks?: string;
 }
 
 export const useMaidTasks = () => {
@@ -78,11 +81,17 @@ export const useMaidTasks = () => {
     }
   };
 
-  const addTask = async (title: string, category: string = 'daily') => {
+  const addTask = async (
+    title: string, 
+    category: string = 'daily',
+    daysOfWeek: string[] = [],
+    taskCategory: string = 'cleaning',
+    remarks: string = ''
+  ) => {
     if (!user) return;
 
     try {
-      console.log('Adding task:', title, category);
+      console.log('Adding task:', title, category, daysOfWeek, taskCategory, remarks);
       setError(null);
       
       const { data, error } = await supabase
@@ -92,7 +101,10 @@ export const useMaidTasks = () => {
           title,
           category,
           selected: true,
-          completed: false
+          completed: false,
+          days_of_week: daysOfWeek,
+          task_category: taskCategory,
+          remarks
         })
         .select()
         .single();

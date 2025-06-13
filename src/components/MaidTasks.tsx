@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send } from 'lucide-react';
+import { Send, Plus } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useMaidTasks } from '@/hooks/useMaidTasks';
 import { useMaidContact } from '@/hooks/useMaidContact';
@@ -13,7 +13,8 @@ import { useHouseGroupInfo } from '@/hooks/useHouseGroupInfo';
 import { useMaidProfiles } from '@/hooks/useMaidProfiles';
 import TaskItem from './TaskItem';
 import LanguageSelector from './LanguageSelector';
-import TaskCreationForm from './TaskCreationForm';
+import AddTaskModal from './AddTaskModal';
+import ScheduledTasksView from './ScheduledTasksView';
 import { generateWhatsAppMessage } from '@/utils/translations';
 
 const MaidTasks = () => {
@@ -22,14 +23,24 @@ const MaidTasks = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('english');
   const [activeCategory, setActiveCategory] = useState('daily');
   const [maidPhoneNumber, setMaidPhoneNumber] = useState('');
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   
   const { tasks, loading, error, updateTask, addTask, deleteTask } = useMaidTasks();
   const { maidContact } = useMaidContact();
   const { houseGroup } = useHouseGroupInfo();
   const { maidProfiles } = useMaidProfiles();
 
-  const handleAddTask = async (title: string, category: string) => {
-    await addTask(title, category);
+  const handleAddTask = async (taskData: {
+    title: string;
+    daysOfWeek: string[];
+    category: string;
+    remarks: string;
+  }) => {
+    await addTask(taskData.title, activeCategory, taskData.daysOfWeek, taskData.category, taskData.remarks);
+    toast({
+      title: "Task Added! ✨",
+      description: `${taskData.title} has been added to your tasks.`,
+    });
   };
   
   const sendToMaid = () => {
@@ -75,6 +86,7 @@ const MaidTasks = () => {
 
   const selectedTasks = tasks.filter(task => task.selected && !task.completed);
   const categorizedTasks = tasks.filter(task => task.category === activeCategory);
+  const scheduledTasks = tasks.filter(task => task.days_of_week && task.days_of_week.length > 0);
 
   if (loading) {
     return (
@@ -104,9 +116,18 @@ const MaidTasks = () => {
     <div className="p-3 md:p-8 pb-32 md:pb-8 max-w-4xl mx-auto">
       {/* Mobile-optimized header */}
       <div className="flex flex-col space-y-4 mb-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-maideasy-secondary">Maid Tasks</h1>
-          <p className="text-gray-500 mt-1 text-sm md:text-base">Manage your maid's daily tasks</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-maideasy-secondary">Maid Tasks</h1>
+            <p className="text-gray-500 mt-1 text-sm md:text-base">Manage your maid's daily tasks</p>
+          </div>
+          <Button
+            onClick={() => setShowAddTaskModal(true)}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 flex items-center gap-2 shadow-lg"
+          >
+            <Plus className="w-4 h-4" />
+            Add Task
+          </Button>
         </div>
       </div>
 
@@ -119,37 +140,43 @@ const MaidTasks = () => {
           <CardContent className="space-y-6">
             {/* Task Categories */}
             <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-              <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsList className="grid w-full grid-cols-4 mb-6">
                 <TabsTrigger value="daily" className="text-xs md:text-sm">Daily</TabsTrigger>
                 <TabsTrigger value="weekly" className="text-xs md:text-sm">Weekly</TabsTrigger>
                 <TabsTrigger value="monthly" className="text-xs md:text-sm">Monthly</TabsTrigger>
+                <TabsTrigger value="scheduled" className="text-xs md:text-sm">Scheduled</TabsTrigger>
               </TabsList>
               
-              <TabsContent value={activeCategory} className="space-y-4">
-                {/* Task Creation Form */}
-                <TaskCreationForm 
-                  activeCategory={activeCategory}
-                  onAddTask={handleAddTask}
+              <TabsContent value="scheduled" className="space-y-4">
+                <ScheduledTasksView 
+                  tasks={scheduledTasks}
+                  onDeleteTask={deleteTask}
                 />
-                
-                {/* Task List */}
-                <div className="space-y-3">
-                  {categorizedTasks.map((task) => (
-                    <TaskItem
-                      key={task.id}
-                      task={task}
-                      selectedLanguage={selectedLanguage}
-                      onUpdate={updateTask}
-                      onDelete={deleteTask}
-                    />
-                  ))}
-                  
-                  {categorizedTasks.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <p className="text-sm md:text-base">No {activeCategory} tasks yet. Add your first task above!</p>
+              </TabsContent>
+              
+              <TabsContent value={activeCategory} className="space-y-4">
+                {activeCategory !== 'scheduled' && (
+                  <>
+                    {/* Task List */}
+                    <div className="space-y-3">
+                      {categorizedTasks.map((task) => (
+                        <TaskItem
+                          key={task.id}
+                          task={task}
+                          selectedLanguage={selectedLanguage}
+                          onUpdate={updateTask}
+                          onDelete={deleteTask}
+                        />
+                      ))}
+                      
+                      {categorizedTasks.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                          <p className="text-sm md:text-base">No {activeCategory} tasks yet. Add your first task!</p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </>
+                )}
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -242,7 +269,7 @@ const MaidTasks = () => {
           </Card>
         )}
 
-        {/* Contact Settings - Mobile optimized */}
+        {/* Contact Settings */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Contact Settings</CardTitle>
@@ -258,6 +285,13 @@ const MaidTasks = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add Task Modal */}
+      <AddTaskModal
+        isOpen={showAddTaskModal}
+        onClose={() => setShowAddTaskModal(false)}
+        onSave={handleAddTask}
+      />
     </div>
   );
 };
