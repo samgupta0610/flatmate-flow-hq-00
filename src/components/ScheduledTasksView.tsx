@@ -5,16 +5,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from 'lucide-react';
 
-interface Task {
+interface MaidTask {
   id: string;
   title: string;
-  days_of_week: string[];
-  task_category: string;
-  remarks: string;
+  selected: boolean;
+  category: string;
+  completed?: boolean;
+  days_of_week?: string[];
+  task_category?: string;
+  remarks?: string;
 }
 
 interface ScheduledTasksViewProps {
-  tasks: Task[];
+  tasks: MaidTask[];
   onDeleteTask: (taskId: string) => Promise<void>;
 }
 
@@ -43,10 +46,10 @@ const ScheduledTasksView: React.FC<ScheduledTasksViewProps> = ({ tasks, onDelete
     other: 'bg-gray-100 text-gray-800'
   };
 
-  // Group tasks by day
+  // Group tasks by day, filtering out tasks without days_of_week
   const tasksByDay = weekdays.map(day => ({
     ...day,
-    tasks: tasks.filter(task => task.days_of_week.includes(day.id))
+    tasks: tasks.filter(task => task.days_of_week && task.days_of_week.includes(day.id))
   })).filter(day => day.tasks.length > 0);
 
   if (tasksByDay.length === 0) {
@@ -72,14 +75,14 @@ const ScheduledTasksView: React.FC<ScheduledTasksViewProps> = ({ tasks, onDelete
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">
                       <span className="text-lg">
-                        {categoryIcons[task.task_category as keyof typeof categoryIcons]}
+                        {categoryIcons[(task.task_category || 'other') as keyof typeof categoryIcons]}
                       </span>
                       <span className="font-medium text-gray-800">{task.title}</span>
                       <Badge 
-                        className={`text-xs ${categoryColors[task.task_category as keyof typeof categoryColors]}`}
+                        className={`text-xs ${categoryColors[(task.task_category || 'other') as keyof typeof categoryColors]}`}
                         variant="secondary"
                       >
-                        {task.task_category}
+                        {task.task_category || 'other'}
                       </Badge>
                     </div>
                     {task.remarks && (
