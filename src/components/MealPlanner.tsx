@@ -52,7 +52,7 @@ const MealPlanner = () => {
   const [newItemPrepTime, setNewItemPrepTime] = useState("10");
   const [newItemCookTime, setNewItemCookTime] = useState("15");
   const [activeTab, setActiveTab] = useState("planner");
-  const [selectedLanguage, setSelectedLanguage] = useState("english");
+  const [selectedDay, setSelectedDay] = useState("Monday");
 
   const addNewItem = () => {
     if (!newItemName.trim() || !newItemIngredients.trim()) return;
@@ -117,6 +117,21 @@ const MealPlanner = () => {
     }));
   };
 
+  // Convert weeklyPlan to the format expected by MealWhatsAppReminder
+  const mealPlanForReminder = Object.entries(weeklyPlan).map(([day, meals]) => ({
+    date: day,
+    breakfast: meals.breakfast,
+    lunch: meals.lunch,
+    dinner: meals.dinner,
+    snack: meals.snack,
+    attendees: {
+      breakfast: 1,
+      lunch: 1,
+      dinner: 1,
+      snack: 1
+    }
+  }));
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile Header */}
@@ -141,9 +156,18 @@ const MealPlanner = () => {
               <Card key={day}>
                 <CardHeader className="flex items-center justify-between">
                   <CardTitle className="text-base">{day}</CardTitle>
-                  <Button variant="outline" size="sm" onClick={() => clearDay(day)}>
-                    Clear Day
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant={selectedDay === day ? "default" : "outline"} 
+                      size="sm" 
+                      onClick={() => setSelectedDay(day)}
+                    >
+                      Select
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => clearDay(day)}>
+                      Clear Day
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {Object.entries(weeklyPlan[day]).map(([mealType, meal]) => (
@@ -259,7 +283,8 @@ const MealPlanner = () => {
         {/* WhatsApp Reminder */}
         <div className="mt-6">
           <MealWhatsAppReminder 
-            selectedLanguage={selectedLanguage}
+            mealPlan={mealPlanForReminder}
+            selectedDay={selectedDay}
           />
         </div>
       </div>
