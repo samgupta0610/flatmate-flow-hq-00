@@ -14,7 +14,6 @@ interface MealItem {
   name: string;
   category: 'breakfast' | 'lunch' | 'dinner' | 'general';
   ingredients: string[];
-  prepTime: number;
   calories: number;
   suggestions: string;
 }
@@ -113,7 +112,6 @@ const MealPlanner = () => {
       name: item.name,
       category: item.category,
       ingredients: item.ingredients,
-      prepTime: item.prepTime,
       calories: item.calories,
       suggestions: item.suggestions
     });
@@ -131,9 +129,8 @@ const MealPlanner = () => {
             ingredients: Array.isArray(editFormData.ingredients) 
               ? editFormData.ingredients
               : typeof editFormData.ingredients === 'string'
-                ? editFormData.ingredients.split(",").map(i => i.trim())
+                ? editFormData.ingredients.split(',').map(i => i.trim()).filter(i => i.length > 0)
                 : item.ingredients,
-            prepTime: editFormData.prepTime || item.prepTime,
             calories: editFormData.calories || item.calories,
             suggestions: editFormData.suggestions || item.suggestions
           }
@@ -576,21 +573,21 @@ const MealPlanner = () => {
                           value={Array.isArray(editFormData.ingredients) 
                             ? editFormData.ingredients.join(', ') 
                             : editFormData.ingredients || ''}
-                          onChange={(e) => setEditFormData({...editFormData, ingredients: e.target.value.split(',').map(i => i.trim())})}
-                          placeholder="Ingredients"
+                          onChange={(e) => setEditFormData({...editFormData, ingredients: e.target.value})}
+                          placeholder="Ingredients (comma separated)"
                           className="text-sm"
                         />
                         <Input
                           value={editFormData.suggestions || ''}
                           onChange={(e) => setEditFormData({...editFormData, suggestions: e.target.value})}
-                          placeholder="Suggestions"
+                          placeholder="Cooking suggestions"
                           className="text-sm"
                         />
                         <Input
                           type="number"
                           value={editFormData.calories || ''}
                           onChange={(e) => setEditFormData({...editFormData, calories: parseInt(e.target.value)})}
-                          placeholder="Calories"
+                          placeholder="Calories per person"
                           className="text-sm"
                         />
                         <div className="flex gap-2">
@@ -614,10 +611,6 @@ const MealPlanner = () => {
                             </Badge>
                           </div>
                           <div className="flex gap-3 text-xs text-gray-500 mb-1">
-                            <span>
-                              <Clock className="w-3 h-3 inline mr-1" />
-                              {item.prepTime}min
-                            </span>
                             <span>{item.calories} cal</span>
                           </div>
                           {item.suggestions && (

@@ -152,6 +152,31 @@ const MaidTasks = () => {
     });
   };
 
+  // Create a wrapper function to match AddTaskModal's expected interface
+  const handleAddTask = async (taskData: {
+    title: string;
+    daysOfWeek: string[];
+    category: string;
+    remarks: string;
+    favorite: boolean;
+    optional: boolean;
+  }) => {
+    await addTask(
+      taskData.title,
+      taskData.category,
+      taskData.daysOfWeek,
+      'cleaning', // taskCategory
+      taskData.remarks,
+      taskData.favorite,
+      taskData.optional
+    );
+  };
+
+  // Create a wrapper function to match EditTaskModal's expected interface
+  const handleUpdateTask = async (taskId: string, updates: any) => {
+    await updateTask(taskId, updates);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -176,9 +201,9 @@ const MaidTasks = () => {
             <Button
               onClick={() => setShowAddModal(true)}
               size="sm"
-              className="bg-maideasy-primary hover:bg-maideasy-primary/90"
+              className="bg-maideasy-primary hover:bg-maideasy-primary/90 flex items-center gap-2"
             >
-              <Plus className="w-4 h-4 mr-1" />
+              <Plus className="w-4 h-4" />
               Add Task
             </Button>
           </div>
@@ -459,7 +484,7 @@ const MaidTasks = () => {
       <AddTaskModal 
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
-        onSave={addTask}
+        onSave={handleAddTask}
       />
       
       {editingTask && (
@@ -467,7 +492,7 @@ const MaidTasks = () => {
           task={editingTask}
           isOpen={!!editingTask}
           onClose={() => setEditingTask(null)}
-          onSave={updateTask}
+          onSave={handleUpdateTask}
         />
       )}
     </div>
