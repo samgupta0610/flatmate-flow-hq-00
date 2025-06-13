@@ -31,7 +31,7 @@ const MealPlanner = () => {
   const [isEditingMessage, setIsEditingMessage] = useState(false);
   const [customMessage, setCustomMessage] = useState('');
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
-  const [editFormData, setEditFormData] = useState<EditFormData>({});
+  const [editFormData,setEditFormData] = useState<EditFormData>({});
 
   // Get today's day name
   const getTodayName = () => {
@@ -41,6 +41,11 @@ const MealPlanner = () => {
 
   const todayName = getTodayName();
   const todaysPlan = weeklyPlan[todayName];
+
+  // Set selectedDay to today on component mount
+  React.useEffect(() => {
+    setSelectedDay(todayName);
+  }, [todayName]);
 
   const addNewItem = () => {
     if (!newItemName.trim() || !newItemIngredients.trim()) return;
@@ -71,7 +76,7 @@ const MealPlanner = () => {
     setEditFormData({
       name: item.name,
       category: item.category,
-      ingredients: item.ingredients.join(', '),
+      ingredients: Array.isArray(item.ingredients) ? item.ingredients.join(', ') : item.ingredients,
       calories: item.calories,
       suggestions: item.suggestions
     });
@@ -252,16 +257,16 @@ const MealPlanner = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile Header */}
-      <div className="bg-white shadow-sm border-b p-4 mb-4">
-        <div className="flex justify-between items-center mb-3">
+      <div className="bg-white shadow-sm border-b p-3 mb-3">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Meal Planner</h1>
-            <p className="text-sm text-gray-500">Plan and share your meals</p>
+            <h1 className="text-lg font-bold text-gray-900">Meal Planner</h1>
+            <p className="text-xs text-gray-500">Plan and share your meals</p>
           </div>
         </div>
       </div>
 
-      <div className="px-4 pb-24">
+      <div className="px-3 pb-20">
         <TodaysMenu
           todayName={todayName}
           todaysPlan={todaysPlan}
@@ -288,12 +293,12 @@ const MealPlanner = () => {
         )}
 
         <Tabs defaultValue="weekly" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="weekly">Weekly Menu</TabsTrigger>
-            <TabsTrigger value="food">Food Items ({mealItems.length})</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-3 h-8">
+            <TabsTrigger value="weekly" className="text-xs">Weekly Menu</TabsTrigger>
+            <TabsTrigger value="food" className="text-xs">Food Items ({mealItems.length})</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="weekly" className="space-y-4">
+          <TabsContent value="weekly" className="space-y-3">
             <WeeklyPlanner
               selectedDay={selectedDay}
               weeklyPlan={weeklyPlan}
@@ -305,7 +310,7 @@ const MealPlanner = () => {
             />
           </TabsContent>
 
-          <TabsContent value="food" className="space-y-4">
+          <TabsContent value="food" className="space-y-3">
             <FoodItemsManager
               mealItems={mealItems}
               newItemName={newItemName}
