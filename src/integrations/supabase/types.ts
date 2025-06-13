@@ -74,8 +74,11 @@ export type Database = {
           category: string | null
           completed: boolean | null
           created_at: string
+          days_of_week: string[] | null
           id: string
+          remarks: string | null
           selected: boolean | null
+          task_category: string | null
           title: string
           updated_at: string
           user_id: string
@@ -84,8 +87,11 @@ export type Database = {
           category?: string | null
           completed?: boolean | null
           created_at?: string
+          days_of_week?: string[] | null
           id?: string
+          remarks?: string | null
           selected?: boolean | null
+          task_category?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -94,8 +100,11 @@ export type Database = {
           category?: string | null
           completed?: boolean | null
           created_at?: string
+          days_of_week?: string[] | null
           id?: string
+          remarks?: string | null
           selected?: boolean | null
+          task_category?: string | null
           title?: string
           updated_at?: string
           user_id?: string

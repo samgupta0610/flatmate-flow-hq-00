@@ -21,7 +21,7 @@ const MaidTasks = () => {
   const { toast } = useToast();
   const [sendingInstructions, setSendingInstructions] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('english');
-  const [activeCategory, setActiveCategory] = useState('daily');
+  const [activeTab, setActiveTab] = useState('today');
   const [maidPhoneNumber, setMaidPhoneNumber] = useState('');
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   
@@ -36,7 +36,7 @@ const MaidTasks = () => {
     category: string;
     remarks: string;
   }) => {
-    await addTask(taskData.title, activeCategory, taskData.daysOfWeek, taskData.category, taskData.remarks);
+    await addTask(taskData.title, 'daily', taskData.daysOfWeek, taskData.category, taskData.remarks);
     toast({
       title: "Task Added! ✨",
       description: `${taskData.title} has been added to your tasks.`,
@@ -85,7 +85,7 @@ const MaidTasks = () => {
   };
 
   const selectedTasks = tasks.filter(task => task.selected && !task.completed);
-  const categorizedTasks = tasks.filter(task => task.category === activeCategory);
+  const todayTasks = tasks.filter(task => !task.days_of_week || task.days_of_week.length === 0);
   const scheduledTasks = tasks.filter(task => task.days_of_week && task.days_of_week.length > 0);
 
   if (loading) {
@@ -134,49 +134,42 @@ const MaidTasks = () => {
       <div className="space-y-6">
         <Card>
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg md:text-xl">Today's Tasks</CardTitle>
-            <CardDescription className="text-sm">Select and manage the tasks for your maid today</CardDescription>
+            <CardTitle className="text-lg md:text-xl">Maid Tasks</CardTitle>
+            <CardDescription className="text-sm">Manage today's tasks and scheduled tasks</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Task Categories */}
-            <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-              <TabsList className="grid w-full grid-cols-4 mb-6">
-                <TabsTrigger value="daily" className="text-xs md:text-sm">Daily</TabsTrigger>
-                <TabsTrigger value="weekly" className="text-xs md:text-sm">Weekly</TabsTrigger>
-                <TabsTrigger value="monthly" className="text-xs md:text-sm">Monthly</TabsTrigger>
-                <TabsTrigger value="scheduled" className="text-xs md:text-sm">Scheduled</TabsTrigger>
+            {/* Task Tabs */}
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="today" className="text-xs md:text-sm">Today's Tasks</TabsTrigger>
+                <TabsTrigger value="scheduled" className="text-xs md:text-sm">Scheduled Tasks</TabsTrigger>
               </TabsList>
+              
+              <TabsContent value="today" className="space-y-4">
+                <div className="space-y-3">
+                  {todayTasks.map((task) => (
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      selectedLanguage={selectedLanguage}
+                      onUpdate={updateTask}
+                      onDelete={deleteTask}
+                    />
+                  ))}
+                  
+                  {todayTasks.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <p className="text-sm md:text-base">No tasks for today. Add your first task!</p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
               
               <TabsContent value="scheduled" className="space-y-4">
                 <ScheduledTasksView 
                   tasks={scheduledTasks}
                   onDeleteTask={deleteTask}
                 />
-              </TabsContent>
-              
-              <TabsContent value={activeCategory} className="space-y-4">
-                {activeCategory !== 'scheduled' && (
-                  <>
-                    {/* Task List */}
-                    <div className="space-y-3">
-                      {categorizedTasks.map((task) => (
-                        <TaskItem
-                          key={task.id}
-                          task={task}
-                          selectedLanguage={selectedLanguage}
-                          onUpdate={updateTask}
-                          onDelete={deleteTask}
-                        />
-                      ))}
-                      
-                      {categorizedTasks.length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
-                          <p className="text-sm md:text-base">No {activeCategory} tasks yet. Add your first task!</p>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
               </TabsContent>
             </Tabs>
           </CardContent>

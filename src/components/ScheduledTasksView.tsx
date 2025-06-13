@@ -22,16 +22,6 @@ interface ScheduledTasksViewProps {
 }
 
 const ScheduledTasksView: React.FC<ScheduledTasksViewProps> = ({ tasks, onDeleteTask }) => {
-  const weekdays = [
-    { id: 'monday', label: 'Monday' },
-    { id: 'tuesday', label: 'Tuesday' },
-    { id: 'wednesday', label: 'Wednesday' },
-    { id: 'thursday', label: 'Thursday' },
-    { id: 'friday', label: 'Friday' },
-    { id: 'saturday', label: 'Saturday' },
-    { id: 'sunday', label: 'Sunday' }
-  ];
-
   const categoryIcons = {
     cleaning: '🧹',
     cooking: '👩‍🍳',
@@ -46,13 +36,21 @@ const ScheduledTasksView: React.FC<ScheduledTasksViewProps> = ({ tasks, onDelete
     other: 'bg-gray-100 text-gray-800'
   };
 
-  // Group tasks by day, filtering out tasks without days_of_week
-  const tasksByDay = weekdays.map(day => ({
-    ...day,
-    tasks: tasks.filter(task => task.days_of_week && task.days_of_week.includes(day.id))
-  })).filter(day => day.tasks.length > 0);
+  const dayAbbreviations = {
+    monday: 'M',
+    tuesday: 'T',
+    wednesday: 'W',
+    thursday: 'Th',
+    friday: 'F',
+    saturday: 'Sa',
+    sunday: 'S'
+  };
 
-  if (tasksByDay.length === 0) {
+  const getFrequencyDisplay = (daysOfWeek: string[]) => {
+    return daysOfWeek.map(day => dayAbbreviations[day as keyof typeof dayAbbreviations]).join(', ');
+  };
+
+  if (tasks.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
         <p>No scheduled tasks yet. Add your first scheduled task!</p>
@@ -62,43 +60,51 @@ const ScheduledTasksView: React.FC<ScheduledTasksViewProps> = ({ tasks, onDelete
 
   return (
     <div className="space-y-4">
-      {tasksByDay.map((day) => (
-        <Card key={day.id} className="border-l-4 border-l-green-500">
+      {tasks.map((task) => (
+        <Card key={task.id} className="border-l-4 border-l-green-500">
           <CardContent className="p-4">
-            <h3 className="font-semibold text-lg mb-3 text-gray-800">{day.label}</h3>
-            <div className="space-y-2">
-              {day.tasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-1">
-                      <span className="text-lg">
-                        {categoryIcons[(task.task_category || 'other') as keyof typeof categoryIcons]}
-                      </span>
-                      <span className="font-medium text-gray-800">{task.title}</span>
-                      <Badge 
-                        className={`text-xs ${categoryColors[(task.task_category || 'other') as keyof typeof categoryColors]}`}
-                        variant="secondary"
-                      >
-                        {task.task_category || 'other'}
-                      </Badge>
-                    </div>
-                    {task.remarks && (
-                      <p className="text-sm text-gray-600 ml-8">"{task.remarks}"</p>
-                    )}
-                  </div>
-                  <Button
-                    onClick={() => onDeleteTask(task.id)}
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-lg">
+                    {categoryIcons[(task.task_category || 'other') as keyof typeof categoryIcons]}
+                  </span>
+                  <span className="font-medium text-gray-800">{task.title}</span>
+                  <Badge 
+                    className={`text-xs ${categoryColors[(task.task_category || 'other') as keyof typeof categoryColors]}`}
+                    variant="secondary"
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                    {task.task_category || 'other'}
+                  </Badge>
                 </div>
-              ))}
+                
+                {/* Frequency Display */}
+                {task.days_of_week && task.days_of_week.length > 0 && (
+                  <div className="flex items-center gap-2 mb-2 ml-8">
+                    <span className="text-sm text-gray-500">Frequency:</span>
+                    <div className="flex gap-1">
+                      {task.days_of_week.map(day => (
+                        <Badge key={day} variant="outline" className="text-xs px-2 py-1">
+                          {dayAbbreviations[day as keyof typeof dayAbbreviations]}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Remarks */}
+                {task.remarks && (
+                  <p className="text-sm text-gray-600 ml-8 italic">"{task.remarks}"</p>
+                )}
+              </div>
+              <Button
+                onClick={() => onDeleteTask(task.id)}
+                variant="ghost"
+                size="sm"
+                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </div>
           </CardContent>
         </Card>
