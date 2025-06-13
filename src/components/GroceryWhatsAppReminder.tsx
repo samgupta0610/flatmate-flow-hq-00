@@ -20,11 +20,13 @@ interface GroceryItem {
 interface GroceryWhatsAppReminderProps {
   cartItems: GroceryItem[];
   selectedLanguage?: string;
+  onMessageSent?: () => void;
 }
 
 const GroceryWhatsAppReminder: React.FC<GroceryWhatsAppReminderProps> = ({ 
   cartItems, 
-  selectedLanguage = 'english' 
+  selectedLanguage = 'english',
+  onMessageSent
 }) => {
   const [vendorPhone, setVendorPhone] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -64,9 +66,24 @@ const GroceryWhatsAppReminder: React.FC<GroceryWhatsAppReminderProps> = ({
       setIsSending(false);
       window.open(whatsappUrl, '_blank');
       
+      // Trigger the callback to log the order
+      if (onMessageSent) {
+        onMessageSent();
+      }
+      
+      // Dispatch custom event for the order log component
+      const orderEvent = new CustomEvent('groceryOrderSent', {
+        detail: {
+          items: cartItems.map(item => `${item.name} - ${item.quantity}${item.unit}`),
+          vendor: cleanPhoneNumber,
+          date: new Date().toLocaleString()
+        }
+      });
+      window.dispatchEvent(orderEvent);
+      
       toast({
         title: "WhatsApp Opened! ✅",
-        description: "Grocery list is ready to send to your vendor.",
+        description: "Grocery list sent to vendor and order logged.",
       });
     }, 500);
   };
