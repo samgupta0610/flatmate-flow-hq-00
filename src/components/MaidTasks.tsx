@@ -42,10 +42,39 @@ const MaidTasks = () => {
       description: `${taskData.title} has been added to your tasks.`,
     });
   };
+
+  // Get current day of week
+  const getCurrentDayOfWeek = () => {
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const today = new Date();
+    return days[today.getDay()];
+  };
+
+  const currentDay = getCurrentDayOfWeek();
+
+  // Filter tasks dynamically based on current day and scheduling
+  const getTodaysTasks = () => {
+    return tasks.filter(task => {
+      // If task has no days_of_week or empty array, it's a one-time task for today
+      if (!task.days_of_week || task.days_of_week.length === 0) {
+        return true;
+      }
+      // If task has days_of_week, check if today is included
+      return task.days_of_week.includes(currentDay);
+    });
+  };
+
+  const getScheduledTasks = () => {
+    return tasks.filter(task => task.days_of_week && task.days_of_week.length > 0);
+  };
+
+  const todayTasks = getTodaysTasks();
+  const scheduledTasks = getScheduledTasks();
+  
+  // Get selected tasks from today's tasks only
+  const selectedTasks = todayTasks.filter(task => task.selected && !task.completed);
   
   const sendToMaid = () => {
-    const selectedTasks = tasks.filter(task => task.selected && !task.completed);
-    
     if (selectedTasks.length === 0) {
       toast({
         title: "No tasks selected",
@@ -83,10 +112,6 @@ const MaidTasks = () => {
       });
     }, 500);
   };
-
-  const selectedTasks = tasks.filter(task => task.selected && !task.completed);
-  const todayTasks = tasks.filter(task => !task.days_of_week || task.days_of_week.length === 0);
-  const scheduledTasks = tasks.filter(task => task.days_of_week && task.days_of_week.length > 0);
 
   if (loading) {
     return (
@@ -141,8 +166,12 @@ const MaidTasks = () => {
             {/* Task Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="today" className="text-xs md:text-sm">Today's Tasks</TabsTrigger>
-                <TabsTrigger value="scheduled" className="text-xs md:text-sm">Scheduled Tasks</TabsTrigger>
+                <TabsTrigger value="today" className="text-xs md:text-sm">
+                  Today's Tasks ({todayTasks.length})
+                </TabsTrigger>
+                <TabsTrigger value="scheduled" className="text-xs md:text-sm">
+                  Scheduled Tasks ({scheduledTasks.length})
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="today" className="space-y-4">

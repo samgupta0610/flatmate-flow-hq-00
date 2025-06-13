@@ -21,7 +21,7 @@ export const taskTranslations: TaskTranslations = {
   'Sweep the floor': {
     hindi: 'फर्श पर झाड़ू लगाएं',
     kannada: 'ನೆಲವನ್ನು ಗುಡಿಸಿ',
-    telugu: 'నేలను ఊడ್చండి'
+    telugu: 'నేలను ఊడ్చండి'
   },
   'Wash utensils': {
     hindi: 'बर्तन धोएं',
@@ -136,7 +136,10 @@ export const getTranslatedTask = (task: string, language: string): string => {
   if (language === 'english') return task;
   
   const translation = taskTranslations[task];
-  if (!translation) return task;
+  if (!translation) {
+    // For custom tasks without translations, return the original task
+    return task;
+  }
   
   switch (language) {
     case 'hindi':
@@ -264,7 +267,13 @@ export const generateWhatsAppMessage = (
     if (language === 'english') {
       return `${emoji} ${task.title}`;
     } else {
-      return `${emoji} ${translatedTask} || ${task.title}`;
+      // For custom tasks without translations, show only the original task
+      if (translatedTask === task.title) {
+        return `${emoji} ${task.title}`;
+      } else {
+        // For tasks with translations, show both
+        return `${emoji} ${translatedTask} || ${task.title}`;
+      }
     }
   }).join('\n');
 
