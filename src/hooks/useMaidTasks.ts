@@ -13,6 +13,7 @@ interface MaidTask {
   task_category?: string;
   remarks?: string;
   favorite?: boolean;
+  optional?: boolean;
 }
 
 export const useMaidTasks = () => {
@@ -87,12 +88,14 @@ export const useMaidTasks = () => {
     category: string = 'daily',
     daysOfWeek: string[] = [],
     taskCategory: string = 'cleaning',
-    remarks: string = ''
+    remarks: string = '',
+    favorite: boolean = false,
+    optional: boolean = false
   ) => {
     if (!user) return;
 
     try {
-      console.log('Adding task:', title, category, daysOfWeek, taskCategory, remarks);
+      console.log('Adding task:', title, category, daysOfWeek, taskCategory, remarks, favorite, optional);
       setError(null);
       
       const { data, error } = await supabase
@@ -106,7 +109,8 @@ export const useMaidTasks = () => {
           days_of_week: daysOfWeek,
           task_category: taskCategory,
           remarks,
-          favorite: false
+          favorite,
+          optional
         })
         .select()
         .single();

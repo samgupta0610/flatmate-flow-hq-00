@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pencil, Star } from 'lucide-react';
+import { Pencil, Star, Option } from 'lucide-react';
 
 interface MaidTask {
   id: string;
@@ -30,6 +29,7 @@ interface EditTaskModalProps {
     category: string;
     remarks: string;
     favorite: boolean;
+    optional: boolean;
   }) => Promise<void>;
   task: MaidTask | null;
   existingTasks?: Array<{ title: string; id: string }>;
@@ -47,6 +47,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
   const [category, setCategory] = useState('common_area');
   const [remarks, setRemarks] = useState('');
   const [favorite, setFavorite] = useState(false);
+  const [optional, setOptional] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -79,6 +80,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
       setCategory(task.task_category || 'common_area');
       setRemarks(task.remarks || '');
       setFavorite(task.favorite || false);
+      setOptional(task.optional || false);
     }
   }, [task]);
 
@@ -98,6 +100,10 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
     setFavorite(checked === true);
   };
 
+  const handleOptionalChange = (checked: boolean | "indeterminate") => {
+    setOptional(checked === true);
+  };
+
   const handleSave = async () => {
     if (!taskName.trim() || !task) return;
     
@@ -108,7 +114,8 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
         daysOfWeek: selectedDays,
         category,
         remarks,
-        favorite
+        favorite,
+        optional
       });
       
       onClose();
@@ -167,17 +174,31 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
             )}
           </div>
 
-          {/* Favorite Toggle */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="favorite"
-              checked={favorite}
-              onCheckedChange={handleFavoriteChange}
-            />
-            <Label htmlFor="favorite" className="flex items-center gap-2">
-              <Star className={`w-4 h-4 ${favorite ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`} />
-              Mark as Favorite (op)
-            </Label>
+          {/* Task Options - Favorite and Optional */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="favorite"
+                checked={favorite}
+                onCheckedChange={handleFavoriteChange}
+              />
+              <Label htmlFor="favorite" className="flex items-center gap-2">
+                <Star className={`w-4 h-4 ${favorite ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`} />
+                Mark as Favorite
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="optional"
+                checked={optional}
+                onCheckedChange={handleOptionalChange}
+              />
+              <Label htmlFor="optional" className="flex items-center gap-2">
+                <Option className={`w-4 h-4 ${optional ? 'text-blue-500' : 'text-gray-400'}`} />
+                Mark as Optional (op)
+              </Label>
+            </div>
           </div>
 
           {/* Weekday Selectors */}

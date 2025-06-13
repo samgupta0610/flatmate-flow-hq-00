@@ -1,12 +1,12 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from 'lucide-react';
+import { Plus, Star, Option } from 'lucide-react';
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -16,6 +16,8 @@ interface AddTaskModalProps {
     daysOfWeek: string[];
     category: string;
     remarks: string;
+    favorite: boolean;
+    optional: boolean;
   }) => Promise<void>;
   existingTasks?: Array<{ title: string; id: string }>;
 }
@@ -30,6 +32,8 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [category, setCategory] = useState('common_area');
   const [remarks, setRemarks] = useState('');
+  const [favorite, setFavorite] = useState(false);
+  const [optional, setOptional] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -66,6 +70,14 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
     );
   };
 
+  const handleFavoriteChange = (checked: boolean | "indeterminate") => {
+    setFavorite(checked === true);
+  };
+
+  const handleOptionalChange = (checked: boolean | "indeterminate") => {
+    setOptional(checked === true);
+  };
+
   const handleSave = async () => {
     if (!taskName.trim()) return;
     
@@ -75,7 +87,9 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
         title: taskName,
         daysOfWeek: selectedDays,
         category,
-        remarks
+        remarks,
+        favorite,
+        optional
       });
       
       // Reset form
@@ -83,6 +97,8 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
       setSelectedDays([]);
       setCategory('common_area');
       setRemarks('');
+      setFavorite(false);
+      setOptional(false);
       onClose();
     } catch (error) {
       console.error('Error saving task:', error);
@@ -137,6 +153,33 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Task Options - Favorite and Optional */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="favorite"
+                checked={favorite}
+                onCheckedChange={handleFavoriteChange}
+              />
+              <Label htmlFor="favorite" className="flex items-center gap-2">
+                <Star className={`w-4 h-4 ${favorite ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`} />
+                Mark as Favorite
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="optional"
+                checked={optional}
+                onCheckedChange={handleOptionalChange}
+              />
+              <Label htmlFor="optional" className="flex items-center gap-2">
+                <Option className={`w-4 h-4 ${optional ? 'text-blue-500' : 'text-gray-400'}`} />
+                Mark as Optional (op)
+              </Label>
+            </div>
           </div>
 
           {/* Weekday Selectors */}

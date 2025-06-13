@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +14,7 @@ interface TaskItemProps {
     category: string;
     completed?: boolean;
     favorite?: boolean;
+    optional?: boolean;
   };
   selectedLanguage: string;
   onUpdate: (taskId: string, updates: any) => void;
@@ -91,9 +91,14 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, selectedLanguage, onUpdate, o
                   <>
                     <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                     <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-800">
-                      op
+                      fav
                     </Badge>
                   </>
+                )}
+                {task.optional && (
+                  <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-800">
+                    op
+                  </Badge>
                 )}
               </div>
               {selectedLanguage !== 'english' && !task.completed && (

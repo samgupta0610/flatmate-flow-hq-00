@@ -49,8 +49,18 @@ const MaidTasks = () => {
     daysOfWeek: string[];
     category: string;
     remarks: string;
+    favorite: boolean;
+    optional: boolean;
   }) => {
-    await addTask(taskData.title, 'daily', taskData.daysOfWeek, taskData.category, taskData.remarks);
+    await addTask(
+      taskData.title, 
+      'daily', 
+      taskData.daysOfWeek, 
+      taskData.category, 
+      taskData.remarks,
+      taskData.favorite,
+      taskData.optional
+    );
     toast({
       title: "Task Added! ✨",
       description: `${taskData.title} has been added to your tasks.`,
@@ -68,13 +78,15 @@ const MaidTasks = () => {
     category: string;
     remarks: string;
     favorite: boolean;
+    optional: boolean;
   }) => {
     await updateTask(taskId, {
       title: taskData.title,
       days_of_week: taskData.daysOfWeek,
       task_category: taskData.category,
       remarks: taskData.remarks,
-      favorite: taskData.favorite
+      favorite: taskData.favorite,
+      optional: taskData.optional
     });
     toast({
       title: "Task Updated! ✨",
