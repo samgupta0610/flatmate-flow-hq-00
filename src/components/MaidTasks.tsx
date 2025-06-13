@@ -446,7 +446,11 @@ const MaidTasks = () => {
           </TabsContent>
 
           <TabsContent value="scheduled">
-            <ScheduledTasksView />
+            <ScheduledTasksView 
+              tasks={tasks}
+              onDeleteTask={deleteTask}
+              onEditTask={(task) => setEditingTask(task)}
+            />
           </TabsContent>
         </Tabs>
       </div>
@@ -455,7 +459,7 @@ const MaidTasks = () => {
       <AddTaskModal 
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
-        onAdd={addTask}
+        onSave={addTask}
       />
       
       {editingTask && (
@@ -463,7 +467,7 @@ const MaidTasks = () => {
           task={editingTask}
           isOpen={!!editingTask}
           onClose={() => setEditingTask(null)}
-          onUpdate={updateTask}
+          onSave={updateTask}
         />
       )}
     </div>

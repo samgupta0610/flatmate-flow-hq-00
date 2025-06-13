@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -129,9 +128,11 @@ const MealPlanner = () => {
             ...item, 
             name: editFormData.name!,
             category: editFormData.category || item.category,
-            ingredients: typeof editFormData.ingredients === 'string' 
-              ? editFormData.ingredients.split(",").map(i => i.trim())
-              : editFormData.ingredients || item.ingredients,
+            ingredients: Array.isArray(editFormData.ingredients) 
+              ? editFormData.ingredients
+              : typeof editFormData.ingredients === 'string'
+                ? editFormData.ingredients.split(",").map(i => i.trim())
+                : item.ingredients,
             prepTime: editFormData.prepTime || item.prepTime,
             calories: editFormData.calories || item.calories,
             suggestions: editFormData.suggestions || item.suggestions
@@ -572,8 +573,10 @@ const MealPlanner = () => {
                           <option value="general">General</option>
                         </select>
                         <Input
-                          value={Array.isArray(editFormData.ingredients) ? editFormData.ingredients.join(', ') : (editFormData.ingredients as string) || ''}
-                          onChange={(e) => setEditFormData({...editFormData, ingredients: e.target.value})}
+                          value={Array.isArray(editFormData.ingredients) 
+                            ? editFormData.ingredients.join(', ') 
+                            : editFormData.ingredients || ''}
+                          onChange={(e) => setEditFormData({...editFormData, ingredients: e.target.value.split(',').map(i => i.trim())})}
                           placeholder="Ingredients"
                           className="text-sm"
                         />
@@ -583,22 +586,13 @@ const MealPlanner = () => {
                           placeholder="Suggestions"
                           className="text-sm"
                         />
-                        <div className="grid grid-cols-2 gap-1">
-                          <Input
-                            type="number"
-                            value={editFormData.prepTime || ''}
-                            onChange={(e) => setEditFormData({...editFormData, prepTime: parseInt(e.target.value)})}
-                            placeholder="Prep time"
-                            className="text-sm"
-                          />
-                          <Input
-                            type="number"
-                            value={editFormData.calories || ''}
-                            onChange={(e) => setEditFormData({...editFormData, calories: parseInt(e.target.value)})}
-                            placeholder="Calories"
-                            className="text-sm"
-                          />
-                        </div>
+                        <Input
+                          type="number"
+                          value={editFormData.calories || ''}
+                          onChange={(e) => setEditFormData({...editFormData, calories: parseInt(e.target.value)})}
+                          placeholder="Calories"
+                          className="text-sm"
+                        />
                         <div className="flex gap-2">
                           <Button onClick={saveEdit} size="sm" className="bg-green-600 hover:bg-green-700">
                             <Save className="w-3 h-3 mr-1" />

@@ -83,6 +83,14 @@ export const useMaidTasks = () => {
     }
   };
 
+  const toggleComplete = async (taskId: string, completed: boolean) => {
+    await updateTask(taskId, { completed });
+  };
+
+  const toggleFavorite = async (taskId: string, favorite: boolean) => {
+    await updateTask(taskId, { favorite });
+  };
+
   const addTask = async (
     title: string, 
     category: string = 'daily',
@@ -152,5 +160,14 @@ export const useMaidTasks = () => {
     }
   };
 
-  return { tasks, loading, error, updateTask, addTask, deleteTask };
+  return { 
+    tasks, 
+    isLoading: loading, 
+    error, 
+    updateTask, 
+    addTask, 
+    deleteTask,
+    toggleComplete,
+    toggleFavorite
+  };
 };
