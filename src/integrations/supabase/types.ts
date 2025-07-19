@@ -14,13 +14,227 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      house_groups: {
+        Row: {
+          created_at: string
+          created_by: string
+          group_name: string
+          id: string
+          join_code: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          group_name: string
+          id?: string
+          join_code: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          group_name?: string
+          id?: string
+          join_code?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      household_contacts: {
+        Row: {
+          contact_type: string
+          created_at: string
+          id: string
+          name: string
+          phone_number: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contact_type: string
+          created_at?: string
+          id?: string
+          name: string
+          phone_number: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contact_type?: string
+          created_at?: string
+          id?: string
+          name?: string
+          phone_number?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      maid_contacts: {
+        Row: {
+          auto_send: boolean | null
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          send_time: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_send?: boolean | null
+          created_at?: string
+          id?: string
+          name?: string
+          phone: string
+          send_time?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_send?: boolean | null
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+          send_time?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      maid_tasks: {
+        Row: {
+          category: string | null
+          completed: boolean | null
+          created_at: string
+          days_of_week: string[] | null
+          favorite: boolean | null
+          id: string
+          optional: boolean | null
+          remarks: string | null
+          selected: boolean | null
+          task_category: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          completed?: boolean | null
+          created_at?: string
+          days_of_week?: string[] | null
+          favorite?: boolean | null
+          id?: string
+          optional?: boolean | null
+          remarks?: string | null
+          selected?: boolean | null
+          task_category?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          completed?: boolean | null
+          created_at?: string
+          days_of_week?: string[] | null
+          favorite?: boolean | null
+          id?: string
+          optional?: boolean | null
+          remarks?: string | null
+          selected?: boolean | null
+          task_category?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          house_group_id: string | null
+          id: string
+          phone_number: string | null
+          role: string | null
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          house_group_id?: string | null
+          id: string
+          phone_number?: string | null
+          role?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          house_group_id?: string | null
+          id?: string
+          phone_number?: string | null
+          role?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_house_group_id_fkey"
+            columns: ["house_group_id"]
+            isOneToOne: false
+            referencedRelation: "house_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_contacts: {
+        Row: {
+          address: string | null
+          contact_person: string | null
+          created_at: string
+          id: string
+          phone_number: string
+          shop_name: string
+          shop_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          id?: string
+          phone_number: string
+          shop_name: string
+          shop_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          id?: string
+          phone_number?: string
+          shop_name?: string
+          shop_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_join_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

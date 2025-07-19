@@ -49,6 +49,7 @@ export const useMaidTasks = () => {
       } catch (err: any) {
         console.error('Error fetching tasks:', err);
         setError(err.message || 'Failed to load tasks');
+        setTasks([]);
       } finally {
         setLoading(false);
       }

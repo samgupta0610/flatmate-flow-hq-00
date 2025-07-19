@@ -34,15 +34,19 @@ export const useHouseGroup = () => {
 
       if (houseGroupError) throw houseGroupError;
 
-      // Update user's profile with house_group_id
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ house_group_id: houseGroup.id })
-        .eq('id', user.id);
+      if (houseGroup) {
+        // Update user's profile with house_group_id
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ house_group_id: houseGroup.id })
+          .eq('id', user.id);
 
-      if (profileError) throw profileError;
+        if (profileError) throw profileError;
 
-      return houseGroup;
+        return houseGroup;
+      }
+      
+      return null;
     } catch (err: any) {
       setError(err.message);
       return null;

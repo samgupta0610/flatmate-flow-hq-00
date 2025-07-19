@@ -31,7 +31,7 @@ export const useHouseholdContacts = () => {
 
       if (error) throw error;
       
-      // Type cast the data to match our interface
+      // Type cast and handle null values
       const typedContacts = (data || []).map(contact => ({
         id: contact.id,
         contact_type: contact.contact_type as 'cook' | 'maid',
@@ -62,15 +62,17 @@ export const useHouseholdContacts = () => {
 
       if (error) throw error;
       
-      const typedContact: HouseholdContact = {
-        id: data.id,
-        contact_type: data.contact_type as 'cook' | 'maid',
-        name: data.name,
-        phone_number: data.phone_number
-      };
-      
-      setContacts(prev => [...prev, typedContact]);
-      return typedContact;
+      if (data) {
+        const typedContact: HouseholdContact = {
+          id: data.id,
+          contact_type: data.contact_type as 'cook' | 'maid',
+          name: data.name,
+          phone_number: data.phone_number
+        };
+        
+        setContacts(prev => [...prev, typedContact]);
+        return typedContact;
+      }
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -88,17 +90,19 @@ export const useHouseholdContacts = () => {
 
       if (error) throw error;
       
-      const typedContact: HouseholdContact = {
-        id: data.id,
-        contact_type: data.contact_type as 'cook' | 'maid',
-        name: data.name,
-        phone_number: data.phone_number
-      };
-      
-      setContacts(prev => prev.map(contact => 
-        contact.id === id ? typedContact : contact
-      ));
-      return typedContact;
+      if (data) {
+        const typedContact: HouseholdContact = {
+          id: data.id,
+          contact_type: data.contact_type as 'cook' | 'maid',
+          name: data.name,
+          phone_number: data.phone_number
+        };
+        
+        setContacts(prev => prev.map(contact => 
+          contact.id === id ? typedContact : contact
+        ));
+        return typedContact;
+      }
     } catch (err: any) {
       setError(err.message);
       throw err;
