@@ -26,6 +26,7 @@ import ScheduledTasksView from './ScheduledTasksView';
 import LanguageSelector from './LanguageSelector';
 import { useMaidTasks } from '@/hooks/useMaidTasks';
 import { getTranslatedMessage } from '@/utils/translations';
+import AutoSendSettings from './AutoSendSettings';
 
 const MaidTasks = () => {
   const { toast } = useToast();
@@ -262,6 +263,9 @@ const MaidTasks = () => {
       </div>
 
       <div className="px-4 pb-24">
+        {/* Auto-Send Settings */}
+        <AutoSendSettings />
+
         {/* Message Preview */}
         {showMessagePreview && (
           <Card className="mb-4 border-2 border-green-200 bg-green-50">

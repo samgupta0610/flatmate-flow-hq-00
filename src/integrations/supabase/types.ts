@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      auto_send_history: {
+        Row: {
+          contact_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          sent_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          sent_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          sent_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       house_groups: {
         Row: {
           created_at: string
@@ -75,7 +105,10 @@ export type Database = {
         Row: {
           auto_send: boolean | null
           created_at: string
+          days_of_week: string[] | null
+          frequency: string | null
           id: string
+          last_sent_at: string | null
           name: string
           phone: string
           send_time: string | null
@@ -85,7 +118,10 @@ export type Database = {
         Insert: {
           auto_send?: boolean | null
           created_at?: string
+          days_of_week?: string[] | null
+          frequency?: string | null
           id?: string
+          last_sent_at?: string | null
           name?: string
           phone: string
           send_time?: string | null
@@ -95,7 +131,10 @@ export type Database = {
         Update: {
           auto_send?: boolean | null
           created_at?: string
+          days_of_week?: string[] | null
+          frequency?: string | null
           id?: string
+          last_sent_at?: string | null
           name?: string
           phone?: string
           send_time?: string | null
@@ -234,6 +273,16 @@ export type Database = {
       generate_join_code: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      should_send_auto_reminder: {
+        Args: {
+          contact_auto_send: boolean
+          contact_send_time: string
+          contact_frequency: string
+          contact_days_of_week: string[]
+          contact_last_sent_at: string
+        }
+        Returns: boolean
       }
     }
     Enums: {
