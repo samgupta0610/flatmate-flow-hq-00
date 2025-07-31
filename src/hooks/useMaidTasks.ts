@@ -99,12 +99,13 @@ export const useMaidTasks = () => {
     taskCategory: string = 'cleaning',
     remarks: string = '',
     favorite: boolean = false,
-    optional: boolean = false
+    optional: boolean = false,
+    priority: string = 'medium'
   ) => {
     if (!user) return;
 
     try {
-      console.log('Adding task:', title, category, daysOfWeek, taskCategory, remarks, favorite, optional);
+      console.log('Adding task:', title, category, daysOfWeek, taskCategory, remarks, favorite, optional, priority);
       setError(null);
       
       const { data, error } = await supabase
@@ -119,7 +120,9 @@ export const useMaidTasks = () => {
           task_category: taskCategory,
           remarks,
           favorite,
-          optional
+          optional,
+          priority,
+          created_by: user.id
         })
         .select()
         .single();

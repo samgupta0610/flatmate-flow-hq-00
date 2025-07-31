@@ -148,10 +148,12 @@ export type Database = {
           category: string | null
           completed: boolean | null
           created_at: string
+          created_by: string | null
           days_of_week: string[] | null
           favorite: boolean | null
           id: string
           optional: boolean | null
+          priority: string | null
           remarks: string | null
           selected: boolean | null
           task_category: string | null
@@ -163,10 +165,12 @@ export type Database = {
           category?: string | null
           completed?: boolean | null
           created_at?: string
+          created_by?: string | null
           days_of_week?: string[] | null
           favorite?: boolean | null
           id?: string
           optional?: boolean | null
+          priority?: string | null
           remarks?: string | null
           selected?: boolean | null
           task_category?: string | null
@@ -178,10 +182,12 @@ export type Database = {
           category?: string | null
           completed?: boolean | null
           created_at?: string
+          created_by?: string | null
           days_of_week?: string[] | null
           favorite?: boolean | null
           id?: string
           optional?: boolean | null
+          priority?: string | null
           remarks?: string | null
           selected?: boolean | null
           task_category?: string | null

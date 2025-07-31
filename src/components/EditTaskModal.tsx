@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -5,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pencil, Star, Option } from 'lucide-react';
+import { PrioritySlider } from "@/components/ui/priority-slider";
+import { Pencil, Star, Calendar } from 'lucide-react';
 
 interface MaidTask {
   id: string;
@@ -19,6 +20,7 @@ interface MaidTask {
   remarks?: string;
   favorite?: boolean;
   optional?: boolean;
+  priority?: string;
 }
 
 interface EditTaskModalProps {
@@ -31,6 +33,7 @@ interface EditTaskModalProps {
     remarks: string;
     favorite: boolean;
     optional: boolean;
+    priority: string;
   }) => Promise<void>;
   task: MaidTask | null;
   existingTasks?: Array<{ title: string; id: string }>;
@@ -45,49 +48,40 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
 }) => {
   const [taskName, setTaskName] = useState('');
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [category, setCategory] = useState('common_area');
+  const [frequency, setFrequency] = useState<'daily' | 'weekly'>('daily');
+  const [area, setArea] = useState('');
   const [remarks, setRemarks] = useState('');
   const [favorite, setFavorite] = useState(false);
   const [optional, setOptional] = useState(false);
+  const [priority, setPriority] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const weekdays = [
-    { id: 'monday', label: 'M' },
-    { id: 'tuesday', label: 'T' },
-    { id: 'wednesday', label: 'W' },
-    { id: 'thursday', label: 'T' },
-    { id: 'friday', label: 'F' },
-    { id: 'saturday', label: 'S' },
-    { id: 'sunday', label: 'S' }
+    { id: 'monday', label: 'Mon', short: 'M' },
+    { id: 'tuesday', label: 'Tue', short: 'T' },
+    { id: 'wednesday', label: 'Wed', short: 'W' },
+    { id: 'thursday', label: 'Thu', short: 'T' },
+    { id: 'friday', label: 'Fri', short: 'F' },
+    { id: 'saturday', label: 'Sat', short: 'S' },
+    { id: 'sunday', label: 'Sun', short: 'S' }
   ];
 
-  const categories = [
-    { value: 'kitchen', label: 'Kitchen', icon: '🍽️' },
-    { value: 'washroom', label: 'Washroom/Bathroom', icon: '🚿' },
-    { value: 'bedroom', label: 'Bedroom', icon: '🛏️' },
-    { value: 'living_room', label: 'Living Room', icon: '🛋️' },
-    { value: 'common_area', label: 'Common Area', icon: '🏠' },
-    { value: 'laundry', label: 'Laundry', icon: '👔' },
-    { value: 'personal', label: 'Personal Care', icon: '🧴' },
-    { value: 'other', label: 'Other', icon: '📝' }
-  ];
+  const priorityMap = ['low', 'medium', 'high', 'urgent'];
+  const priorityIndexMap = { low: 0, medium: 1, high: 2, urgent: 3 };
 
   // Pre-populate form when task changes
   useEffect(() => {
     if (task) {
       setTaskName(task.title);
       setSelectedDays(task.days_of_week || []);
-      setCategory(task.task_category || 'common_area');
+      setFrequency(task.category === 'weekly' ? 'weekly' : 'daily');
+      setArea(task.task_category || '');
       setRemarks(task.remarks || '');
       setFavorite(task.favorite || false);
       setOptional(task.optional || false);
+      setPriority(priorityIndexMap[task.priority as keyof typeof priorityIndexMap] || 1);
     }
   }, [task]);
-
-  const filteredTasks = existingTasks.filter(t => 
-    t.id !== task?.id && t.title.toLowerCase().includes(taskName.toLowerCase())
-  ).slice(0, 5);
 
   const toggleDay = (dayId: string) => {
     setSelectedDays(prev => 
@@ -97,14 +91,6 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
     );
   };
 
-  const handleFavoriteChange = (checked: boolean | "indeterminate") => {
-    setFavorite(checked === true);
-  };
-
-  const handleOptionalChange = (checked: boolean | "indeterminate") => {
-    setOptional(checked === true);
-  };
-
   const handleSave = async () => {
     if (!taskName.trim() || !task) return;
     
@@ -112,11 +98,12 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
     try {
       await onSave(task.id, {
         title: taskName,
-        daysOfWeek: selectedDays,
-        category,
+        daysOfWeek: frequency === 'daily' ? weekdays.map(d => d.id) : selectedDays,
+        category: frequency,
         remarks,
         favorite,
-        optional
+        optional,
+        priority: priorityMap[priority]
       });
       
       onClose();
@@ -129,7 +116,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Pencil className="w-5 h-5 text-blue-600" />
@@ -137,53 +124,93 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
-          {/* Task Name with Suggestions */}
-          <div className="space-y-2 relative">
-            <Label htmlFor="task-name">Task Name</Label>
+        <div className="space-y-5">
+          {/* Task Name */}
+          <div className="space-y-2">
+            <Label htmlFor="task-name" className="text-sm font-medium">Task Name</Label>
             <Input
               id="task-name"
               value={taskName}
-              onChange={(e) => {
-                setTaskName(e.target.value);
-                setShowSuggestions(e.target.value.length > 0);
-              }}
-              onFocus={() => setShowSuggestions(taskName.length > 0)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              onChange={(e) => setTaskName(e.target.value)}
               placeholder="Enter task name..."
               className="w-full"
             />
-            
-            {/* Task Suggestions */}
-            {showSuggestions && filteredTasks.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-32 overflow-y-auto">
-                {filteredTasks.map((suggestedTask) => (
-                  <div
-                    key={suggestedTask.id}
-                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center gap-2"
-                    onClick={() => {
-                      setTaskName(suggestedTask.title);
-                      setShowSuggestions(false);
-                    }}
-                  >
-                    <span className="text-blue-600">📋</span>
-                    <span>{suggestedTask.title}</span>
-                    <span className="text-xs text-gray-400 ml-auto">existing</span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
-          {/* Task Options - Favorite and Optional */}
+          {/* Priority Slider */}
+          <PrioritySlider
+            value={priority}
+            onChange={setPriority}
+          />
+
+          {/* Frequency Selection */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Frequency</Label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={frequency === 'daily' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFrequency('daily')}
+                className="flex-1"
+              >
+                DAILY
+              </Button>
+              <Button
+                type="button"
+                variant={frequency === 'weekly' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFrequency('weekly')}
+                className="flex-1"
+              >
+                WEEKLY
+              </Button>
+            </div>
+          </div>
+
+          {/* Weekday Selection for Weekly */}
+          {frequency === 'weekly' && (
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Select Days</Label>
+              <div className="flex gap-2 justify-center">
+                {weekdays.map((day) => (
+                  <button
+                    key={day.id}
+                    type="button"
+                    onClick={() => toggleDay(day.id)}
+                    className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${
+                      selectedDays.includes(day.id)
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {day.short}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Area */}
+          <div className="space-y-2">
+            <Label htmlFor="area" className="text-sm font-medium">Area</Label>
+            <Input
+              id="area"
+              value={area}
+              onChange={(e) => setArea(e.target.value)}
+              placeholder="e.g., Kitchen, Bathroom, Living Room"
+            />
+          </div>
+
+          {/* Task Options */}
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="favorite"
                 checked={favorite}
-                onCheckedChange={handleFavoriteChange}
+                onCheckedChange={(checked) => setFavorite(checked as boolean)}
               />
-              <Label htmlFor="favorite" className="flex items-center gap-2">
+              <Label htmlFor="favorite" className="flex items-center gap-2 text-sm">
                 <Star className={`w-4 h-4 ${favorite ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`} />
                 Mark as Favorite
               </Label>
@@ -193,59 +220,18 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
               <Checkbox
                 id="optional"
                 checked={optional}
-                onCheckedChange={handleOptionalChange}
+                onCheckedChange={(checked) => setOptional(checked as boolean)}
               />
-              <Label htmlFor="optional" className="flex items-center gap-2">
-                <Option className={`w-4 h-4 ${optional ? 'text-blue-500' : 'text-gray-400'}`} />
-                Mark as Optional (op)
+              <Label htmlFor="optional" className="flex items-center gap-2 text-sm">
+                <Calendar className={`w-4 h-4 ${optional ? 'text-blue-500' : 'text-gray-400'}`} />
+                Mark as Optional
               </Label>
             </div>
           </div>
 
-          {/* Weekday Selectors */}
-          <div className="space-y-2">
-            <Label>Repeat Days</Label>
-            <div className="flex gap-2 justify-center">
-              {weekdays.map((day) => (
-                <button
-                  key={day.id}
-                  type="button"
-                  onClick={() => toggleDay(day.id)}
-                  className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${
-                    selectedDays.includes(day.id)
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {day.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Category */}
-          <div className="space-y-2">
-            <Label>Room/Area</Label>
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    <span className="flex items-center gap-2">
-                      <span>{cat.icon}</span>
-                      {cat.label}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Remarks */}
           <div className="space-y-2">
-            <Label htmlFor="remarks">Optional Remarks</Label>
+            <Label htmlFor="remarks" className="text-sm font-medium">Optional Remarks</Label>
             <Textarea
               id="remarks"
               value={remarks}
