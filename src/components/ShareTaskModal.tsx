@@ -19,7 +19,6 @@ interface ShareTaskModalProps {
     task_category?: string;
     remarks?: string;
   }>;
-  selectedLanguage: string;
   onSend: (message: string) => void;
 }
 
@@ -27,15 +26,23 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
   isOpen, 
   onClose, 
   tasks,
-  selectedLanguage,
   onSend 
 }) => {
+  const [selectedLanguage, setSelectedLanguage] = useState('english');
   const [autoSend, setAutoSend] = useState(false);
   const [scheduledTime, setScheduledTime] = useState('08:00');
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [customMessage, setCustomMessage] = useState('');
   const [isEditingMessage, setIsEditingMessage] = useState(false);
+
+  const languages = [
+    { value: 'english', label: 'English' },
+    { value: 'hindi', label: 'Hindi' },
+    { value: 'tamil', label: 'Tamil' },
+    { value: 'telugu', label: 'Telugu' },
+    { value: 'kannada', label: 'Kannada' }
+  ];
 
   const generateMessage = () => {
     if (tasks.length === 0) return 'No tasks selected';
@@ -72,9 +79,29 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
         </DialogHeader>
         
         <div className="space-y-6">
+          {/* Language Selection - Moved to top */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Globe className="w-4 h-4 text-green-600" />
+              <Label className="text-sm font-medium">Message Language</Label>
+            </div>
+            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {languages.map(lang => (
+                  <SelectItem key={lang.value} value={lang.value}>
+                    {lang.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Task List Preview */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">Task List Message</Label>
+            <Label className="text-sm font-medium">Message Preview</Label>
             <div className="bg-gray-50 rounded-lg p-4 max-h-48 overflow-y-auto">
               {isEditingMessage ? (
                 <Textarea
@@ -171,24 +198,6 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
                 />
               </div>
             </div>
-          </div>
-
-          {/* Language Selection */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Globe className="w-4 h-4 text-green-600" />
-              <Label className="text-sm font-medium">Message Language</Label>
-            </div>
-            <Select value={selectedLanguage} onValueChange={() => {}}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="english">English</SelectItem>
-                <SelectItem value="hindi">Hindi</SelectItem>
-                <SelectItem value="spanish">Spanish</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Send Button */}

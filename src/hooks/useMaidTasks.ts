@@ -14,6 +14,7 @@ interface MaidTask {
   remarks?: string;
   favorite?: boolean;
   optional?: boolean;
+  priority?: string;
 }
 
 export const useMaidTasks = () => {
@@ -37,6 +38,7 @@ export const useMaidTasks = () => {
           .from('maid_tasks')
           .select('*')
           .eq('user_id', user.id)
+          .eq('completed', false) // Only fetch non-completed tasks
           .order('created_at', { ascending: true });
 
         if (error) {
@@ -82,10 +84,6 @@ export const useMaidTasks = () => {
       console.error('Error updating task:', err);
       setError(err.message || 'Failed to update task');
     }
-  };
-
-  const toggleComplete = async (taskId: string, completed: boolean) => {
-    await updateTask(taskId, { completed });
   };
 
   const toggleFavorite = async (taskId: string, favorite: boolean) => {
@@ -171,7 +169,6 @@ export const useMaidTasks = () => {
     updateTask, 
     addTask, 
     deleteTask,
-    toggleComplete,
     toggleFavorite
   };
 };
