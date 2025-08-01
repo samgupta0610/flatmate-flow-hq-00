@@ -383,6 +383,57 @@ export const generateWhatsAppMessage = (
   return `${greeting}${houseInfo}\n${taskListHeader}\n${taskList}\n\n${thankYou}`;
 };
 
+// Function to generate grocery WhatsApp message
+interface GroceryItem {
+  name: string;
+  quantity: string;
+  unit: string;
+}
+
+export const generateGroceryWhatsAppMessage = (
+  items: GroceryItem[],
+  language: string = 'english',
+  houseGroupName?: string
+): string => {
+  const greeting = language === 'hindi' 
+    ? 'नमस्ते!' 
+    : language === 'tamil' 
+    ? 'வணக்கம்!' 
+    : language === 'telugu'
+    ? 'నమస్కారం!'
+    : language === 'kannada'
+    ? 'ನಮಸ್ಕಾರ!'
+    : 'Hello!';
+  
+  const groceryListHeader = language === 'hindi' 
+    ? 'किराना सूची:' 
+    : language === 'tamil' 
+    ? 'மளிகை பட்டியல்:' 
+    : language === 'telugu'
+    ? 'కిరాణా జాబితా:'
+    : language === 'kannada'
+    ? 'ಕಿರಾಣಿ ಪಟ್ಟಿ:'
+    : 'Grocery List:';
+  
+  const thankYou = language === 'hindi' 
+    ? 'धन्यवाद!' 
+    : language === 'tamil' 
+    ? 'நன்றி!' 
+    : language === 'telugu'
+    ? 'ధన్యవాదాలు!'
+    : language === 'kannada'
+    ? 'ಧನ್ಯವಾದಗಳು!'
+    : 'Thank you!';
+  
+  const houseInfo = houseGroupName ? `\n(${houseGroupName})\n` : '\n';
+  
+  const itemsList = items
+    .map((item, index) => `${index + 1}. ${item.name} - ${item.quantity}${item.unit}`)
+    .join('\n');
+  
+  return `${greeting}${houseInfo}\n${groceryListHeader}\n${itemsList}\n\n${thankYou}`;
+};
+
 // Function to translate meal messages for the meal planner
 export const getTranslatedMessage = (message: string, language: string): string => {
   if (language === 'english') {
