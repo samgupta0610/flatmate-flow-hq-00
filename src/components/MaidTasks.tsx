@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Heart, MessageCircle, Settings, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Heart, MessageCircle, Settings, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { useMaidTasks } from '@/hooks/useMaidTasks';
 import { useMaidContact } from '@/hooks/useMaidContact';
 import { useUltramsgSender } from '@/hooks/useUltramsgSender';
@@ -30,8 +29,6 @@ const MaidTasks = () => {
   const { toast } = useToast();
 
   const selectedTasks = tasks.filter(task => task.selected);
-  const completedCount = tasks.filter(task => task.completed).length;
-  const totalTasks = tasks.length;
 
   const handleToggleTask = async (taskId, selected) => {
     await updateTask(taskId, { selected });
@@ -135,188 +132,180 @@ const MaidTasks = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Loading Tasks...</CardTitle>
-          </CardHeader>
-        </Card>
+      <div className="p-4">
+        <div className="animate-pulse">
+          <div className="h-6 bg-gray-200 rounded w-48 mb-4"></div>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 bg-gray-100 rounded"></div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="w-5 h-5" />
-              Error Loading Tasks
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600">{error}</p>
-          </CardContent>
-        </Card>
+      <div className="p-4">
+        <div className="flex items-center gap-2 text-red-600 mb-4">
+          <AlertCircle className="w-5 h-5" />
+          <span className="font-medium">Error Loading Tasks</span>
+        </div>
+        <p className="text-gray-600">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Task Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Tasks</p>
-                <p className="text-2xl font-bold text-blue-600">{totalTasks}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Selected Tasks</p>
-                <p className="text-2xl font-bold text-green-600">{selectedTasks.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-gray-600">{completedCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="max-w-4xl mx-auto p-4 space-y-6">
+      {/* Header with Title and Selected Count */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Today's Tasks</h1>
+          <p className="text-sm text-gray-600">
+            {selectedTasks.length} of {tasks.length} tasks selected
+          </p>
+        </div>
       </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={() => setShowAddModal(true)} size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Task
-            </Button>
-            <Button 
-              onClick={() => setShowShareModal(true)}
-              variant="outline" 
+      {/* Action Bar */}
+      <div className="flex flex-wrap gap-2 items-center justify-between bg-gray-50 p-3 rounded-lg">
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => setShowAddModal(true)} size="sm" className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Task
+          </Button>
+          <Button 
+            onClick={() => setShowShareModal(true)}
+            variant="outline" 
+            size="sm"
+            disabled={selectedTasks.length === 0}
+          >
+            <MessageCircle className="w-4 h-4 mr-2" />
+            Share
+          </Button>
+          {maidContact?.phone && (
+            <Button
+              onClick={handleSendTaskMessage}
+              disabled={selectedTasks.length === 0 || isSending}
               size="sm"
-              disabled={selectedTasks.length === 0}
+              style={{ backgroundColor: '#25D366', color: 'white' }}
+              className="hover:opacity-90"
             >
               <MessageCircle className="w-4 h-4 mr-2" />
-              Share Tasks
+              {isSending ? 'Sending...' : `Send to ${maidContact.name}`}
             </Button>
-            {maidContact?.phone && (
-              <Button
-                onClick={handleSendTaskMessage}
-                disabled={selectedTasks.length === 0 || isSending}
-                size="sm"
-                style={{ backgroundColor: '#25D366', color: 'white' }}
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                {isSending ? 'Sending...' : `Send to ${maidContact.name}`}
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          )}
+        </div>
+        
+        <Button
+          onClick={() => setShowAutoSendSettings(!showAutoSendSettings)}
+          variant="ghost"
+          size="sm"
+          className="text-gray-600 hover:text-gray-900"
+        >
+          <Settings className="w-4 h-4 mr-2" />
+          Settings
+          {showAutoSendSettings ? <ChevronUp className="w-4 h-4 ml-1" /> : <ChevronDown className="w-4 h-4 ml-1" />}
+        </Button>
+      </div>
 
-      {/* Smart Task Input */}
+      {/* Quick Add Task Input */}
       <SmartTaskInput onAddTask={handleAddTaskFromInput} existingTasks={tasks} />
 
-      {/* Auto Send Settings */}
-      <AutoSendSettings />
+      {/* Auto Send Settings (Collapsible) */}
+      {showAutoSendSettings && (
+        <div className="animate-fade-in">
+          <AutoSendSettings />
+        </div>
+      )}
 
       {/* Task List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Today's Tasks ({tasks.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {tasks.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No tasks added yet. Add your first task above!</p>
-          ) : (
-            tasks.map((task) => (
-              <div
-                key={task.id}
-                className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
-                  task.selected ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
-                }`}
-              >
-                <div className="flex items-center space-x-3 flex-1">
-                  <Checkbox
-                    checked={task.selected}
-                    onCheckedChange={(checked) => handleToggleTask(task.id, checked)}
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm ${task.selected ? 'font-medium text-green-800' : 'text-gray-700'}`}>
-                        {task.title}
-                      </span>
-                      {task.favorite && (
-                        <Heart className="w-4 h-4 text-red-500 fill-current" />
-                      )}
-                      {task.priority && task.priority !== 'medium' && (
-                        <Badge variant={task.priority === 'high' ? 'destructive' : 'secondary'} className="text-xs">
-                          {task.priority}
-                        </Badge>
-                      )}
-                    </div>
-                    {task.remarks && (
-                      <p className="text-xs text-gray-500 mt-1">{task.remarks}</p>
-                    )}
-                    {task.category && task.category !== 'daily' && (
-                      <Badge variant="outline" className="text-xs mt-1">
-                        {task.category}
-                      </Badge>
-                    )}
-                  </div>
+      <div className="space-y-2">
+        {tasks.length === 0 ? (
+          <div className="text-center py-12 bg-gray-50 rounded-lg">
+            <div className="text-gray-400 mb-2">
+              <Plus className="w-12 h-12 mx-auto mb-4" />
+            </div>
+            <p className="text-gray-500 text-lg mb-2">No tasks added yet</p>
+            <p className="text-gray-400 text-sm">Add your first task above to get started</p>
+          </div>
+        ) : (
+          tasks.map((task) => (
+            <div
+              key={task.id}
+              className={`flex items-center gap-3 p-4 rounded-lg border transition-all duration-200 ${
+                task.selected 
+                  ? 'bg-green-50 border-green-200 shadow-sm' 
+                  : 'bg-white border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <Checkbox
+                checked={task.selected}
+                onCheckedChange={(checked) => handleToggleTask(task.id, checked)}
+                className="flex-shrink-0"
+              />
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`text-sm font-medium truncate ${
+                    task.selected ? 'text-green-800' : 'text-gray-900'
+                  }`}>
+                    {task.title}
+                  </span>
+                  {task.favorite && (
+                    <Heart className="w-4 h-4 text-red-500 fill-current flex-shrink-0" />
+                  )}
+                  {task.priority && task.priority !== 'medium' && (
+                    <Badge 
+                      variant={task.priority === 'high' ? 'destructive' : 'secondary'} 
+                      className="text-xs flex-shrink-0"
+                    >
+                      {task.priority}
+                    </Badge>
+                  )}
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleToggleFavorite(task.id, task.favorite)}
-                    className={task.favorite ? "text-red-500" : "text-gray-400"}
-                  >
-                    <Heart className={`w-4 h-4 ${task.favorite ? 'fill-current' : ''}`} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEditTask(task)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteTask(task.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
+                {task.remarks && (
+                  <p className="text-xs text-gray-500 truncate">{task.remarks}</p>
+                )}
+                {task.category && task.category !== 'daily' && (
+                  <Badge variant="outline" className="text-xs mt-1">
+                    {task.category}
+                  </Badge>
+                )}
               </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
+
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleToggleFavorite(task.id, task.favorite)}
+                  className={`p-2 ${task.favorite ? "text-red-500 hover:text-red-600" : "text-gray-400 hover:text-red-500"}`}
+                >
+                  <Heart className={`w-4 h-4 ${task.favorite ? 'fill-current' : ''}`} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleEditTask(task)}
+                  className="p-2 text-gray-400 hover:text-blue-600"
+                >
+                  Edit
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDeleteTask(task.id)}
+                  className="p-2 text-gray-400 hover:text-red-600"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
 
       {/* Modals */}
       <AddTaskModal
