@@ -221,14 +221,6 @@ const MaidTasks = () => {
               <MessageCircle className="w-4 h-4 mr-2" />
               Share Tasks
             </Button>
-            <Button 
-              onClick={() => setShowAutoSendSettings(true)}
-              variant="outline" 
-              size="sm"
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Auto Send Settings
-            </Button>
             {maidContact?.phone && (
               <Button
                 onClick={handleSendTaskMessage}
@@ -246,6 +238,9 @@ const MaidTasks = () => {
 
       {/* Smart Task Input */}
       <SmartTaskInput onAddTask={handleAddTaskFromInput} existingTasks={tasks} />
+
+      {/* Auto Send Settings */}
+      <AutoSendSettings />
 
       {/* Task List */}
       <Card>
@@ -346,11 +341,6 @@ const MaidTasks = () => {
         onClose={() => setShowShareModal(false)}
         tasks={selectedTasks}
         onSend={() => {}}
-      />
-
-      <AutoSendSettings
-        open={showAutoSendSettings}
-        onOpenChange={setShowAutoSendSettings}
       />
     </div>
   );
