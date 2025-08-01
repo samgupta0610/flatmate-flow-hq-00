@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Upload, Download, Plus } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 
 interface CreateMenuModalProps {
   open: boolean;
@@ -19,6 +20,7 @@ const CreateMenuModal: React.FC<CreateMenuModalProps> = ({ open, onOpenChange })
   const [description, setDescription] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleExcelUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -65,10 +67,20 @@ const CreateMenuModal: React.FC<CreateMenuModalProps> = ({ open, onOpenChange })
       return;
     }
 
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to create a menu.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('meal_menus')
         .insert({
+          user_id: user.id,
           name: menuName,
           description: description,
           menu_data: {}
@@ -170,7 +182,7 @@ const CreateMenuModal: React.FC<CreateMenuModalProps> = ({ open, onOpenChange })
           <Button 
             onClick={handleCreateMenu} 
             className="flex-1"
-            disabled={!menuName.trim()}
+            disabled={!menuName.trim() || !user}
           >
             <Plus className="w-4 h-4 mr-1" />
             Create Menu

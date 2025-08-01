@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bell, Clock, MessageSquare } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 
 interface MealSettingsModalProps {
   open: boolean;
@@ -32,18 +33,22 @@ const MealSettingsModal: React.FC<MealSettingsModalProps> = ({ open, onOpenChang
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (open) {
+    if (open && user) {
       loadSettings();
     }
-  }, [open]);
+  }, [open, user]);
 
   const loadSettings = async () => {
+    if (!user) return;
+
     try {
       const { data, error } = await supabase
         .from('meal_notifications')
         .select('*')
+        .eq('user_id', user.id)
         .order('meal_type');
 
       if (error) throw error;
@@ -70,10 +75,20 @@ const MealSettingsModal: React.FC<MealSettingsModalProps> = ({ open, onOpenChang
   };
 
   const handleSave = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to save settings.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       for (const setting of settings) {
         const data = {
+          user_id: user.id,
           meal_type: setting.mealType,
           enabled: setting.enabled,
           notification_time: setting.notificationTime,
@@ -206,7 +221,7 @@ const MealSettingsModal: React.FC<MealSettingsModalProps> = ({ open, onOpenChang
           <Button 
             onClick={handleSave} 
             className="flex-1"
-            disabled={isLoading}
+            disabled={isLoading || !user}
           >
             {isLoading ? 'Saving...' : 'Save Settings'}
           </Button>
