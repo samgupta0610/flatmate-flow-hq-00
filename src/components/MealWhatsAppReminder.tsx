@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, AlertCircle, Settings } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
 import { useHouseholdContacts } from '@/hooks/useHouseholdContacts';
+import { useUltramsgSender } from '@/hooks/useUltramsgSender';
 import LanguageSelector from './LanguageSelector';
 import MessagePreview from './MessagePreview';
 import { getTranslatedMessage } from '@/utils/translations';
@@ -21,8 +21,8 @@ const MealWhatsAppReminder: React.FC<MealWhatsAppReminderProps> = ({ mealPlan, s
   const [selectedContact, setSelectedContact] = useState<any>(null);
   const [isEditingMessage, setIsEditingMessage] = useState(false);
   const [customMessage, setCustomMessage] = useState('');
-  const { toast } = useToast();
   const { contacts, loading } = useHouseholdContacts();
+  const { sendMessage, isSending } = useUltramsgSender();
 
   // Filter for cook contacts only
   const cookContacts = contacts.filter(contact => contact.contact_type === 'cook');
@@ -49,26 +49,18 @@ const MealWhatsAppReminder: React.FC<MealWhatsAppReminderProps> = ({ mealPlan, s
     return getTranslatedMessage(message, selectedLanguage);
   };
 
-  const handleSendMealReminder = () => {
+  const handleSendMealReminder = async () => {
     if (!selectedContact) {
-      toast({
-        title: "Contact Required",
-        description: "Please select a cook contact first.",
-        variant: "destructive"
-      });
       return;
     }
 
     const message = customMessage || generateMealMessage();
-    const encodedMessage = encodeURIComponent(message);
-    const cleanPhoneNumber = selectedContact.phone_number.replace(/[^\d+]/g, '');
     
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhoneNumber}&text=${encodedMessage}`;
-    window.open(whatsappUrl, '_blank');
-
-    toast({
-      title: "Meal Reminder Sent!",
-      description: `WhatsApp message sent to ${selectedContact.name}`,
+    await sendMessage({
+      to: selectedContact.phone_number,
+      body: message,
+      messageType: 'meal',
+      contactName: selectedContact.name
     });
   };
 
@@ -161,12 +153,12 @@ const MealWhatsAppReminder: React.FC<MealWhatsAppReminderProps> = ({ mealPlan, s
           <CardContent className="pt-0">
             <Button
               onClick={handleSendMealReminder}
-              disabled={!selectedContact}
+              disabled={!selectedContact || isSending}
               className="w-full h-8 text-sm"
               style={{ backgroundColor: '#25D366', color: 'white' }}
             >
               <MessageCircle className="w-3 h-3 mr-1" />
-              Send to {selectedContact ? selectedContact.name : 'Cook'}
+              {isSending ? 'Sending...' : `Send to ${selectedContact ? selectedContact.name : 'Cook'}`}
             </Button>
           </CardContent>
         </Card>

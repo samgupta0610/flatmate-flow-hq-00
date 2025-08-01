@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
 import { useHouseGroupInfo } from '@/hooks/useHouseGroupInfo';
+import { useUltramsgSender } from '@/hooks/useUltramsgSender';
 import { generateGroceryWhatsAppMessage } from '@/utils/translations';
 
 interface GroceryItem {
@@ -18,6 +18,7 @@ interface GroceryWhatsAppReminderProps {
   cartItems: GroceryItem[];
   selectedLanguage?: string;
   vendorContact: string;
+  vendorName?: string;
   onOrderPlaced?: (orderDetails: any) => void;
 }
 
@@ -25,63 +26,44 @@ const GroceryWhatsAppReminder: React.FC<GroceryWhatsAppReminderProps> = ({
   cartItems, 
   selectedLanguage = 'english',
   vendorContact,
+  vendorName = 'Vendor',
   onOrderPlaced
 }) => {
-  const [isSending, setIsSending] = useState(false);
-  const { toast } = useToast();
   const { houseGroup } = useHouseGroupInfo();
+  const { sendMessage, isSending } = useUltramsgSender();
 
-  const handleSendToVendor = () => {
+  const handleSendToVendor = async () => {
     if (!vendorContact.trim()) {
-      toast({
-        title: "Phone number required",
-        description: "Please enter the vendor's WhatsApp number above.",
-        variant: "destructive"
-      });
       return;
     }
 
     if (cartItems.length === 0) {
-      toast({
-        title: "No items in cart",
-        description: "Please add items to your cart before sending.",
-        variant: "destructive"
-      });
       return;
     }
 
-    setIsSending(true);
-
-    // Generate and encode message
+    // Generate and send message
     const message = generateGroceryWhatsAppMessage(cartItems, selectedLanguage, houseGroup?.group_name);
-    const encodedMessage = encodeURIComponent(message);
-    const cleanPhoneNumber = vendorContact.replace(/[^\d+]/g, '');
     
-    // Open WhatsApp
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhoneNumber}&text=${encodedMessage}`;
+    const result = await sendMessage({
+      to: vendorContact,
+      body: message,
+      messageType: 'grocery',
+      contactName: vendorName
+    });
     
-    setTimeout(() => {
-      setIsSending(false);
-      window.open(whatsappUrl, '_blank');
-      
+    if (result.success && onOrderPlaced) {
       // Create order details for history
       const orderDetails = {
         date: new Date().toLocaleDateString(),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        vendorNumber: cleanPhoneNumber,
-        cartList: cartItems.map(item => `${item.name} - ${item.quantity}${item.unit}`)
+        vendorNumber: vendorContact,
+        vendorName: vendorName,
+        cartList: cartItems.map(item => `${item.name} - ${item.quantity}${item.unit}`),
+        messageId: result.messageId
       };
       
-      // Trigger the callback to log the order and clear cart
-      if (onOrderPlaced) {
-        onOrderPlaced(orderDetails);
-      }
-      
-      toast({
-        title: "Order Sent! ✅",
-        description: "Grocery order sent to vendor and added to order history.",
-      });
-    }, 500);
+      onOrderPlaced(orderDetails);
+    }
   };
 
   return (

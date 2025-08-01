@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MessageCircle, Clock, User, Globe, Loader2 } from 'lucide-react';
 import { getTranslatedTask, getTaskEmoji } from '@/utils/translations';
 import { useMaidContact } from '@/hooks/useMaidContact';
-import { useToast } from "@/hooks/use-toast";
+import { useUltramsgSender } from '@/hooks/useUltramsgSender';
 
 interface ShareTaskModalProps {
   isOpen: boolean;
@@ -30,8 +29,8 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
   tasks,
   onSend 
 }) => {
-  const { toast } = useToast();
   const { maidContact, saveMaidContact, updateAutoSendSettings } = useMaidContact();
+  const { sendMessage, isSending } = useUltramsgSender();
   
   const [selectedLanguage, setSelectedLanguage] = useState('english');
   const [autoSend, setAutoSend] = useState(maidContact?.auto_send || false);
@@ -40,7 +39,6 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
   const [contactPhone, setContactPhone] = useState(maidContact?.phone || '');
   const [customMessage, setCustomMessage] = useState('');
   const [isEditingMessage, setIsEditingMessage] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [frequency, setFrequency] = useState(maidContact?.frequency || 'daily');
   const [selectedDays, setSelectedDays] = useState<string[]>(
     maidContact?.days_of_week || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
@@ -136,38 +134,39 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
   const handleSend = async () => {
     const messageToSend = isEditingMessage ? customMessage : generateTranslatedMessage();
     
-    if (autoSend && contactName && contactPhone) {
-      setIsSaving(true);
-      try {
-        // Save/update contact information
-        await saveMaidContact(contactPhone, contactName);
-        
-        // Update auto-send settings
-        await updateAutoSendSettings({
-          auto_send: true,
-          send_time: scheduledTime,
-          frequency,
-          days_of_week: frequency === 'daily' ? weekDays.map(d => d.value) : selectedDays
-        });
-
-        toast({
-          title: "Auto-send Enabled! ✅",
-          description: `Messages will be sent ${frequency} at ${scheduledTime}`,
-        });
-      } catch (error) {
-        console.error('Error setting up auto-send:', error);
-        toast({
-          title: "Auto-send Setup Failed",
-          description: "Failed to enable auto-send. Please try again.",
-          variant: "destructive"
-        });
-      } finally {
-        setIsSaving(false);
-      }
+    if (!contactPhone.trim()) {
+      return;
     }
-    
-    onSend(messageToSend);
-    onClose();
+
+    // Send message via Ultramsg
+    const result = await sendMessage({
+      to: contactPhone,
+      body: messageToSend,
+      messageType: 'task',
+      contactName: contactName || 'Maid'
+    });
+
+    if (result.success) {
+      if (autoSend && contactName && contactPhone) {
+        try {
+          // Save/update contact information
+          await saveMaidContact(contactPhone, contactName);
+          
+          // Update auto-send settings
+          await updateAutoSendSettings({
+            auto_send: true,
+            send_time: scheduledTime,
+            frequency,
+            days_of_week: frequency === 'daily' ? weekDays.map(d => d.value) : selectedDays
+          });
+        } catch (error) {
+          console.error('Error setting up auto-send:', error);
+        }
+      }
+      
+      onSend(messageToSend);
+      onClose();
+    }
   };
 
   return (
@@ -340,17 +339,17 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
             <Button
               onClick={handleSend}
               className="flex-1 bg-green-600 hover:bg-green-700"
-              disabled={tasks.length === 0 || isSaving}
+              disabled={tasks.length === 0 || isSending || !contactPhone.trim()}
             >
-              {isSaving ? (
+              {isSending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Setting up...
+                  Sending...
                 </>
               ) : (
                 <>
                   <MessageCircle className="w-4 h-4 mr-2" />
-                  Send via WhatsApp
+                  Send Message
                 </>
               )}
             </Button>

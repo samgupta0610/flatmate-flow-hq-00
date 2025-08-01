@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageCircle, AlertCircle, Settings } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
 import { useHouseholdContacts } from '@/hooks/useHouseholdContacts';
 import { useHouseGroupInfo } from '@/hooks/useHouseGroupInfo';
+import { useUltramsgSender } from '@/hooks/useUltramsgSender';
 import { generateWhatsAppMessage } from '@/utils/translations';
 import ContactDropdown from './ContactDropdown';
 import { Link } from 'react-router-dom';
@@ -16,29 +16,19 @@ interface WhatsAppMaidReminderProps {
 
 const WhatsAppMaidReminder: React.FC<WhatsAppMaidReminderProps> = ({ selectedTasks }) => {
   const [selectedContact, setSelectedContact] = useState<any>(null);
-  const { toast } = useToast();
   const { contacts, loading } = useHouseholdContacts();
   const { houseGroup } = useHouseGroupInfo();
+  const { sendMessage, isSending } = useUltramsgSender();
 
   // Filter for maid contacts only
   const maidContacts = contacts.filter(contact => contact.contact_type === 'maid');
 
-  const handleSendWhatsApp = () => {
+  const handleSendWhatsApp = async () => {
     if (!selectedContact) {
-      toast({
-        title: "Contact Required",
-        description: "Please select a maid contact first.",
-        variant: "destructive"
-      });
       return;
     }
 
     if (selectedTasks.length === 0) {
-      toast({
-        title: "No Tasks Selected",
-        description: "Please select tasks to send.",
-        variant: "destructive"
-      });
       return;
     }
 
@@ -49,15 +39,12 @@ const WhatsAppMaidReminder: React.FC<WhatsAppMaidReminderProps> = ({ selectedTas
       selected: true 
     }));
     const message = generateWhatsAppMessage(tasksWithSelected, 'english', houseGroup?.group_name);
-    const encodedMessage = encodeURIComponent(message);
-    const cleanPhoneNumber = selectedContact.phone_number.replace(/[^\d+]/g, '');
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhoneNumber}&text=${encodedMessage}`;
     
-    window.open(whatsappUrl, '_blank');
-    
-    toast({
-      title: "Message Sent!",
-      description: `WhatsApp message sent to ${selectedContact.name}`,
+    await sendMessage({
+      to: selectedContact.phone_number,
+      body: message,
+      messageType: 'task',
+      contactName: selectedContact.name
     });
   };
 
@@ -132,12 +119,12 @@ const WhatsAppMaidReminder: React.FC<WhatsAppMaidReminderProps> = ({ selectedTas
 
         <Button
           onClick={handleSendWhatsApp}
-          disabled={selectedTasks.length === 0 || !selectedContact}
+          disabled={selectedTasks.length === 0 || !selectedContact || isSending}
           className="w-full"
           style={{ backgroundColor: '#25D366', color: 'white' }}
         >
           <MessageCircle className="w-4 h-4 mr-2" />
-          Send to {selectedContact ? selectedContact.name : 'Selected Maid'}
+          {isSending ? 'Sending...' : `Send to ${selectedContact ? selectedContact.name : 'Selected Maid'}`}
         </Button>
       </CardContent>
     </Card>
