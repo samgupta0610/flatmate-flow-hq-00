@@ -197,6 +197,111 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_menus: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          menu_data: Json | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          menu_data?: Json | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          menu_data?: Json | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      meal_notifications: {
+        Row: {
+          created_at: string
+          custom_message: string | null
+          days_of_week: string[] | null
+          enabled: boolean
+          frequency: string
+          id: string
+          meal_type: string
+          notification_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_message?: string | null
+          days_of_week?: string[] | null
+          enabled?: boolean
+          frequency?: string
+          id?: string
+          meal_type: string
+          notification_time?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_message?: string | null
+          days_of_week?: string[] | null
+          enabled?: boolean
+          frequency?: string
+          id?: string
+          meal_type?: string
+          notification_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      meal_responses: {
+        Row: {
+          created_at: string
+          id: string
+          meal_date: string
+          meal_type: string
+          person_name: string | null
+          phone_number: string | null
+          response: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meal_date: string
+          meal_type: string
+          person_name?: string | null
+          phone_number?: string | null
+          response: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meal_date?: string
+          meal_type?: string
+          person_name?: string | null
+          phone_number?: string | null
+          response?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
