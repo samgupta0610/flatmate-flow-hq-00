@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Plus, MessageCircle, Settings, Share } from 'lucide-react';
+import { Plus, Send } from 'lucide-react';
 import { useMaidTasks } from '@/hooks/useMaidTasks';
 import { useMaidContact } from '@/hooks/useMaidContact';
 import { useUltramsgSender } from '@/hooks/useUltramsgSender';
@@ -11,13 +12,11 @@ import TaskTable from './TaskTable';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import ShareTaskModal from './ShareTaskModal';
-import AutoSendSettings from './AutoSendSettings';
 
 const MaidTasks = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [showAutoSendSettings, setShowAutoSendSettings] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   
   const { tasks, isLoading, error, updateTask, addTask, deleteTask, toggleFavorite } = useMaidTasks();
@@ -84,6 +83,8 @@ const MaidTasks = () => {
         messageType: 'task',
         contactName: maidContact.name
       });
+
+      setShowShareModal(true);
     } catch (error) {
       console.error('Error sending message:', error);
     }
@@ -127,12 +128,12 @@ const MaidTasks = () => {
 
   if (isLoading) {
     return (
-      <div className="p-4 md:p-6 safe-top safe-bottom">
-        <div className="animate-pulse">
-          <div className="h-6 md:h-8 bg-gray-200 rounded w-48 mb-4 md:mb-6"></div>
+      <div className="min-h-screen bg-white p-4 md:p-8 safe-top safe-bottom">
+        <div className="animate-pulse max-w-7xl mx-auto">
+          <div className="h-8 bg-gray-200 rounded w-48 mb-8"></div>
           <div className="bg-white rounded-lg border">
-            <div className="h-12 bg-gray-100 rounded-t-lg mb-4"></div>
-            <div className="space-y-3 p-4">
+            <div className="h-16 bg-gray-100 rounded-t-lg mb-4"></div>
+            <div className="space-y-4 p-6">
               {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="h-16 bg-gray-50 rounded"></div>
               ))}
@@ -145,137 +146,58 @@ const MaidTasks = () => {
 
   if (error) {
     return (
-      <div className="p-4 md:p-6 safe-top safe-bottom">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 md:p-6">
-          <h2 className="text-red-800 font-semibold mb-2">Error Loading Tasks</h2>
-          <p className="text-red-600 text-sm md:text-base">{error}</p>
+      <div className="min-h-screen bg-white p-4 md:p-8 safe-top safe-bottom">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h2 className="text-red-800 font-semibold mb-2">Error Loading Tasks</h2>
+            <p className="text-red-600">{error}</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 safe-top safe-bottom">
-      <div className="p-4 md:p-6">
-        {/* Mobile-First Header */}
-        <div className="mb-4 md:mb-6">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Tasks</h1>
-              <p className="text-sm md:text-base text-gray-600 mt-1">
-                {selectedTasks.length} of {tasks.length} selected
-              </p>
-            </div>
-            
-            {/* Desktop Action Buttons */}
-            <div className="hidden md:flex items-center gap-3">
-              <Button
-                onClick={() => setShowShareModal(true)}
-                variant="outline"
-                size="sm"
-                disabled={selectedTasks.length === 0}
-              >
-                <Share className="w-4 h-4 mr-2" />
-                Share
-              </Button>
-
-              {maidContact?.phone && (
-                <Button
-                  onClick={handleSendTaskMessage}
-                  disabled={selectedTasks.length === 0 || isSending}
-                  size="sm"
-                  style={{ backgroundColor: '#25D366', color: 'white' }}
-                  className="hover:opacity-90"
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  {isSending ? 'Sending...' : `Send to ${maidContact.name}`}
-                </Button>
-              )}
-
-              <Button
-                onClick={() => setShowAutoSendSettings(!showAutoSendSettings)}
-                variant="ghost"
-                size="sm"
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
-            </div>
-            
-            {/* Mobile Action Buttons */}
-            <div className="flex md:hidden items-center gap-2 overflow-x-auto">
-              <Button
-                onClick={() => setShowShareModal(true)}
-                variant="outline"
-                size="sm"
-                disabled={selectedTasks.length === 0}
-                className="min-w-fit"
-              >
-                <Share className="w-4 h-4 mr-1" />
-                <span className="text-xs">Share</span>
-              </Button>
-
-              {maidContact?.phone && (
-                <Button
-                  onClick={handleSendTaskMessage}
-                  disabled={selectedTasks.length === 0 || isSending}
-                  size="sm"
-                  style={{ backgroundColor: '#25D366', color: 'white' }}
-                  className="hover:opacity-90 min-w-fit"
-                >
-                  <MessageCircle className="w-4 h-4 mr-1" />
-                  <span className="text-xs">{isSending ? 'Sending...' : 'Send'}</span>
-                </Button>
-              )}
-
-              <Button
-                onClick={() => setShowAutoSendSettings(!showAutoSendSettings)}
-                variant="ghost"
-                size="sm"
-                className="min-w-fit"
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
+    <div className="min-h-screen bg-white safe-top safe-bottom">
+      <div className="max-w-7xl mx-auto p-4 md:p-8">
+        {/* Clean Header */}
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-green-700 tracking-wide">
+            TASK MANAGER
+          </h1>
+          
+          {selectedTasks.length > 0 && maidContact?.phone && (
+            <Button
+              onClick={handleSendTaskMessage}
+              disabled={isSending}
+              variant="ghost"
+              size="sm"
+              className="text-green-700 hover:text-green-800 hover:bg-green-50"
+            >
+              <Send className="w-5 h-5" />
+            </Button>
+          )}
         </div>
-
-        {/* Auto Send Settings (Collapsible) */}
-        {showAutoSendSettings && (
-          <div className="mb-4 md:mb-6">
-            <AutoSendSettings />
-          </div>
-        )}
 
         {/* Task Table */}
-        <TaskTable
-          tasks={tasks}
-          onUpdate={handleToggleTask}
-          onDelete={handleDeleteTask}
-          onEdit={handleEditTask}
-          onToggleFavorite={handleToggleFavorite}
-        />
-
-        {/* Floating Add Button (Mobile) */}
-        <div className="md:hidden">
-          <Button
-            onClick={() => setShowAddModal(true)}
-            className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg z-50"
-            size="icon"
-          >
-            <Plus className="w-6 h-6" />
-          </Button>
+        <div className="mb-8">
+          <TaskTable
+            tasks={tasks}
+            onUpdate={handleToggleTask}
+            onDelete={handleDeleteTask}
+            onEdit={handleEditTask}
+            onToggleFavorite={handleToggleFavorite}
+          />
         </div>
 
-        {/* Desktop Add Button */}
-        <div className="hidden md:block mt-6">
-          <Button
-            onClick={() => setShowAddModal(true)}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Task
-          </Button>
-        </div>
+        {/* Floating Add Button */}
+        <Button
+          onClick={() => setShowAddModal(true)}
+          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-green-600 hover:bg-green-700 shadow-lg z-50 border-0"
+          size="icon"
+        >
+          <Plus className="w-6 h-6 text-white" />
+        </Button>
       </div>
 
       {/* Modals */}
