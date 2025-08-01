@@ -65,7 +65,7 @@ const MaidTasks = () => {
 
     toast({
       title: "WhatsApp Opened! ✅",
-      description: "Task list is ready to send to your maid.",
+      description: "Task list is ready to send. Auto-send settings have been saved if enabled.",
     });
   };
 

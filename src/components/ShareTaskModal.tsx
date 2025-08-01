@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageCircle, Clock, User, Globe } from 'lucide-react';
-import { getTranslatedMessage } from '@/utils/translations';
+import { MessageCircle, Clock, User, Globe, Loader2 } from 'lucide-react';
+import { getTranslatedTask, getTaskEmoji } from '@/utils/translations';
+import { useMaidContact } from '@/hooks/useMaidContact';
+import { useToast } from "@/hooks/use-toast";
 
 interface ShareTaskModalProps {
   isOpen: boolean;
@@ -28,13 +30,21 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
   tasks,
   onSend 
 }) => {
+  const { toast } = useToast();
+  const { maidContact, saveMaidContact, updateAutoSendSettings } = useMaidContact();
+  
   const [selectedLanguage, setSelectedLanguage] = useState('english');
-  const [autoSend, setAutoSend] = useState(false);
-  const [scheduledTime, setScheduledTime] = useState('08:00');
-  const [contactName, setContactName] = useState('');
-  const [contactPhone, setContactPhone] = useState('');
+  const [autoSend, setAutoSend] = useState(maidContact?.auto_send || false);
+  const [scheduledTime, setScheduledTime] = useState(maidContact?.send_time || '08:00');
+  const [contactName, setContactName] = useState(maidContact?.name || '');
+  const [contactPhone, setContactPhone] = useState(maidContact?.phone || '');
   const [customMessage, setCustomMessage] = useState('');
   const [isEditingMessage, setIsEditingMessage] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [frequency, setFrequency] = useState(maidContact?.frequency || 'daily');
+  const [selectedDays, setSelectedDays] = useState<string[]>(
+    maidContact?.days_of_week || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+  );
 
   const languages = [
     { value: 'english', label: 'English' },
@@ -44,26 +54,118 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
     { value: 'kannada', label: 'Kannada' }
   ];
 
-  const generateMessage = () => {
+  const weekDays = [
+    { value: 'monday', label: 'Mon' },
+    { value: 'tuesday', label: 'Tue' },
+    { value: 'wednesday', label: 'Wed' },
+    { value: 'thursday', label: 'Thu' },
+    { value: 'friday', label: 'Fri' },
+    { value: 'saturday', label: 'Sat' },
+    { value: 'sunday', label: 'Sun' }
+  ];
+
+  const generateTranslatedMessage = () => {
     if (tasks.length === 0) return 'No tasks selected';
 
-    let message = `Hello! Here are today's cleaning tasks:\n\n`;
+    const greeting = selectedLanguage === 'hindi' 
+      ? 'नमस्ते!' 
+      : selectedLanguage === 'tamil' 
+      ? 'வணக்கம்!' 
+      : selectedLanguage === 'telugu'
+      ? 'నమస్కారం!'
+      : selectedLanguage === 'kannada'
+      ? 'ನಮಸ್ಕಾರ!'
+      : 'Hello!';
+    
+    const taskListHeader = selectedLanguage === 'hindi' 
+      ? 'आज के काम:' 
+      : selectedLanguage === 'tamil' 
+      ? 'இன்றைய பணிகள்:' 
+      : selectedLanguage === 'telugu'
+      ? 'నేటి పనులు:'
+      : selectedLanguage === 'kannada'
+      ? 'ಇಂದಿನ ಕೆಲಸಗಳು:'
+      : "Today's cleaning tasks:";
+    
+    const thankYou = selectedLanguage === 'hindi' 
+      ? 'कृपया ये काम पूरे करें। धन्यवाद!' 
+      : selectedLanguage === 'tamil' 
+      ? 'இந்த பணிகளை முடிக்கவும். நன்றி!' 
+      : selectedLanguage === 'telugu'
+      ? 'దయచేసి ఈ పనులను పూర్తి చేయండి. ధన్యవాదాలు!'
+      : selectedLanguage === 'kannada'
+      ? 'ದಯವಿಟ್ಟು ಈ ಕೆಲಸಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ. ಧನ್ಯವಾದಗಳು!'
+      : 'Please complete these tasks. Thank you!';
+
+    let message = `${greeting}\n\n${taskListHeader}\n`;
     
     tasks.forEach((task, index) => {
-      message += `${index + 1}. ${task.title}`;
+      const translatedTask = getTranslatedTask(task.title, selectedLanguage);
+      const emoji = getTaskEmoji(task.title);
+      
+      message += `${index + 1}. ${emoji} ${translatedTask}`;
       if (task.remarks) {
         message += ` (${task.remarks})`;
       }
       message += '\n';
     });
 
-    message += `\nTotal tasks: ${tasks.length}\n\nPlease complete these tasks. Thank you!`;
+    const totalTasksText = selectedLanguage === 'hindi' 
+      ? 'कुल काम:' 
+      : selectedLanguage === 'tamil' 
+      ? 'மொத்த பணிகள்:' 
+      : selectedLanguage === 'telugu'
+      ? 'మొత్తం పనులు:'
+      : selectedLanguage === 'kannada'
+      ? 'ಒಟ್ಟು ಕೆಲಸಗಳು:'
+      : 'Total tasks:';
+
+    message += `\n${totalTasksText} ${tasks.length}\n\n${thankYou}`;
     
-    return getTranslatedMessage(message, selectedLanguage);
+    return message;
   };
 
-  const handleSend = () => {
-    const messageToSend = isEditingMessage ? customMessage : generateMessage();
+  const toggleDay = (day: string) => {
+    setSelectedDays(prev => 
+      prev.includes(day) 
+        ? prev.filter(d => d !== day)
+        : [...prev, day]
+    );
+  };
+
+  const handleSend = async () => {
+    const messageToSend = isEditingMessage ? customMessage : generateTranslatedMessage();
+    
+    if (autoSend && contactName && contactPhone) {
+      setIsSaving(true);
+      try {
+        // Save/update contact information
+        await saveMaidContact(contactPhone, contactName);
+        
+        // Update auto-send settings
+        await updateAutoSendSettings({
+          auto_send: true,
+          send_time: scheduledTime,
+          frequency,
+          days_of_week: frequency === 'daily' ? weekDays.map(d => d.value) : selectedDays
+        });
+
+        toast({
+          title: "Auto-send Enabled! ✅",
+          description: `Messages will be sent ${frequency} at ${scheduledTime}`,
+        });
+      } catch (error) {
+        console.error('Error setting up auto-send:', error);
+        toast({
+          title: "Auto-send Setup Failed",
+          description: "Failed to enable auto-send. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsSaving(false);
+      }
+    }
+    
     onSend(messageToSend);
     onClose();
   };
@@ -79,7 +181,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
         </DialogHeader>
         
         <div className="space-y-6">
-          {/* Language Selection - Moved to top */}
+          {/* Language Selection */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Globe className="w-4 h-4 text-green-600" />
@@ -99,7 +201,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
             </Select>
           </div>
 
-          {/* Task List Preview */}
+          {/* Message Preview */}
           <div className="space-y-3">
             <Label className="text-sm font-medium">Message Preview</Label>
             <div className="bg-gray-50 rounded-lg p-4 max-h-48 overflow-y-auto">
@@ -112,7 +214,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
                 />
               ) : (
                 <pre className="text-sm whitespace-pre-wrap text-gray-700">
-                  {customMessage || generateMessage()}
+                  {customMessage || generateTranslatedMessage()}
                 </pre>
               )}
             </div>
@@ -122,7 +224,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
                 size="sm"
                 onClick={() => {
                   if (!isEditingMessage) {
-                    setCustomMessage(generateMessage());
+                    setCustomMessage(generateTranslatedMessage());
                   }
                   setIsEditingMessage(!isEditingMessage);
                 }}
@@ -134,7 +236,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    setCustomMessage(generateMessage());
+                    setCustomMessage(generateTranslatedMessage());
                     setIsEditingMessage(false);
                   }}
                 >
@@ -142,34 +244,6 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
                 </Button>
               )}
             </div>
-          </div>
-
-          {/* Auto Send Toggle */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-blue-600" />
-                <Label className="text-sm font-medium">Auto Send</Label>
-              </div>
-              <Switch
-                checked={autoSend}
-                onCheckedChange={setAutoSend}
-              />
-            </div>
-            
-            {autoSend && (
-              <div className="pl-6 space-y-3">
-                <div>
-                  <Label className="text-xs text-gray-600">Scheduled Time</Label>
-                  <Input
-                    type="time"
-                    value={scheduledTime}
-                    onChange={(e) => setScheduledTime(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Contact Details */}
@@ -200,15 +274,85 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
             </div>
           </div>
 
+          {/* Auto Send Toggle */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-blue-600" />
+                <Label className="text-sm font-medium">Auto Send</Label>
+              </div>
+              <Switch
+                checked={autoSend}
+                onCheckedChange={setAutoSend}
+              />
+            </div>
+            
+            {autoSend && (
+              <div className="pl-6 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-gray-600">Time</Label>
+                    <Input
+                      type="time"
+                      value={scheduledTime}
+                      onChange={(e) => setScheduledTime(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-gray-600">Frequency</Label>
+                    <Select value={frequency} onValueChange={setFrequency}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {frequency === 'weekly' && (
+                  <div>
+                    <Label className="text-xs text-gray-600 mb-2 block">Select Days</Label>
+                    <div className="flex flex-wrap gap-1">
+                      {weekDays.map(day => (
+                        <Button
+                          key={day.value}
+                          variant={selectedDays.includes(day.value) ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => toggleDay(day.value)}
+                          className="text-xs px-2 py-1"
+                        >
+                          {day.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Send Button */}
           <div className="flex gap-3 pt-4">
             <Button
               onClick={handleSend}
               className="flex-1 bg-green-600 hover:bg-green-700"
-              disabled={tasks.length === 0}
+              disabled={tasks.length === 0 || isSaving}
             >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Send via WhatsApp
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Setting up...
+                </>
+              ) : (
+                <>
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Send via WhatsApp
+                </>
+              )}
             </Button>
             <Button variant="outline" onClick={onClose}>
               Cancel

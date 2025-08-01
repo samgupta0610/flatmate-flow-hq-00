@@ -295,40 +295,10 @@ const predefinedTasks = {
   }
 };
 
-export const getTranslatedTask = (task: string, language: string): string => {
-  const taskLower = task.toLowerCase();
-  const taskData = predefinedTasks[taskLower as keyof typeof predefinedTasks];
-  
-  if (!taskData) {
-    return task;
-  }
-  
-  switch (language) {
-    case 'hindi':
-      return taskData.hindi;
-    case 'tamil':
-      return taskData.tamil;
-    case 'telugu':
-      return taskData.telugu;
-    case 'kannada':
-      return taskData.kannada;
-    default:
-      return task;
-  }
-};
+// Import the new focused task translations
+export { getTranslatedTask, getTaskEmoji, getAllSupportedTasks } from './taskTranslations';
 
-export const getTaskEmoji = (task: string): string => {
-  const taskLower = task.toLowerCase();
-  const taskData = predefinedTasks[taskLower as keyof typeof predefinedTasks];
-  return taskData?.emoji || '📝';
-};
-
-interface Task {
-  title: string;
-  selected?: boolean;
-  favorite?: boolean;
-}
-
+// Update the generateWhatsAppMessage function to use the new translation system
 export const generateWhatsAppMessage = (
   tasks: Task[], 
   language: string = 'english', 
@@ -440,7 +410,7 @@ export const getTranslatedMessage = (message: string, language: string): string 
     return message;
   }
   
-  // Basic translation mapping for common phrases
+  // Enhanced translation mapping for common phrases
   const translations: { [key: string]: { [lang: string]: string } } = {
     'Hello! Here are today\'s cleaning tasks:': {
       hindi: 'नमस्ते! यहाँ आज के सफाई के काम हैं:',
@@ -459,6 +429,12 @@ export const getTranslatedMessage = (message: string, language: string): string 
       tamil: 'மொத்த பணிகள்:',
       telugu: 'మొత్తం పనులు:',
       kannada: 'ಒಟ್ಟು ಕೆಲಸಗಳು:'
+    },
+    'Today\'s cleaning tasks:': {
+      hindi: 'आज के सफाई के काम:',
+      tamil: 'இன்றைய சுத்தம் செய்யும் பணிகள்:',
+      telugu: 'నేటి శుభ్రత పనులు:',
+      kannada: 'ಇಂದಿನ ಸ್ವಚ್ಛತೆಯ ಕೆಲಸಗಳು:'
     }
   };
   

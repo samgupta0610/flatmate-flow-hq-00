@@ -7,6 +7,70 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Enhanced task translations for the edge function
+const taskTranslations: { [key: string]: { [lang: string]: string } } = {
+  'clean kitchen': {
+    hindi: 'रसोई साफ करें',
+    tamil: 'சமையலறையை சுத்தம் செய்யுங்கள்',
+    telugu: 'వంటగదిని శుభ్రం చేయండి',
+    kannada: 'ಅಡುಗೆಮನೆ ಸ್ವಚ್ಛಗೊಳಿಸಿ'
+  },
+  'wash dishes': {
+    hindi: 'बर्तन धोएं',
+    tamil: 'பாத்திரங்கள் கழுவுங்கள்',
+    telugu: 'పాత్రలను కడుక్కోండి',
+    kannada: 'ಪಾತ್ರೆಗಳನ್ನು ತೊಳೆಯಿರಿ'
+  },
+  'clean bathroom': {
+    hindi: 'स्नानघर साफ करें',
+    tamil: 'குளியலறையை சுத்தம் செய்யுங்கள்',
+    telugu: 'స্নানগদিని శుభ్రం చేయండి',
+    kannada: 'ಸ್ನಾನಗೃಹ ಸ್ವಚ್ಛಗೊಳಿಸಿ'
+  },
+  'sweep floor': {
+    hindi: 'फर्श झाड़ें',
+    tamil: 'தரையை துடைக்கवும்',
+    telugu: 'నేలను ఊడ్చండि',
+    kannada: 'ನೆಲ ಗುಡಿಸಿ'
+  },
+  'mop floor': {
+    hindi: 'फர्श पोंछें',
+    tamil: 'தரையை துடைக्கवूम्',
+    telugu: 'నేలను తుడుచుట',
+    kannada: 'ನೆಲ ಒರೆಸಿ'
+  }
+};
+
+const getTranslatedTask = (taskTitle: string, language: string): string => {
+  const normalizedTitle = taskTitle.toLowerCase().trim();
+  const translation = taskTranslations[normalizedTitle];
+  
+  if (!translation || language === 'english') {
+    return taskTitle;
+  }
+  
+  return translation[language] || taskTitle;
+};
+
+const getTaskEmoji = (taskTitle: string): string => {
+  const title = taskTitle.toLowerCase().trim();
+  const emojiMap: { [key: string]: string } = {
+    'clean kitchen': '🍽️',
+    'wash dishes': '🍴',
+    'clean bathroom': '🚿',
+    'clean toilet': '🚽',
+    'sweep floor': '🧹',
+    'mop floor': '🧽',
+    'wash clothes': '👕',
+    'iron clothes': '👔',
+    'make bed': '🛏️',
+    'vacuum': '🌀',
+    'dusting': '🪶'
+  };
+  
+  return emojiMap[title] || '📝';
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -35,7 +99,7 @@ serve(async (req) => {
     console.log(`Found ${contacts?.length || 0} contacts with auto-send enabled`);
 
     for (const contact of contacts || []) {
-      console.log(`Processing contact: ${contact.id}`);
+      console.log(`Processing contact: ${contact.id} - ${contact.name}`);
       
       // Check if we should send for this contact
       const { data: shouldSend, error: shouldSendError } = await supabase
@@ -75,29 +139,66 @@ serve(async (req) => {
         continue;
       }
 
-      // Generate message
-      const tasksByCategory = tasks.reduce((acc, task) => {
-        const category = task.task_category || 'Other';
-        if (!acc[category]) acc[category] = [];
-        acc[category].push(task);
-        return acc;
-      }, {} as Record<string, any[]>);
+      // Get user's preferred language (default to Hindi for now)
+      const preferredLanguage = 'hindi'; // This could be retrieved from user preferences in the future
 
-      let message = `Hello ${contact.name}! Here are today's cleaning tasks:\n\n`;
+      // Generate translated message
+      const greeting = preferredLanguage === 'hindi' 
+        ? 'नमस्ते!' 
+        : preferredLanguage === 'tamil' 
+        ? 'வணக்கம்!' 
+        : preferredLanguage === 'telugu'
+        ? 'నమస్కారం!'
+        : preferredLanguage === 'kannada'
+        ? 'ನಮಸ್ಕಾರ!'
+        : 'Hello!';
       
-      Object.entries(tasksByCategory).forEach(([category, categoryTasks]) => {
-        message += `${category.charAt(0).toUpperCase() + category.slice(1)}:\n`;
-        categoryTasks.forEach(task => {
-          message += `• ${task.title}`;
-          if (task.remarks) {
-            message += ` (${task.remarks})`;
-          }
-          message += '\n';
-        });
+      const taskListHeader = preferredLanguage === 'hindi' 
+        ? 'आज के काम:' 
+        : preferredLanguage === 'tamil' 
+        ? 'இன்றைய பணிகள்:' 
+        : preferredLanguage === 'telugu'
+        ? 'నేటి పనులు:'
+        : preferredLanguage === 'kannada'
+        ? 'ಇಂದಿನ ಕೆಲಸಗಳು:'
+        : "Today's cleaning tasks:";
+      
+      const thankYou = preferredLanguage === 'hindi' 
+        ? 'कृपया ये काम पूरे करें। धन्यवाद!' 
+        : preferredLanguage === 'tamil' 
+        ? 'இந்த பணிகளை முடிக்கவும். நன்றி!' 
+        : preferredLanguage === 'telugu'
+        ? 'దయచేసి ఈ పనులను పూర్తి చేయండి. ధన్యవాదాలు!'
+        : preferredLanguage === 'kannada'
+        ? 'ದಯವಿಟ್ಟು ಈ ಕೆಲಸಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ. ಧನ್ಯವಾದಗಳು!'
+        : 'Please complete these tasks. Thank you!';
+
+      let message = `${greeting}\n\n${taskListHeader}\n`;
+      
+      tasks.forEach((task, index) => {
+        const translatedTask = getTranslatedTask(task.title, preferredLanguage);
+        const emoji = getTaskEmoji(task.title);
+        
+        message += `${index + 1}. ${emoji} ${translatedTask}`;
+        if (task.remarks) {
+          message += ` (${task.remarks})`;
+        }
         message += '\n';
       });
 
-      message += `Total tasks: ${tasks.length}\n\nPlease complete these tasks. Thank you!`;
+      const totalTasksText = preferredLanguage === 'hindi' 
+        ? 'कुल काम:' 
+        : preferredLanguage === 'tamil' 
+        ? 'மொத்த பணிகள்:' 
+        : preferredLanguage === 'telugu'
+        ? 'మొత్తం పనులు:'
+        : preferredLanguage === 'kannada'
+        ? 'ಒಟ್ಟು ಕೆಲಸಗಳು:'
+        : 'Total tasks:';
+
+      message += `\n${totalTasksText} ${tasks.length}\n\n${thankYou}`;
+
+      console.log(`Generated message for ${contact.name}:`, message);
 
       // Log the auto-send attempt
       const { error: historyError } = await supabase
@@ -123,13 +224,14 @@ serve(async (req) => {
         console.error('Error updating last_sent_at:', updateError);
       }
 
-      console.log(`Successfully processed auto-send for contact ${contact.id}`);
+      console.log(`Successfully processed auto-send for contact ${contact.id} - ${contact.name}`);
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Processed ${contacts?.length || 0} contacts` 
+        message: `Processed ${contacts?.length || 0} contacts`,
+        processedContacts: contacts?.length || 0
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
