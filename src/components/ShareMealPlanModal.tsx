@@ -8,10 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Share2, Clock, Users, MessageCircle } from 'lucide-react';
+import { Share2, Clock, Users, MessageCircle, AlertCircle } from 'lucide-react';
 import { DailyPlan } from '@/types/meal';
 import { useToast } from "@/hooks/use-toast";
-import { getTranslatedMessage } from '@/utils/translations';
+import { useHouseholdContacts } from '@/hooks/useHouseholdContacts';
+import { useUltramsgSender } from '@/hooks/useUltramsgSender';
+import { useMaidContact } from '@/hooks/useMaidContact';
+import ContactDropdown from './ContactDropdown';
+import LanguageSelector from './LanguageSelector';
 
 interface ShareMealPlanModalProps {
   open: boolean;
@@ -29,32 +33,97 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
   const [servings, setServings] = useState('2');
   const [autoSendEnabled, setAutoSendEnabled] = useState(false);
   const [sendTime, setSendTime] = useState('08:00');
-  const [recipientContact, setRecipientContact] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('english');
   const [customMessage, setCustomMessage] = useState('');
   const [isEditingMessage, setIsEditingMessage] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<any>(null);
   const { toast } = useToast();
+  const { contacts, loading: contactsLoading } = useHouseholdContacts();
+  const { maidContact } = useMaidContact();
+  const { sendMessage, isSending } = useUltramsgSender();
+
+  // Filter for cook contacts
+  const cookContacts = contacts.filter(contact => contact.contact_type === 'cook');
+
+  // Meal-specific translations
+  const getMealTranslations = (language: string) => {
+    const translations = {
+      english: {
+        greeting: 'Hello!',
+        mealPlanHeader: "Here are today's meal plans:",
+        breakfast: 'Breakfast',
+        lunch: 'Lunch', 
+        dinner: 'Dinner',
+        people: 'people',
+        thankYou: 'Please prepare accordingly. Thank you!'
+      },
+      hindi: {
+        greeting: 'नमस्ते!',
+        mealPlanHeader: 'यहाँ आज की भोजन योजना है:',
+        breakfast: 'नाश्ता',
+        lunch: 'दोपहर का खाना',
+        dinner: 'रात का खाना', 
+        people: 'लोग',
+        thankYou: 'कृपया तैयारी करें। धन्यवाद!'
+      },
+      tamil: {
+        greeting: 'வணக்கம்!',
+        mealPlanHeader: 'இன்றைய உணவு திட்டங்கள் இவை:',
+        breakfast: 'காலை உணவு',
+        lunch: 'மதிய உணவு',
+        dinner: 'இரவு உணவு',
+        people: 'நபர்கள்',
+        thankYou: 'தயார் செய்யுங்கள். நன்றி!'
+      },
+      telugu: {
+        greeting: 'నమస్కారం!',
+        mealPlanHeader: 'ఈ రోజు భోజన ప్రణాళికలు:',
+        breakfast: 'అల్పాహారం',
+        lunch: 'మధ్యాహ్న భోజనం',
+        dinner: 'రాత్రి భోజనం',
+        people: 'వ్యక్తులు',
+        thankYou: 'దయచేసి సిద్ధం చేయండి. ధన్యవాదాలు!'
+      },
+      kannada: {
+        greeting: 'ನಮಸ್ಕಾರ!',
+        mealPlanHeader: 'ಇಂದಿನ ಊಟದ ಯೋಜನೆಗಳು:',
+        breakfast: 'ಬೆಳಗಿನ ಉಪಾಹಾರ',
+        lunch: 'ಮಧ್ಯಾಹ್ನದ ಊಟ',
+        dinner: 'ರಾತ್ರಿಯ ಊಟ',
+        people: 'ಜನರು',
+        thankYou: 'ದಯವಿಟ್ಟು ತಯಾರಿಸಿ. ಧನ್ಯವಾದಗಳು!'
+      }
+    };
+    
+    return translations[language] || translations.english;
+  };
 
   const generateMealMessage = () => {
+    const trans = getMealTranslations(selectedLanguage);
     const meals = [];
     
     if (todaysPlan.breakfast.length > 0) {
-      const breakfastItems = todaysPlan.breakfast.map(m => `${m.name} (${servings} people)`).join(', ');
-      meals.push(`Breakfast: ${breakfastItems}`);
+      const breakfastItems = todaysPlan.breakfast.map(m => `${m.name} (${servings} ${trans.people})`).join(', ');
+      meals.push(`${trans.breakfast}: ${breakfastItems}`);
     }
     if (todaysPlan.lunch.length > 0) {
-      const lunchItems = todaysPlan.lunch.map(m => `${m.name} (${servings} people)`).join(', ');
-      meals.push(`Lunch: ${lunchItems}`);
+      const lunchItems = todaysPlan.lunch.map(m => `${m.name} (${servings} ${trans.people})`).join(', ');
+      meals.push(`${trans.lunch}: ${lunchItems}`);
     }
     if (todaysPlan.dinner.length > 0) {
-      const dinnerItems = todaysPlan.dinner.map(m => `${m.name} (${servings} people)`).join(', ');
-      meals.push(`Dinner: ${dinnerItems}`);
+      const dinnerItems = todaysPlan.dinner.map(m => `${m.name} (${servings} ${trans.people})`).join(', ');
+      meals.push(`${trans.dinner}: ${dinnerItems}`);
     }
 
-    if (meals.length === 0) return 'No meals planned for today';
+    if (meals.length === 0) {
+      return selectedLanguage === 'hindi' ? 'आज कोई भोजन की योजना नहीं है' :
+             selectedLanguage === 'tamil' ? 'இன்று உணவு திட்டம் இல்லை' :
+             selectedLanguage === 'telugu' ? 'ఈరోజు భోజన ప్రణాళిక లేదు' :
+             selectedLanguage === 'kannada' ? 'ಇಂದು ಊಟದ ಯೋಜನೆ ಇಲ್ಲ' :
+             'No meals planned for today';
+    }
 
-    const message = `Hello! Here are today's (${todayName}) meal plans:\n\n${meals.join('\n')}\n\nPlease prepare accordingly. Thank you!`;
-    return getTranslatedMessage(message, selectedLanguage);
+    return `${trans.greeting}\n\n${trans.mealPlanHeader} (${todayName})\n\n${meals.join('\n')}\n\n${trans.thankYou}`;
   };
 
   const handlePreviewMessage = () => {
@@ -65,10 +134,10 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
     setIsEditingMessage(!isEditingMessage);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     const messageToSend = isEditingMessage ? customMessage : generateMealMessage();
     
-    if (!messageToSend.trim() || messageToSend === 'No meals planned for today') {
+    if (!messageToSend.trim() || messageToSend.includes('No meals planned') || messageToSend.includes('कोई भोजन की योजना नहीं')) {
       toast({
         title: "No meals to send",
         description: "Please add meals before sharing.",
@@ -77,16 +146,31 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
       return;
     }
 
-    const encodedMessage = encodeURIComponent(messageToSend);
-    const whatsappUrl = recipientContact 
-      ? `https://api.whatsapp.com/send?phone=${recipientContact}&text=${encodedMessage}`
-      : `https://api.whatsapp.com/send?text=${encodedMessage}`;
+    let targetContact = selectedContact;
     
-    window.open(whatsappUrl, '_blank');
+    // If no contact selected but maid contact exists, use it
+    if (!targetContact && maidContact?.phone) {
+      targetContact = {
+        phone_number: maidContact.phone,
+        name: maidContact.name || 'Maid'
+      };
+    }
 
-    toast({
-      title: "WhatsApp Opened! ✅",
-      description: "Meal plan message is ready to send.",
+    if (!targetContact?.phone_number) {
+      toast({
+        title: "No contact selected",
+        description: "Please select a contact to send the meal plan.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Send via Ultramsg
+    await sendMessage({
+      to: targetContact.phone_number,
+      body: messageToSend,
+      messageType: 'meal',
+      contactName: targetContact.name
     });
 
     onOpenChange(false);
@@ -120,6 +204,35 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
             </CardContent>
           </Card>
 
+          {/* Contact Selection */}
+          <div>
+            <Label className="text-sm font-medium">Select Contact</Label>
+            {contactsLoading ? (
+              <div className="mt-1 p-2 text-sm text-gray-500">Loading contacts...</div>
+            ) : cookContacts.length > 0 ? (
+              <div className="mt-1">
+                <ContactDropdown
+                  contacts={cookContacts}
+                  selectedContact={selectedContact}
+                  onSelectContact={setSelectedContact}
+                  placeholder="Choose cook contact"
+                  type="household"
+                />
+              </div>
+            ) : maidContact?.phone ? (
+              <div className="mt-1 p-2 bg-blue-50 rounded border text-sm">
+                Will send to: {maidContact.name} ({maidContact.phone})
+              </div>
+            ) : (
+              <div className="mt-1 p-2 bg-orange-50 rounded border">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-orange-500" />
+                  <span className="text-sm text-orange-700">No cook or maid contacts available</span>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Number of Servings */}
           <div>
             <Label className="text-sm font-medium flex items-center gap-1">
@@ -134,6 +247,17 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
               max="20"
               className="mt-1"
             />
+          </div>
+
+          {/* Preferred Language */}
+          <div>
+            <Label className="text-sm font-medium">Preferred Language</Label>
+            <div className="mt-1">
+              <LanguageSelector 
+                selectedLanguage={selectedLanguage}
+                onLanguageChange={setSelectedLanguage}
+              />
+            </div>
           </div>
 
           {/* Auto Send Daily Plan */}
@@ -163,35 +287,6 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
               />
             </div>
           )}
-
-          {/* Recipient Contact */}
-          <div>
-            <Label className="text-sm font-medium">Recipient Contact (Optional)</Label>
-            <Input
-              value={recipientContact}
-              onChange={(e) => setRecipientContact(e.target.value)}
-              placeholder="Enter phone number"
-              className="mt-1"
-            />
-            <p className="text-xs text-gray-500 mt-1">Leave empty to share with anyone</p>
-          </div>
-
-          {/* Preferred Language */}
-          <div>
-            <Label className="text-sm font-medium">Preferred Language</Label>
-            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-              <SelectTrigger className="mt-1">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="english">English</SelectItem>
-                <SelectItem value="hindi">Hindi</SelectItem>
-                <SelectItem value="tamil">Tamil</SelectItem>
-                <SelectItem value="telugu">Telugu</SelectItem>
-                <SelectItem value="kannada">Kannada</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
           {/* Message Preview/Edit */}
           <div>
@@ -231,10 +326,11 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
           </Button>
           <Button 
             onClick={handleSendMessage} 
+            disabled={isSending}
             className="flex-1 bg-green-600 hover:bg-green-700"
           >
             <MessageCircle className="w-4 h-4 mr-1" />
-            Send via WhatsApp
+            {isSending ? 'Sending...' : 'Send Message'}
           </Button>
         </div>
       </DialogContent>
