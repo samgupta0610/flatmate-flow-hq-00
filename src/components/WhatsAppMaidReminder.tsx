@@ -43,7 +43,11 @@ const WhatsAppMaidReminder: React.FC<WhatsAppMaidReminderProps> = ({ selectedTas
     }
 
     // Convert selectedTasks to the format expected by generateWhatsAppMessage
-    const tasksWithSelected = selectedTasks.map(task => ({ ...task, selected: true }));
+    const tasksWithSelected = selectedTasks.map((task, index) => ({ 
+      id: `task-${index}`, 
+      title: task.title, 
+      selected: true 
+    }));
     const message = generateWhatsAppMessage(tasksWithSelected, 'english', houseGroup?.group_name);
     const encodedMessage = encodeURIComponent(message);
     const cleanPhoneNumber = selectedContact.phone_number.replace(/[^\d+]/g, '');
@@ -113,7 +117,11 @@ const WhatsAppMaidReminder: React.FC<WhatsAppMaidReminderProps> = ({ selectedTas
           <p className="text-sm text-gray-600 whitespace-pre-line">
             {selectedTasks.length > 0 ? 
               generateWhatsAppMessage(
-                selectedTasks.map(task => ({ ...task, selected: true })), 
+                selectedTasks.map((task, index) => ({ 
+                  id: `task-${index}`, 
+                  title: task.title, 
+                  selected: true 
+                })), 
                 'english', 
                 houseGroup?.group_name
               ) : 
