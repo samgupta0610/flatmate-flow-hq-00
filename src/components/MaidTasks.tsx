@@ -88,6 +88,51 @@ const MaidTasks = () => {
     });
   };
 
+  const handleAddTaskFromInput = async (taskTitle: string) => {
+    await addTask(taskTitle);
+  };
+
+  const handleAddTaskFromModal = async (taskData: {
+    title: string;
+    daysOfWeek: string[];
+    category: string;
+    remarks: string;
+    favorite: boolean;
+    optional: boolean;
+    priority: string;
+  }) => {
+    await addTask(
+      taskData.title,
+      taskData.category,
+      taskData.daysOfWeek,
+      taskData.category,
+      taskData.remarks,
+      taskData.favorite,
+      taskData.optional,
+      taskData.priority
+    );
+  };
+
+  const handleEditTaskFromModal = async (taskId: string, taskData: {
+    title: string;
+    daysOfWeek: string[];
+    category: string;
+    remarks: string;
+    favorite: boolean;
+    optional: boolean;
+    priority: string;
+  }) => {
+    await updateTask(taskId, {
+      title: taskData.title,
+      days_of_week: taskData.daysOfWeek,
+      category: taskData.category,
+      remarks: taskData.remarks,
+      favorite: taskData.favorite,
+      optional: taskData.optional,
+      priority: taskData.priority
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -200,7 +245,7 @@ const MaidTasks = () => {
       </Card>
 
       {/* Smart Task Input */}
-      <SmartTaskInput onTaskAdd={addTask} />
+      <SmartTaskInput onAddTask={handleAddTaskFromInput} existingTasks={tasks} />
 
       {/* Task List */}
       <Card>
@@ -280,24 +325,27 @@ const MaidTasks = () => {
 
       {/* Modals */}
       <AddTaskModal
-        open={showAddModal}
-        onOpenChange={setShowAddModal}
-        onTaskAdd={addTask}
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleAddTaskFromModal}
+        existingTasks={tasks}
       />
 
       {showEditModal && (
         <EditTaskModal
-          open={showEditModal}
-          onOpenChange={setShowEditModal}
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
           task={editingTask}
-          onTaskUpdate={updateTask}
+          onSave={handleEditTaskFromModal}
+          existingTasks={tasks}
         />
       )}
 
       <ShareTaskModal
-        open={showShareModal}
-        onOpenChange={setShowShareModal}
-        selectedTasks={selectedTasks}
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        tasks={selectedTasks}
+        onSend={() => {}}
       />
 
       <AutoSendSettings
