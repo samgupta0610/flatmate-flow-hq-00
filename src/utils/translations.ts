@@ -1,3 +1,5 @@
+import { getTranslatedTask, getTaskEmoji, getAllSupportedTasks } from './taskTranslations';
+
 export interface TaskTranslations {
   [key: string]: {
     hindi: string;
@@ -5,6 +7,15 @@ export interface TaskTranslations {
     telugu: string;
     tamil: string;
   };
+}
+
+// Task interface for type safety
+interface Task {
+  id: string;
+  title: string;
+  selected?: boolean;
+  favorite?: boolean;
+  remarks?: string;
 }
 
 export const taskTranslations: TaskTranslations = {
@@ -126,7 +137,7 @@ const predefinedTasks = {
     hindi: 'शौचालय साफ करना', 
     tamil: 'கழிவறையை சுத்தம் செய்வது',
     telugu: 'టాయిలెట్ శుభ్రం చేయడం',
-    kannada: 'ಶೌಚಾಲಯವನ್ನು ಸ್ವಚ್ಛಗೊಳಿಸುವುದು',
+    kannada: 'ಶౌಚಾಲಯವನ್ನು ಸ್ವಚ್ಛಗೊಳಿಸುವುದು',
     emoji: '🚽' 
   },
   'clean bathroom': { 
@@ -170,7 +181,7 @@ const predefinedTasks = {
     hindi: 'कालीन साफ करना', 
     tamil: 'கம்பளம் சுத்தம்',
     telugu: 'కార్పెట్ వాక్యూమ్',
-    kannada: 'ಕಾರ್ಪೆಟ್ ನಿರ್ವಾತ',
+    kannada: 'ಕార్पెಟ್ ನಿರ್ವಾತ',
     emoji: '🏠' 
   },
   
@@ -193,13 +204,13 @@ const predefinedTasks = {
     hindi: 'मेज साफ करना', 
     tamil: 'மேஜை சுத்தம்',
     telugu: 'టేబుల్ శుభ్రం',
-    kannada: 'ಟೇಬಲ್ ಸ್ವಚ್ಛಗೊಳಿಸಿ',
+    kannada: 'ಟేಬಲ್ ಸ್ವಚ್ಛಗೊಳಿಸಿ',
     emoji: '🪑' 
   },
   'arrange cushions': { 
     hindi: 'गद्दे व्यवस्थित करना', 
     tamil: 'மெத்தைகளை ஏற்பாடு',
-    telugu: 'కుషన్లను ఏర్పాటు చేయండి',
+    telugu: 'కుషన్లను ஏர்பாடு சேయండి',
     kannada: 'ಕುಶನ್ಗಳನ್ನು ವ್ಯವಸ್ಥೆಗೊಳಿಸಿ',
     emoji: '🛋️' 
   },
@@ -283,20 +294,20 @@ const predefinedTasks = {
     hindi: 'सामान व्यवस्थित करना', 
     tamil: 'உடைமைகளை ஒழுங்கமைக்கவும்',
     telugu: 'వస్తువులను నిర్వహించండి',
-    kannada: 'ವಸ್ತುಗಳನ್ನು ಆಯೋಜಿಸಿ',
+    kannada: 'ವಸ్తుగలನ್ನು ಆಯೋಜಿಸಿ',
     emoji: '🧴' 
   },
   'clean personal items': { 
     hindi: 'व्यक्तिगत सामान साफ करना', 
     tamil: 'தனிப்பட்ட பொருட்களை சுத்தம் செய்யுங்கள்',
     telugu: 'వ్యక్తిగత వస్తువులను శుభ్రం చేయండి',
-    kannada: 'ವೈಯಕ್ತಿಕ ವಸ್ತುಗಳನ್ನು ಸ್ವಚ್ಛಗೊಳಿಸಿ',
+    kannada: 'ವೈಯಕ್ತಿಕ ವಸ్తుಗಳನ್ನು ಸ್ವಚ್ಛಗೊಳಿಸಿ',
     emoji: '🧴' 
   }
 };
 
-// Import the new focused task translations
-export { getTranslatedTask, getTaskEmoji, getAllSupportedTasks } from './taskTranslations';
+// Export functions from taskTranslations
+export { getTranslatedTask, getTaskEmoji, getAllSupportedTasks };
 
 // Update the generateWhatsAppMessage function to use the new translation system
 export const generateWhatsAppMessage = (
@@ -382,7 +393,7 @@ export const generateGroceryWhatsAppMessage = (
     : language === 'telugu'
     ? 'కిరాణా జాబితా:'
     : language === 'kannada'
-    ? 'ಕಿರಾಣಿ ಪಟ್ಟಿ:'
+    ? 'కಿರಾಣಿ ಪಟ್ಟಿ:'
     : 'Grocery List:';
   
   const thankYou = language === 'hindi' 
@@ -415,7 +426,7 @@ export const getTranslatedMessage = (message: string, language: string): string 
     'Hello! Here are today\'s cleaning tasks:': {
       hindi: 'नमस्ते! यहाँ आज के सफाई के काम हैं:',
       tamil: 'வணக்கம்! இன்றைய சுத்தம் செய்யும் பணிகள் இவை:',
-      telugu: 'నమస్కారం! ఇవే నేటి శుభ్రత పనులు:',
+      telugu: 'నమస్కారం! ఈ నేటి శుభ్రత పనులు:',
       kannada: 'ನಮಸ್ಕಾರ! ಇಂದಿನ ಸ್ವಚ್ಛತೆಯ ಕೆಲಸಗಳು ಇವು:'
     },
     'Please complete these tasks. Thank you!': {
