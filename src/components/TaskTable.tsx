@@ -52,11 +52,11 @@ const TaskTable: React.FC<TaskTableProps> = ({
 
   if (tasks.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border p-8">
+      <div className="bg-white rounded-lg shadow-sm border p-12">
         <div className="text-center">
-          <div className="text-gray-400 text-4xl mb-4">📝</div>
-          <p className="text-gray-500 text-lg mb-2">No tasks found</p>
-          <p className="text-gray-400 text-sm">Create your first task to get started</p>
+          <div className="text-gray-400 text-6xl mb-4">📝</div>
+          <h3 className="text-gray-900 text-xl font-semibold mb-2">No tasks yet</h3>
+          <p className="text-gray-500">Get started by adding your first task</p>
         </div>
       </div>
     );
@@ -64,14 +64,14 @@ const TaskTable: React.FC<TaskTableProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-      {/* Mobile-friendly header */}
-      <div className="bg-gray-50 border-b px-4 py-3 hidden md:block">
-        <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700">
+      {/* Desktop Header */}
+      <div className="bg-gray-50 border-b px-6 py-4 hidden md:block">
+        <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700 uppercase tracking-wider">
           <div className="col-span-1"></div>
-          <div className="col-span-5">TASK NAME</div>
-          <div className="col-span-3">CATEGORIZATION</div>
-          <div className="col-span-2">CREATED BY</div>
-          <div className="col-span-1 text-center">ACTIONS</div>
+          <div className="col-span-5">Task</div>
+          <div className="col-span-3">Details</div>
+          <div className="col-span-2">Created By</div>
+          <div className="col-span-1 text-center">Actions</div>
         </div>
       </div>
 
@@ -80,12 +80,12 @@ const TaskTable: React.FC<TaskTableProps> = ({
         {tasks.map((task) => (
           <div
             key={task.id}
-            className={`p-4 hover:bg-gray-50 transition-colors ${
+            className={`p-6 hover:bg-gray-50 transition-colors ${
               task.selected ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
             }`}
           >
             {/* Mobile Layout */}
-            <div className="block md:hidden space-y-3">
+            <div className="block md:hidden space-y-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3 flex-1">
                   <Checkbox
@@ -94,9 +94,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     className="mt-1"
                   />
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-2">
                       <div className={`w-3 h-3 rounded-full ${getPriorityColor(task.priority)}`}></div>
-                      <span className="font-medium text-gray-900">{task.title}</span>
+                      <h3 className="font-medium text-gray-900">{task.title}</h3>
                       {task.favorite && (
                         <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                       )}
@@ -111,15 +111,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
                         {task.task_category || 'General'}
                       </Badge>
                       <span className="text-xs text-gray-500">
-                        {task.category} • {task.days_of_week?.length ? task.days_of_week.join(', ') : 'daily'}
+                        {task.category}
                       </span>
                     </div>
-                    
-                    {task.priority && (
-                      <Badge variant="outline" className="text-xs">
-                        {task.priority}
-                      </Badge>
-                    )}
                   </div>
                 </div>
                 
@@ -175,12 +169,12 @@ const TaskTable: React.FC<TaskTableProps> = ({
                   
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-gray-900">{task.title}</span>
+                      <h3 className="font-medium text-gray-900">{task.title}</h3>
                       {task.favorite && (
                         <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                       )}
                       {task.optional && (
-                        <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
+                        <Badge variant="secondary" className="text-xs px-2 py-0.5">
                           optional
                         </Badge>
                       )}
@@ -199,7 +193,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     {task.task_category || 'General'}
                   </div>
                   <div className="text-gray-500 text-xs">
-                    {task.category} • {task.days_of_week?.length ? task.days_of_week.join(', ') : 'daily'}
+                    {task.category} {task.days_of_week?.length ? ` • ${task.days_of_week.join(', ')}` : ''}
                   </div>
                 </div>
               </div>
