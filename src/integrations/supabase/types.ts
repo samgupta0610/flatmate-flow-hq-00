@@ -197,6 +197,48 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_contacts: {
+        Row: {
+          auto_send: boolean | null
+          created_at: string
+          days_of_week: string[] | null
+          frequency: string | null
+          id: string
+          last_sent_at: string | null
+          name: string
+          phone: string
+          send_time: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_send?: boolean | null
+          created_at?: string
+          days_of_week?: string[] | null
+          frequency?: string | null
+          id?: string
+          last_sent_at?: string | null
+          name?: string
+          phone: string
+          send_time?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_send?: boolean | null
+          created_at?: string
+          days_of_week?: string[] | null
+          frequency?: string | null
+          id?: string
+          last_sent_at?: string | null
+          name?: string
+          phone?: string
+          send_time?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       meal_menus: {
         Row: {
           created_at: string

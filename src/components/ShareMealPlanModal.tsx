@@ -8,10 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Share2, Clock, Users, MessageCircle } from 'lucide-react';
+import { Share2, Clock, Users, MessageCircle, Send, Settings } from 'lucide-react';
 import { DailyPlan } from '@/types/meal';
 import { useToast } from "@/hooks/use-toast";
 import { getTranslatedMessage } from '@/utils/translations';
+import { useMealContact } from '@/hooks/useMealContact';
+import { useUltramsgSender } from '@/hooks/useUltramsgSender';
 
 interface ShareMealPlanModalProps {
   open: boolean;
@@ -27,34 +29,50 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
   todayName 
 }) => {
   const [servings, setServings] = useState('2');
-  const [autoSendEnabled, setAutoSendEnabled] = useState(false);
-  const [sendTime, setSendTime] = useState('08:00');
-  const [recipientContact, setRecipientContact] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('english');
   const [customMessage, setCustomMessage] = useState('');
   const [isEditingMessage, setIsEditingMessage] = useState(false);
+  const [contactName, setContactName] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [autoSendTime, setAutoSendTime] = useState('08:00');
+  const [frequency, setFrequency] = useState('daily');
+  const [daysOfWeek, setDaysOfWeek] = useState(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
+  
   const { toast } = useToast();
+  const { mealContact, loading, saveMealContact, updateAutoSendSettings } = useMealContact();
+  const { sendMessage, isSending } = useUltramsgSender();
+
+  // Initialize form with existing contact data
+  React.useEffect(() => {
+    if (mealContact) {
+      setContactName(mealContact.name);
+      setContactPhone(mealContact.phone);
+      setAutoSendTime(mealContact.send_time);
+      setFrequency(mealContact.frequency);
+      setDaysOfWeek(mealContact.days_of_week);
+    }
+  }, [mealContact]);
 
   const generateMealMessage = () => {
     const meals = [];
     
     if (todaysPlan.breakfast.length > 0) {
       const breakfastItems = todaysPlan.breakfast.map(m => `${m.name} (${servings} people)`).join(', ');
-      meals.push(`Breakfast: ${breakfastItems}`);
+      meals.push(`🌅 Breakfast: ${breakfastItems}`);
     }
     if (todaysPlan.lunch.length > 0) {
       const lunchItems = todaysPlan.lunch.map(m => `${m.name} (${servings} people)`).join(', ');
-      meals.push(`Lunch: ${lunchItems}`);
+      meals.push(`🌞 Lunch: ${lunchItems}`);
     }
     if (todaysPlan.dinner.length > 0) {
       const dinnerItems = todaysPlan.dinner.map(m => `${m.name} (${servings} people)`).join(', ');
-      meals.push(`Dinner: ${dinnerItems}`);
+      meals.push(`🌙 Dinner: ${dinnerItems}`);
     }
 
     if (meals.length === 0) return 'No meals planned for today';
 
-    const message = `Hello! Here are today's (${todayName}) meal plans:\n\n${meals.join('\n')}\n\nPlease prepare accordingly. Thank you!`;
-    return getTranslatedMessage(message, selectedLanguage);
+    const baseMessage = `🍽️ Today's Meal Plan (${todayName}):\n\n${meals.join('\n')}\n\nPlease prepare accordingly. Thank you!`;
+    return getTranslatedMessage(baseMessage, selectedLanguage);
   };
 
   const handlePreviewMessage = () => {
@@ -65,7 +83,16 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
     setIsEditingMessage(!isEditingMessage);
   };
 
-  const handleSendMessage = () => {
+  const handleSendNow = async () => {
+    if (!contactPhone.trim()) {
+      toast({
+        title: "Contact Required",
+        description: "Please enter a phone number to send the meal plan.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const messageToSend = isEditingMessage ? customMessage : generateMealMessage();
     
     if (!messageToSend.trim() || messageToSend === 'No meals planned for today') {
@@ -77,19 +104,74 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
       return;
     }
 
-    const encodedMessage = encodeURIComponent(messageToSend);
-    const whatsappUrl = recipientContact 
-      ? `https://api.whatsapp.com/send?phone=${recipientContact}&text=${encodedMessage}`
-      : `https://api.whatsapp.com/send?text=${encodedMessage}`;
-    
-    window.open(whatsappUrl, '_blank');
+    try {
+      // Save contact if not exists
+      if (!mealContact || mealContact.phone !== contactPhone || mealContact.name !== contactName) {
+        await saveMealContact(contactPhone, contactName || 'Cook');
+      }
 
-    toast({
-      title: "WhatsApp Opened! ✅",
-      description: "Meal plan message is ready to send.",
-    });
+      // Send message via Ultramsg
+      const result = await sendMessage({
+        to: contactPhone,
+        body: messageToSend,
+        messageType: 'meal',
+        contactName: contactName || 'Cook'
+      });
 
-    onOpenChange(false);
+      if (result.success) {
+        onOpenChange(false);
+      }
+    } catch (error) {
+      console.error('Error sending meal plan:', error);
+    }
+  };
+
+  const handleEnableAutoSend = async () => {
+    if (!contactPhone.trim()) {
+      toast({
+        title: "Contact Required",
+        description: "Please enter a phone number for auto-send.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Save contact if not exists
+      if (!mealContact || mealContact.phone !== contactPhone || mealContact.name !== contactName) {
+        await saveMealContact(contactPhone, contactName || 'Cook');
+      }
+
+      // Enable auto-send
+      await updateAutoSendSettings({
+        auto_send: true,
+        send_time: autoSendTime,
+        frequency,
+        days_of_week: daysOfWeek
+      });
+
+      // Send confirmation message
+      const confirmationMessage = getTranslatedMessage(
+        `✅ Auto-send enabled for daily meal plans at ${autoSendTime}. You will receive today's meal plan automatically.`,
+        selectedLanguage
+      );
+
+      await sendMessage({
+        to: contactPhone,
+        body: confirmationMessage,
+        messageType: 'meal',
+        contactName: contactName || 'Cook'
+      });
+
+      toast({
+        title: "Auto-Send Enabled! ✅",
+        description: `Meal plans will be sent daily at ${autoSendTime}`,
+      });
+
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error enabling auto-send:', error);
+    }
   };
 
   return (
@@ -120,6 +202,28 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
             </CardContent>
           </Card>
 
+          {/* Contact Information */}
+          <div className="space-y-3">
+            <div>
+              <Label className="text-sm font-medium">Contact Name</Label>
+              <Input
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+                placeholder="Cook"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Phone Number</Label>
+              <Input
+                value={contactPhone}
+                onChange={(e) => setContactPhone(e.target.value)}
+                placeholder="Enter phone number"
+                className="mt-1"
+              />
+            </div>
+          </div>
+
           {/* Number of Servings */}
           <div>
             <Label className="text-sm font-medium flex items-center gap-1">
@@ -136,20 +240,13 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
             />
           </div>
 
-          {/* Auto Send Daily Plan */}
-          <div className="flex items-center justify-between">
-            <div>
-              <Label className="text-sm font-medium">Auto Send Daily Plan</Label>
-              <p className="text-xs text-gray-500">Automatically send meal plan every day</p>
-            </div>
-            <Switch
-              checked={autoSendEnabled}
-              onCheckedChange={setAutoSendEnabled}
-            />
-          </div>
-
-          {/* Send Time (when auto send is enabled) */}
-          {autoSendEnabled && (
+          {/* Auto Send Settings */}
+          <div className="space-y-3 p-3 border rounded-lg">
+            <Label className="text-sm font-medium flex items-center gap-1">
+              <Settings className="w-3 h-3" />
+              Auto-Send Settings
+            </Label>
+            
             <div>
               <Label className="text-sm font-medium flex items-center gap-1">
                 <Clock className="w-3 h-3" />
@@ -157,23 +254,24 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
               </Label>
               <Input
                 type="time"
-                value={sendTime}
-                onChange={(e) => setSendTime(e.target.value)}
+                value={autoSendTime}
+                onChange={(e) => setAutoSendTime(e.target.value)}
                 className="mt-1"
               />
             </div>
-          )}
 
-          {/* Recipient Contact */}
-          <div>
-            <Label className="text-sm font-medium">Recipient Contact (Optional)</Label>
-            <Input
-              value={recipientContact}
-              onChange={(e) => setRecipientContact(e.target.value)}
-              placeholder="Enter phone number"
-              className="mt-1"
-            />
-            <p className="text-xs text-gray-500 mt-1">Leave empty to share with anyone</p>
+            <div>
+              <Label className="text-sm font-medium">Frequency</Label>
+              <Select value={frequency} onValueChange={setFrequency}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Daily</SelectItem>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Preferred Language */}
@@ -230,11 +328,21 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
             Cancel
           </Button>
           <Button 
-            onClick={handleSendMessage} 
-            className="flex-1 bg-green-600 hover:bg-green-700"
+            onClick={handleSendNow}
+            disabled={isSending}
+            className="flex-1"
           >
-            <MessageCircle className="w-4 h-4 mr-1" />
-            Send via WhatsApp
+            <Send className="w-4 h-4 mr-1" />
+            {isSending ? 'Sending...' : 'Send Now'}
+          </Button>
+          <Button 
+            onClick={handleEnableAutoSend}
+            disabled={isSending}
+            variant="secondary"
+            className="flex-1"
+          >
+            <Settings className="w-4 h-4 mr-1" />
+            Enable Auto-Send
           </Button>
         </div>
       </DialogContent>
