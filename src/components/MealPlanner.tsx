@@ -9,15 +9,15 @@ const MealPlanner = () => {
   const { toast } = useToast();
   const [mealItems, setMealItems] = useState<MealItem[]>(initialMealItems);
   const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan>(sampleWeeklyPlan);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  // Get today's day name
-  const getTodayName = () => {
-    const today = new Date();
-    return daysOfWeek[today.getDay() === 0 ? 6 : today.getDay() - 1];
+  // Get day name from date
+  const getDayNameFromDate = (date: Date) => {
+    return daysOfWeek[date.getDay() === 0 ? 6 : date.getDay() - 1];
   };
 
-  const todayName = getTodayName();
-  const todaysPlan = weeklyPlan[todayName];
+  const selectedDayName = getDayNameFromDate(selectedDate);
+  const selectedDatePlan = weeklyPlan[selectedDayName];
 
   const addMealToDay = (day: string, mealType: keyof DailyPlan, meal: MealItem) => {
     setWeeklyPlan(prev => ({
@@ -53,9 +53,10 @@ const MealPlanner = () => {
 
   return (
     <MealPlannerDashboard
-      todayName={todayName}
-      todaysPlan={todaysPlan}
+      selectedDate={selectedDate}
+      selectedDatePlan={selectedDatePlan}
       mealItems={mealItems}
+      onDateSelect={setSelectedDate}
       onAddMealToDay={addMealToDay}
       onRemoveMealFromDay={removeMealFromDay}
       onUpdateMealPeopleCount={updateMealPeopleCount}

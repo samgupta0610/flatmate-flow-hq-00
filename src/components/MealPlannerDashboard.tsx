@@ -3,7 +3,11 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Settings, Share2, FileText, UtensilsCrossed } from 'lucide-react';
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Plus, Settings, Share2, FileText, UtensilsCrossed, CalendarIcon } from 'lucide-react';
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { MealItem, DailyPlan } from '@/types/meal';
 import CreateMenuModal from './CreateMenuModal';
 import MealSettingsModal from './MealSettingsModal';
@@ -11,18 +15,20 @@ import ShareMealPlanModal from './ShareMealPlanModal';
 import AddFoodItemModal from './AddFoodItemModal';
 
 interface MealPlannerDashboardProps {
-  todayName: string;
-  todaysPlan: DailyPlan;
+  selectedDate: Date;
+  selectedDatePlan: DailyPlan;
   mealItems: MealItem[];
+  onDateSelect: (date: Date) => void;
   onAddMealToDay: (day: string, mealType: keyof DailyPlan, meal: MealItem) => void;
   onRemoveMealFromDay: (day: string, mealType: keyof DailyPlan, mealId: number) => void;
   onUpdateMealPeopleCount: (day: string, mealType: keyof DailyPlan, mealId: number, peopleCount: number) => void;
 }
 
 const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
-  todayName,
-  todaysPlan,
+  selectedDate,
+  selectedDatePlan,
   mealItems,
+  onDateSelect,
   onAddMealToDay,
   onRemoveMealFromDay,
   onUpdateMealPeopleCount
@@ -34,7 +40,7 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
   const [selectedMealType, setSelectedMealType] = useState<keyof DailyPlan>('breakfast');
 
   const getTotalPeopleForMeal = (mealType: keyof DailyPlan) => {
-    return todaysPlan[mealType].reduce((total, meal) => total + (meal.peopleCount || 2), 0);
+    return selectedDatePlan[mealType].reduce((total, meal) => total + (meal.peopleCount || 2), 0);
   };
 
   const handleAddFoodItem = (mealType: keyof DailyPlan) => {
@@ -42,15 +48,19 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
     setShowAddFood(true);
   };
 
-  const getCurrentDate = () => {
-    const today = new Date();
+  const getSelectedDateName = () => {
     const options: Intl.DateTimeFormatOptions = { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
       day: 'numeric' 
     };
-    return today.toLocaleDateString('en-US', options);
+    return selectedDate.toLocaleDateString('en-US', options);
+  };
+
+  const getSelectedDayName = () => {
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return daysOfWeek[selectedDate.getDay()];
   };
 
   return (
@@ -60,7 +70,7 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
         <div className="flex justify-between items-center mb-3">
           <div>
             <h1 className="text-xl font-bold text-gray-900">Meal Planner</h1>
-            <p className="text-sm text-gray-500">{getCurrentDate()}</p>
+            <p className="text-sm text-gray-500">{getSelectedDateName()}</p>
           </div>
           <Button 
             onClick={() => setShowSharePlan(true)}
@@ -102,12 +112,47 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
       </div>
 
       <div className="px-4 space-y-4">
-        {/* Today's Meals */}
+        {/* Date Selection Calendar */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <CalendarIcon className="w-5 h-5 text-blue-600" />
+              Select Date
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    "text-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {format(selectedDate, "PPP")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => date && onDateSelect(date)}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </CardContent>
+        </Card>
+
+        {/* Selected Date's Meals */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <UtensilsCrossed className="w-5 h-5 text-blue-600" />
-              Today ({todayName})
+              Meals for {getSelectedDateName()}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -116,7 +161,7 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold text-orange-700">Breakfast</h3>
-                  {todaysPlan.breakfast.length > 0 && (
+                  {selectedDatePlan.breakfast.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
                       {getTotalPeopleForMeal('breakfast')} people
                     </Badge>
@@ -133,8 +178,8 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
                 </Button>
               </div>
               <div className="space-y-1">
-                {todaysPlan.breakfast.length > 0 ? (
-                  todaysPlan.breakfast.map(meal => (
+                {selectedDatePlan.breakfast.length > 0 ? (
+                  selectedDatePlan.breakfast.map(meal => (
                     <div key={meal.id} className="text-sm text-gray-700 bg-white p-2 rounded">
                       {meal.name} ({meal.peopleCount || 2} people)
                     </div>
@@ -150,7 +195,7 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold text-green-700">Lunch</h3>
-                  {todaysPlan.lunch.length > 0 && (
+                  {selectedDatePlan.lunch.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
                       {getTotalPeopleForMeal('lunch')} people
                     </Badge>
@@ -167,8 +212,8 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
                 </Button>
               </div>
               <div className="space-y-1">
-                {todaysPlan.lunch.length > 0 ? (
-                  todaysPlan.lunch.map(meal => (
+                {selectedDatePlan.lunch.length > 0 ? (
+                  selectedDatePlan.lunch.map(meal => (
                     <div key={meal.id} className="text-sm text-gray-700 bg-white p-2 rounded">
                       {meal.name} ({meal.peopleCount || 2} people)
                     </div>
@@ -184,7 +229,7 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold text-purple-700">Dinner</h3>
-                  {todaysPlan.dinner.length > 0 && (
+                  {selectedDatePlan.dinner.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
                       {getTotalPeopleForMeal('dinner')} people
                     </Badge>
@@ -201,8 +246,8 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
                 </Button>
               </div>
               <div className="space-y-1">
-                {todaysPlan.dinner.length > 0 ? (
-                  todaysPlan.dinner.map(meal => (
+                {selectedDatePlan.dinner.length > 0 ? (
+                  selectedDatePlan.dinner.map(meal => (
                     <div key={meal.id} className="text-sm text-gray-700 bg-white p-2 rounded">
                       {meal.name} ({meal.peopleCount || 2} people)
                     </div>
@@ -230,8 +275,8 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
       <ShareMealPlanModal 
         open={showSharePlan} 
         onOpenChange={setShowSharePlan}
-        todaysPlan={todaysPlan}
-        todayName={todayName}
+        todaysPlan={selectedDatePlan}
+        todayName={getSelectedDayName()}
       />
       
       <AddFoodItemModal
@@ -239,7 +284,7 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
         onOpenChange={setShowAddFood}
         mealItems={mealItems}
         selectedMealType={selectedMealType}
-        onAddMeal={(meal) => onAddMealToDay(todayName, selectedMealType, meal)}
+        onAddMeal={(meal) => onAddMealToDay(getSelectedDayName(), selectedMealType, meal)}
       />
     </div>
   );
