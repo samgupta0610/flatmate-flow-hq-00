@@ -1,223 +1,195 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Send } from 'lucide-react';
-import { useMaidTasks } from '@/hooks/useMaidTasks';
-import { useMaidContact } from '@/hooks/useMaidContact';
-import { useUltramsgSender } from '@/hooks/useUltramsgSender';
+import { Input } from "@/components/ui/input";
+import { 
+  Plus, 
+  Search,
+  Share2
+} from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { generateWhatsAppMessage } from '@/utils/translations';
-import { useHouseGroupInfo } from '@/hooks/useHouseGroupInfo';
-import TaskTable from './TaskTable';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import ShareTaskModal from './ShareTaskModal';
+import TaskTable from './TaskTable';
+import { useMaidTasks } from '@/hooks/useMaidTasks';
 
 const MaidTasks = () => {
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [editingTask, setEditingTask] = useState(null);
-  
-  const { tasks, isLoading, error, updateTask, addTask, deleteTask, toggleFavorite } = useMaidTasks();
-  const { maidContact } = useMaidContact();
-  const { sendMessage, isSending } = useUltramsgSender();
-  const { houseGroup } = useHouseGroupInfo();
   const { toast } = useToast();
+  const { 
+    tasks, 
+    isLoading, 
+    addTask, 
+    updateTask, 
+    deleteTask,
+    toggleFavorite 
+  } = useMaidTasks();
 
-  const selectedTasks = tasks.filter(task => task.selected);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [editingTask, setEditingTask] = useState<any>(null);
 
-  const handleToggleTask = async (taskId, selected) => {
-    await updateTask(taskId, { selected });
-  };
+  const categories = [
+    { value: "all", label: "All Categories" },
+    { value: "cleaning", label: "General Cleaning" },
+    { value: "kitchen", label: "Kitchen" },
+    { value: "bathroom", label: "Bathroom" },
+    { value: "bedroom", label: "Bedroom" },
+    { value: "living_room", label: "Living Room" },
+    { value: "laundry", label: "Laundry" },
+    { value: "maintenance", label: "Maintenance" },
+    { value: "other", label: "Other" }
+  ];
 
-  const handleToggleFavorite = async (taskId, favorite) => {
-    await toggleFavorite(taskId, !favorite);
-  };
+  // Only get non-completed selected tasks for sharing
+  const selectedTasks = tasks.filter(task => task.selected && !task.completed);
+  
+  // Filter out completed tasks entirely
+  const activeTasks = tasks.filter(task => !task.completed);
 
-  const handleDeleteTask = async (taskId) => {
-    await deleteTask(taskId);
+  const filteredTasks = activeTasks.filter(task => {
+    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === "all" || task.task_category === categoryFilter;
+    
+    return matchesSearch && matchesCategory;
+  });
+
+  const handleSendTaskMessage = (message: string) => {
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, '_blank');
+
     toast({
-      title: "Task deleted",
-      description: "The task has been removed successfully.",
+      title: "WhatsApp Opened! ✅",
+      description: "Task list is ready to send. Auto-send settings have been saved if enabled.",
     });
   };
 
-  const handleEditTask = (task) => {
-    setEditingTask(task);
-    setShowEditModal(true);
-  };
-
-  const handleSendTaskMessage = async () => {
-    if (!maidContact?.phone) {
-      toast({
-        title: "No maid contact",
-        description: "Please add maid contact details first.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (selectedTasks.length === 0) {
-      toast({
-        title: "No tasks selected",
-        description: "Please select at least one task to send.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      const tasksWithSelected = selectedTasks.map(task => ({ 
-        id: task.id, 
-        title: task.title, 
-        selected: true,
-        favorite: task.favorite
-      }));
-      
-      const message = generateWhatsAppMessage(tasksWithSelected, 'english', houseGroup?.group_name);
-      
-      await sendMessage({
-        to: maidContact.phone,
-        body: message,
-        messageType: 'task',
-        contactName: maidContact.name
-      });
-
-      setShowShareModal(true);
-    } catch (error) {
-      console.error('Error sending message:', error);
-    }
-  };
-
-  const handleAddTaskFromModal = async (taskData) => {
+  const handleAddTask = async (taskData: {
+    title: string;
+    daysOfWeek: string[];
+    category: string;
+    remarks: string;
+    favorite: boolean;
+    optional: boolean;
+    priority: string;
+  }) => {
+    const updatedTask = {
+      ...taskData,
+      task_category: taskData.category === 'daily' ? 'cleaning' : 'cleaning'
+    };
+    
     await addTask(
-      taskData.title,
-      taskData.category,
-      taskData.daysOfWeek,
-      taskData.category,
-      taskData.remarks,
-      taskData.favorite,
-      taskData.optional,
-      taskData.priority
+      updatedTask.title,
+      updatedTask.category,
+      updatedTask.daysOfWeek,
+      'cleaning',
+      updatedTask.remarks,
+      updatedTask.favorite,
+      updatedTask.optional
     );
-    setShowAddModal(false);
-    toast({
-      title: "Task added",
-      description: "New task has been created successfully.",
-    });
   };
 
-  const handleEditTaskFromModal = async (taskId, taskData) => {
-    await updateTask(taskId, {
-      title: taskData.title,
-      days_of_week: taskData.daysOfWeek,
-      category: taskData.category,
-      remarks: taskData.remarks,
-      favorite: taskData.favorite,
-      optional: taskData.optional,
-      priority: taskData.priority
-    });
-    setShowEditModal(false);
-    setEditingTask(null);
-    toast({
-      title: "Task updated",
-      description: "Task has been updated successfully.",
-    });
+  const handleUpdateTask = async (taskId: string, updates: any) => {
+    await updateTask(taskId, updates);
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white p-4 md:p-8 safe-top safe-bottom">
-        <div className="animate-pulse max-w-7xl mx-auto">
-          <div className="h-8 bg-gray-200 rounded w-48 mb-8"></div>
-          <div className="bg-white rounded-lg border">
-            <div className="h-16 bg-gray-100 rounded-t-lg mb-4"></div>
-            <div className="space-y-4 p-6">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-16 bg-gray-50 rounded"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-white p-4 md:p-8 safe-top safe-bottom">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-            <h2 className="text-red-800 font-semibold mb-2">Error Loading Tasks</h2>
-            <p className="text-red-600">{error}</p>
-          </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading tasks...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white safe-top safe-bottom">
-      <div className="max-w-7xl mx-auto p-4 md:p-8">
-        {/* Clean Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-green-700 tracking-wide">
-            TASK MANAGER
-          </h1>
-          
-          {selectedTasks.length > 0 && maidContact?.phone && (
-            <Button
-              onClick={handleSendTaskMessage}
-              disabled={isSending}
-              variant="ghost"
-              size="sm"
-              className="text-green-700 hover:text-green-800 hover:bg-green-50"
+    <div className="min-h-screen bg-gray-50">
+      {/* Simplified Header */}
+      <div className="bg-white shadow-sm border-b p-4 md:p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">Task Manager</h1>
+              <p className="text-sm text-gray-600">Manage your cleaning tasks</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setShowShareModal(true)}
+                variant="outline"
+                size="sm"
+                disabled={selectedTasks.length === 0}
+                className="flex items-center gap-2"
+              >
+                <Share2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Share</span> ({selectedTasks.length})
+              </Button>
+              <Button
+                onClick={() => setShowAddModal(true)}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Add Task</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Search and Filter */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Search tasks..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="flex h-9 w-full sm:w-48 rounded-md border border-input bg-background px-3 py-1 text-sm"
             >
-              <Send className="w-5 h-5" />
-            </Button>
-          )}
+              {categories.map(cat => (
+                <option key={cat.value} value={cat.value}>{cat.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
+      </div>
 
-        {/* Task Table */}
-        <div className="mb-8">
-          <TaskTable
-            tasks={tasks}
-            onUpdate={handleToggleTask}
-            onDelete={handleDeleteTask}
-            onEdit={handleEditTask}
-            onToggleFavorite={handleToggleFavorite}
-          />
-        </div>
-
-        {/* Floating Add Button */}
-        <Button
-          onClick={() => setShowAddModal(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-green-600 hover:bg-green-700 shadow-lg z-50 border-0"
-          size="icon"
-        >
-          <Plus className="w-6 h-6 text-white" />
-        </Button>
+      {/* Task List */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+        <TaskTable
+          tasks={filteredTasks}
+          onUpdate={updateTask}
+          onDelete={deleteTask}
+          onEdit={setEditingTask}
+          onToggleFavorite={toggleFavorite}
+        />
       </div>
 
       {/* Modals */}
-      <AddTaskModal
+      <AddTaskModal 
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
-        onSave={handleAddTaskFromModal}
-        existingTasks={tasks}
+        onSave={handleAddTask}
       />
-
-      {showEditModal && editingTask && (
+      
+      {editingTask && (
         <EditTaskModal
-          isOpen={showEditModal}
-          onClose={() => {
-            setShowEditModal(false);
-            setEditingTask(null);
-          }}
           task={editingTask}
-          onSave={handleEditTaskFromModal}
-          existingTasks={tasks}
+          isOpen={!!editingTask}
+          onClose={() => setEditingTask(null)}
+          onSave={handleUpdateTask}
         />
       )}
 

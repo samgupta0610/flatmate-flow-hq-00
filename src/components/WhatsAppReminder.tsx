@@ -7,9 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { MessageCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useMaidContact } from '@/hooks/useMaidContact';
-import { useUltramsgSender } from '@/hooks/useUltramsgSender';
-import { generateWhatsAppMessage } from '@/utils/translations';
-import { useHouseGroupInfo } from '@/hooks/useHouseGroupInfo';
 
 interface WhatsAppReminderProps {
   selectedTasks: Array<{ title: string }>;
@@ -17,10 +14,9 @@ interface WhatsAppReminderProps {
 
 const WhatsAppReminder: React.FC<WhatsAppReminderProps> = ({ selectedTasks }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
   const { maidContact, saveMaidContact } = useMaidContact();
-  const { sendMessage, isSending } = useUltramsgSender();
-  const { houseGroup } = useHouseGroupInfo();
 
   React.useEffect(() => {
     if (maidContact?.phone) {
@@ -28,14 +24,12 @@ const WhatsAppReminder: React.FC<WhatsAppReminderProps> = ({ selectedTasks }) =>
     }
   }, [maidContact]);
 
-  const generateMessage = () => {
-    const tasksWithSelected = selectedTasks.map((task, index) => ({ 
-      id: `task-${index}`, 
-      title: task.title, 
-      selected: true 
-    }));
+  const generateWhatsAppMessage = () => {
+    const taskList = selectedTasks
+      .map((task, index) => `${index + 1}. ${task.title}`)
+      .join('\n');
     
-    return generateWhatsAppMessage(tasksWithSelected, 'english', houseGroup?.group_name);
+    return `Hello! Here are today's tasks:\n${taskList}\n\nThank you!`;
   };
 
   const handleSaveAndSend = async () => {
@@ -57,27 +51,33 @@ const WhatsAppReminder: React.FC<WhatsAppReminderProps> = ({ selectedTasks }) =>
       return;
     }
 
+    setIsSending(true);
+
     try {
       // Save phone number to Supabase
       await saveMaidContact(phoneNumber);
 
-      // Generate message
-      const message = generateMessage();
+      // Generate and encode message
+      const message = generateWhatsAppMessage();
+      const encodedMessage = encodeURIComponent(message);
+      const cleanPhoneNumber = phoneNumber.replace(/[^\d+]/g, ''); // Clean phone number
       
-      // Send via Ultramsg
-      await sendMessage({
-        to: phoneNumber,
-        body: message,
-        messageType: 'task',
-        contactName: maidContact?.name || 'Maid'
-      });
+      // Open WhatsApp
+      const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhoneNumber}&text=${encodedMessage}`;
+      window.open(whatsappUrl, '_blank');
 
+      toast({
+        title: "Success!",
+        description: "Phone number saved and WhatsApp opened.",
+      });
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to save phone number. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -102,7 +102,7 @@ const WhatsAppReminder: React.FC<WhatsAppReminderProps> = ({ selectedTasks }) =>
         <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
           <p className="font-medium text-sm mb-2">Message Preview:</p>
           <p className="text-sm text-gray-600 whitespace-pre-line">
-            {selectedTasks.length > 0 ? generateMessage() : 'No tasks selected'}
+            {selectedTasks.length > 0 ? generateWhatsAppMessage() : 'No tasks selected'}
           </p>
         </div>
         
@@ -113,11 +113,11 @@ const WhatsAppReminder: React.FC<WhatsAppReminderProps> = ({ selectedTasks }) =>
           style={{ backgroundColor: '#25D366', color: 'white' }}
         >
           {isSending ? (
-            "Sending Message..."
+            "Saving & Opening WhatsApp..."
           ) : (
             <>
               <MessageCircle className="w-4 h-4 mr-2" />
-              Save & Send Message
+              Save & Send WhatsApp Reminder
             </>
           )}
         </Button>
