@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MessageCircle, Clock, User, Globe, Loader2, Edit2 } from 'lucide-react';
-import { getTranslatedTask, getTaskEmoji } from '@/utils/translations';
+import { getTranslatedTask, getTaskEmoji } from '@/utils/consolidatedTranslations';
 import { useMaidContact } from '@/hooks/useMaidContact';
 import { useUltramsgSender } from '@/hooks/useUltramsgSender';
 

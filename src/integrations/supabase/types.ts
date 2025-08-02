@@ -302,6 +302,45 @@ export type Database = {
         }
         Relationships: []
       }
+      message_history: {
+        Row: {
+          contact_name: string | null
+          created_at: string
+          id: string
+          message_body: string
+          message_type: string
+          phone_number: string
+          sent_at: string
+          status: string
+          ultramsg_id: string | null
+          user_id: string
+        }
+        Insert: {
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          message_body: string
+          message_type: string
+          phone_number: string
+          sent_at?: string
+          status?: string
+          ultramsg_id?: string | null
+          user_id: string
+        }
+        Update: {
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          message_body?: string
+          message_type?: string
+          phone_number?: string
+          sent_at?: string
+          status?: string
+          ultramsg_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
