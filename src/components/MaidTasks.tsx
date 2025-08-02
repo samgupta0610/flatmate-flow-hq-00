@@ -57,15 +57,10 @@ const MaidTasks = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const handleSendTaskMessage = (message: string) => {
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
-    
-    window.open(whatsappUrl, '_blank');
-
+  const handleSendTaskMessage = () => {
     toast({
-      title: "WhatsApp Opened! ✅",
-      description: "Task list is ready to send. Auto-send settings have been saved if enabled.",
+      title: "Message Sent! ✅",
+      description: "Task list has been sent successfully. Auto-send settings have been saved if enabled.",
     });
   };
 

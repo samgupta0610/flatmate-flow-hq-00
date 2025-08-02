@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageCircle, Clock, User, Globe, Loader2 } from 'lucide-react';
+import { MessageCircle, Clock, User, Globe, Loader2, Edit2 } from 'lucide-react';
 import { getTranslatedTask, getTaskEmoji } from '@/utils/translations';
 import { useMaidContact } from '@/hooks/useMaidContact';
 import { useUltramsgSender } from '@/hooks/useUltramsgSender';
@@ -20,7 +20,7 @@ interface ShareTaskModalProps {
     task_category?: string;
     remarks?: string;
   }>;
-  onSend: (message: string) => void;
+  onSend: () => void;
 }
 
 const ShareTaskModal: React.FC<ShareTaskModalProps> = ({ 
@@ -43,6 +43,19 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
   const [selectedDays, setSelectedDays] = useState<string[]>(
     maidContact?.days_of_week || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
   );
+  const [isEditingContact, setIsEditingContact] = useState(false);
+
+  // Update state when maidContact changes
+  useEffect(() => {
+    if (maidContact) {
+      setContactName(maidContact.name || '');
+      setContactPhone(maidContact.phone || '');
+      setAutoSend(maidContact.auto_send || false);
+      setScheduledTime(maidContact.send_time || '08:00');
+      setFrequency(maidContact.frequency || 'daily');
+      setSelectedDays(maidContact.days_of_week || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
+    }
+  }, [maidContact]);
 
   const languages = [
     { value: 'english', label: 'English' },
@@ -164,7 +177,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
         }
       }
       
-      onSend(messageToSend);
+      onSend();
       onClose();
     }
   };
@@ -247,30 +260,96 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
 
           {/* Contact Details */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2 mb-2">
-              <User className="w-4 h-4 text-purple-600" />
-              <Label className="text-sm font-medium">Contact Details</Label>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs text-gray-600">Name</Label>
-                <Input
-                  value={contactName}
-                  onChange={(e) => setContactName(e.target.value)}
-                  placeholder="Contact name"
-                  className="mt-1"
-                />
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4 text-purple-600" />
+                <Label className="text-sm font-medium">Contact Details</Label>
               </div>
-              <div>
-                <Label className="text-xs text-gray-600">Phone</Label>
-                <Input
-                  value={contactPhone}
-                  onChange={(e) => setContactPhone(e.target.value)}
-                  placeholder="+1234567890"
-                  className="mt-1"
-                />
-              </div>
+              {maidContact && !isEditingContact && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsEditingContact(true)}
+                  className="h-6 px-2 text-xs"
+                >
+                  <Edit2 className="w-3 h-3 mr-1" />
+                  Edit
+                </Button>
+              )}
             </div>
+            
+            {maidContact && !isEditingContact ? (
+              <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Name:</span>
+                  <span className="text-sm font-medium">{maidContact.name}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Phone:</span>
+                  <span className="text-sm font-medium">{maidContact.phone}</span>
+                </div>
+                {maidContact.last_sent_at && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Last sent:</span>
+                    <span className="text-xs text-gray-500">
+                      {new Date(maidContact.last_sent_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-gray-600">Name</Label>
+                  <Input
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    placeholder="Contact name"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-600">Phone</Label>
+                  <Input
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    placeholder="+1234567890"
+                    className="mt-1"
+                  />
+                </div>
+                {isEditingContact && (
+                  <div className="col-span-2 flex gap-2 mt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          await saveMaidContact(contactPhone, contactName);
+                          setIsEditingContact(false);
+                        } catch (error) {
+                          console.error('Error saving contact:', error);
+                        }
+                      }}
+                      className="flex-1"
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setContactName(maidContact?.name || '');
+                        setContactPhone(maidContact?.phone || '');
+                        setIsEditingContact(false);
+                      }}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Auto Send Toggle */}
