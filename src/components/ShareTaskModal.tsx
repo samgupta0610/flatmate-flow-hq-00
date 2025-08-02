@@ -144,14 +144,64 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
     );
   };
 
-  const handleSend = async () => {
+  const generateAutoSendConfirmationMessage = () => {
+    const confirmationTexts = {
+      english: 'Auto message is enabled at scheduled time:',
+      hindi: 'स्वचालित संदेश निर्धारित समय पर सक्षम है:',
+      tamil: 'தானியங்கி செய்தி திட்டமிட்ட நேரத்தில் இயக்கப்பட்டுள்ளது:',
+      telugu: 'ఆటో మెసేజ్ షెడ్యూల్ చేసిన సమయంలో ప్రారంభించబడింది:',
+      kannada: 'ಸ್ವಯಂಚಾಲಿತ ಸಂದೇಶವು ನಿಗದಿತ ಸಮಯದಲ್ಲಿ ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ:'
+    };
+
+    const frequencyTexts = {
+      daily: {
+        english: 'daily',
+        hindi: 'रोज़ाना',
+        tamil: 'தினசரி',
+        telugu: 'రోజువారీ',
+        kannada: 'ದೈನಂದಿನ'
+      },
+      weekly: {
+        english: 'weekly',
+        hindi: 'साप्ताहिक',
+        tamil: 'வாராந்திர',
+        telugu: 'వారానికి',
+        kannada: 'ಸಾಪ್ತಾಹಿಕ'
+      }
+    };
+
+    const confirmationText = confirmationTexts[selectedLanguage as keyof typeof confirmationTexts];
+    const frequencyText = frequencyTexts[frequency as keyof typeof frequencyTexts][selectedLanguage as keyof typeof frequencyTexts.daily];
+    
+    let scheduleDetails = `${scheduledTime} ${frequencyText}`;
+    
+    if (frequency === 'weekly') {
+      const dayNames = {
+        english: { monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu', friday: 'Fri', saturday: 'Sat', sunday: 'Sun' },
+        hindi: { monday: 'सोम', tuesday: 'मंगल', wednesday: 'बुध', thursday: 'गुरु', friday: 'शुक्र', saturday: 'शनि', sunday: 'रवि' },
+        tamil: { monday: 'திங்கள்', tuesday: 'செவ்வாய்', wednesday: 'புதன்', thursday: 'வியாழன்', friday: 'வெள்ளி', saturday: 'சனி', sunday: 'ஞாயிறு' },
+        telugu: { monday: 'సోమ', tuesday: 'మంగళ', wednesday: 'బుధ', thursday: 'గురు', friday: 'శుక్ర', saturday: 'శని', sunday: 'ఆది' },
+        kannada: { monday: 'ಸೋಮ', tuesday: 'ಮಂಗಳ', wednesday: 'ಬುಧ', thursday: 'ಗುರು', friday: 'ಶುಕ್ರ', saturday: 'ಶನಿ', sunday: 'ರವಿ' }
+      };
+      
+      const selectedDayNames = selectedDays.map(day => 
+        dayNames[selectedLanguage as keyof typeof dayNames][day as keyof typeof dayNames.english] || day
+      ).join(', ');
+      
+      scheduleDetails += ` (${selectedDayNames})`;
+    }
+
+    return `${confirmationText} ${scheduleDetails}`;
+  };
+
+  const handleSendNow = async () => {
     const messageToSend = isEditingMessage ? customMessage : generateTranslatedMessage();
     
     if (!contactPhone.trim()) {
       return;
     }
 
-    // Send message via Ultramsg
+    // Send task list immediately
     const result = await sendMessage({
       to: contactPhone,
       body: messageToSend,
@@ -160,25 +210,52 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
     });
 
     if (result.success) {
-      if (autoSend && contactName && contactPhone) {
+      // Save contact info if new
+      if (contactName && contactPhone && !maidContact) {
         try {
-          // Save/update contact information
           await saveMaidContact(contactPhone, contactName);
-          
-          // Update auto-send settings
-          await updateAutoSendSettings({
-            auto_send: true,
-            send_time: scheduledTime,
-            frequency,
-            days_of_week: frequency === 'daily' ? weekDays.map(d => d.value) : selectedDays
-          });
         } catch (error) {
-          console.error('Error setting up auto-send:', error);
+          console.error('Error saving contact:', error);
         }
       }
       
       onSend();
       onClose();
+    }
+  };
+
+  const handleEnableAutoSend = async () => {
+    if (!contactPhone.trim() || !contactName.trim()) {
+      return;
+    }
+
+    try {
+      // Save/update contact information first
+      await saveMaidContact(contactPhone, contactName);
+      
+      // Update auto-send settings
+      await updateAutoSendSettings({
+        auto_send: true,
+        send_time: scheduledTime,
+        frequency,
+        days_of_week: frequency === 'daily' ? weekDays.map(d => d.value) : selectedDays
+      });
+
+      // Send confirmation message
+      const confirmationMessage = generateAutoSendConfirmationMessage();
+      const result = await sendMessage({
+        to: contactPhone,
+        body: confirmationMessage,
+        messageType: 'task',
+        contactName: contactName
+      });
+
+      if (result.success) {
+        onSend();
+        onClose();
+      }
+    } catch (error) {
+      console.error('Error setting up auto-send:', error);
     }
   };
 
@@ -413,11 +490,12 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
             )}
           </div>
 
-          {/* Send Button */}
-          <div className="flex gap-3 pt-4">
+          {/* Action Buttons */}
+          <div className="space-y-3 pt-4">
+            {/* Send Now Button */}
             <Button
-              onClick={handleSend}
-              className="flex-1 bg-green-600 hover:bg-green-700"
+              onClick={handleSendNow}
+              className="w-full bg-green-600 hover:bg-green-700"
               disabled={tasks.length === 0 || isSending || !contactPhone.trim()}
             >
               {isSending ? (
@@ -428,11 +506,35 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
               ) : (
                 <>
                   <MessageCircle className="w-4 h-4 mr-2" />
-                  Send Message
+                  Send Now
                 </>
               )}
             </Button>
-            <Button variant="outline" onClick={onClose}>
+
+            {/* Enable Auto-Send Button */}
+            {autoSend && (
+              <Button
+                onClick={handleEnableAutoSend}
+                variant="outline"
+                className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
+                disabled={isSending || !contactPhone.trim() || !contactName.trim()}
+              >
+                {isSending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Setting up...
+                  </>
+                ) : (
+                  <>
+                    <Clock className="w-4 h-4 mr-2" />
+                    Enable Auto-Send
+                  </>
+                )}
+              </Button>
+            )}
+
+            {/* Cancel Button */}
+            <Button variant="ghost" onClick={onClose} className="w-full">
               Cancel
             </Button>
           </div>
