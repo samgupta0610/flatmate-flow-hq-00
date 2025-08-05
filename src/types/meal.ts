@@ -7,6 +7,8 @@ export interface MealItem {
   calories: number;
   suggestions: string;
   peopleCount?: number; // Number of people this meal serves
+  servings?: number; // Number of servings
+  instructions?: string; // Specific cooking instructions
 }
 
 export interface DailyPlan {
@@ -27,4 +29,6 @@ export interface EditFormData {
   calories?: number;
   suggestions?: string;
   peopleCount?: number;
+  servings?: number;
+  instructions?: string;
 }
