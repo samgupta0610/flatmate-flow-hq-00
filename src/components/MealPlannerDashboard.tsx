@@ -39,8 +39,8 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
   const [showAddFood, setShowAddFood] = useState(false);
   const [selectedMealType, setSelectedMealType] = useState<keyof DailyPlan>('breakfast');
 
-  const getTotalPeopleForMeal = (mealType: keyof DailyPlan) => {
-    return selectedDatePlan[mealType].reduce((total, meal) => total + (meal.peopleCount || 2), 0);
+  const getTotalServingsForMeal = (mealType: keyof DailyPlan) => {
+    return selectedDatePlan[mealType].reduce((total, meal) => total + (meal.servings || meal.peopleCount || 2), 0);
   };
 
   const handleAddFoodItem = (mealType: keyof DailyPlan) => {
@@ -56,6 +56,12 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
       day: 'numeric' 
     };
     return selectedDate.toLocaleDateString('en-US', options);
+  };
+
+  const formatMealDisplay = (meal: MealItem) => {
+    const servings = meal.servings || meal.peopleCount || 2;
+    const instructions = meal.instructions || meal.suggestions || "Prepare as usual";
+    return `${meal.name} - ${servings} servings - ${instructions}`;
   };
 
   const getSelectedDayName = () => {
@@ -160,10 +166,10 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
             <div className="border rounded-lg p-3 bg-orange-50">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-orange-700">Breakfast</h3>
+                  <h3 className="font-semibold text-orange-700">🌅 Breakfast</h3>
                   {selectedDatePlan.breakfast.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
-                      {getTotalPeopleForMeal('breakfast')} people
+                      {getTotalServingsForMeal('breakfast')} servings
                     </Badge>
                   )}
                 </div>
@@ -180,8 +186,8 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
               <div className="space-y-1">
                 {selectedDatePlan.breakfast.length > 0 ? (
                   selectedDatePlan.breakfast.map(meal => (
-                    <div key={meal.id} className="text-sm text-gray-700 bg-white p-2 rounded">
-                      {meal.name} ({meal.peopleCount || 2} people)
+                    <div key={meal.id} className="text-sm text-gray-700 bg-white p-3 rounded border-l-4 border-orange-400">
+                      <div className="font-medium">{formatMealDisplay(meal)}</div>
                     </div>
                   ))
                 ) : (
@@ -194,10 +200,10 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
             <div className="border rounded-lg p-3 bg-green-50">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-green-700">Lunch</h3>
+                  <h3 className="font-semibold text-green-700">🌞 Lunch</h3>
                   {selectedDatePlan.lunch.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
-                      {getTotalPeopleForMeal('lunch')} people
+                      {getTotalServingsForMeal('lunch')} servings
                     </Badge>
                   )}
                 </div>
@@ -214,8 +220,8 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
               <div className="space-y-1">
                 {selectedDatePlan.lunch.length > 0 ? (
                   selectedDatePlan.lunch.map(meal => (
-                    <div key={meal.id} className="text-sm text-gray-700 bg-white p-2 rounded">
-                      {meal.name} ({meal.peopleCount || 2} people)
+                    <div key={meal.id} className="text-sm text-gray-700 bg-white p-3 rounded border-l-4 border-green-400">
+                      <div className="font-medium">{formatMealDisplay(meal)}</div>
                     </div>
                   ))
                 ) : (
@@ -228,10 +234,10 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
             <div className="border rounded-lg p-3 bg-purple-50">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-purple-700">Dinner</h3>
+                  <h3 className="font-semibold text-purple-700">🌙 Dinner</h3>
                   {selectedDatePlan.dinner.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
-                      {getTotalPeopleForMeal('dinner')} people
+                      {getTotalServingsForMeal('dinner')} servings
                     </Badge>
                   )}
                 </div>
@@ -248,8 +254,8 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
               <div className="space-y-1">
                 {selectedDatePlan.dinner.length > 0 ? (
                   selectedDatePlan.dinner.map(meal => (
-                    <div key={meal.id} className="text-sm text-gray-700 bg-white p-2 rounded">
-                      {meal.name} ({meal.peopleCount || 2} people)
+                    <div key={meal.id} className="text-sm text-gray-700 bg-white p-3 rounded border-l-4 border-purple-400">
+                      <div className="font-medium">{formatMealDisplay(meal)}</div>
                     </div>
                   ))
                 ) : (

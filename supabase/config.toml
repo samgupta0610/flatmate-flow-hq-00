@@ -61,3 +61,9 @@ verify_jwt = false
 
 [functions.setup-auto-send-cron]
 verify_jwt = false
+
+[functions.send-meal-notification]
+verify_jwt = false
+
+[functions.meal-response]
+verify_jwt = false

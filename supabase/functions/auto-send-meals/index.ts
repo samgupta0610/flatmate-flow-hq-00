@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Starting auto-send meal execution with Ultramsg...');
+    console.log('Starting auto-send meal execution with Ultramsg and IST timezone...');
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -51,7 +51,7 @@ serve(async (req) => {
       try {
         console.log(`Processing contact: ${contact.id} - ${contact.name}`);
 
-        // Check if we should send using the database function
+        // Check if we should send using the IST-updated database function
         const { data: shouldSend, error: checkError } = await supabase
           .rpc('should_send_auto_reminder', {
             contact_auto_send: contact.auto_send,
@@ -71,19 +71,22 @@ serve(async (req) => {
           continue;
         }
 
-        // Get user's profile for language preference
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', contact.user_id)
+        // Get user's meal plan for today (IST)
+        const ist_offset = 5.5 * 60 * 60 * 1000;
+        const currentISTDate = new Date(Date.now() + ist_offset);
+        const istDateString = currentISTDate.toISOString().split('T')[0];
+        const dayName = currentISTDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+
+        // Get user's meal menu from database if available
+        const { data: mealMenu } = await supabase
+          .from('meal_menus')
+          .select('menu_data')
+          .eq('user_id', contact.user_id)
+          .eq('is_active', true)
           .single();
 
-        // Get today's meal menu (simplified - using a basic daily menu)
-        const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format
-        const dayName = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-
-        // Generate meal message in appropriate language
-        const mealMessage = generateMealMessage(dayName, 'english'); // Default to English for now
+        // Generate enhanced meal message
+        const mealMessage = generateEnhancedMealMessage(dayName, istDateString, mealMenu?.menu_data);
 
         console.log(`Generated message for ${contact.name}: ${mealMessage}`);
 
@@ -164,46 +167,76 @@ serve(async (req) => {
   }
 });
 
-function generateMealMessage(dayName: string, language: string): string {
-  const today = new Date().toLocaleDateString('en-US', { 
+function generateEnhancedMealMessage(dayName: string, dateString: string, menuData?: any): string {
+  const ist_offset = 5.5 * 60 * 60 * 1000;
+  const currentISTDate = new Date(Date.now() + ist_offset);
+  const formattedDate = currentISTDate.toLocaleDateString('en-IN', { 
     weekday: 'long', 
     year: 'numeric', 
     month: 'long', 
     day: 'numeric' 
   });
 
-  // Basic meal message template (can be enhanced with actual menu data)
-  const messages = {
-    english: `🍽️ Today's Meal Plan - ${today}
+  // Default meal items if no specific menu is available
+  const defaultMeals = {
+    breakfast: [
+      { name: "Idli", servings: 4, instructions: "Steam for 10-12 minutes, serve hot with coconut chutney" },
+      { name: "Tea", servings: 2, instructions: "Boil water with tea leaves, add milk and sugar to taste" }
+    ],
+    lunch: [
+      { name: "Dal Rice", servings: 4, instructions: "Cook dal with turmeric, temper with cumin and serve with rice" },
+      { name: "Chapati", servings: 6, instructions: "Roll thin, cook on tawa until puffed" }
+    ],
+    dinner: [
+      { name: "Roti", servings: 4, instructions: "Cook on medium heat, apply ghee if needed" },
+      { name: "Chicken Curry", servings: 4, instructions: "Marinate for 30 mins, cook with onions and spices for 25 mins" }
+    ]
+  };
+
+  // Use menu data if available, otherwise use defaults
+  const meals = menuData || defaultMeals;
+
+  // Format meals with new structure: "Food Item - X servings - Instructions"
+  const formatMealList = (mealList: any[]) => {
+    return mealList.map((meal: any) => {
+      const servings = meal.servings || meal.peopleCount || 1;
+      const instructions = meal.instructions || meal.suggestions || "Prepare as usual";
+      return `• ${meal.name} - ${servings} servings - ${instructions}`;
+    }).join('\n');
+  };
+
+  return `🍽️ आज का भोजन योजना - ${formattedDate}
+
+कृपया निम्नलिखित भोजन तैयार करें:
+
+🌅 नाश्ता (Breakfast):
+${formatMealList(meals.breakfast || [])}
+
+🌞 दोपहर का खाना (Lunch):
+${formatMealList(meals.lunch || [])}
+
+🌙 रात का खाना (Dinner):
+${formatMealList(meals.dinner || [])}
+
+📝 सूत्र: Food Item - X servings - Specific instructions
+
+⏰ कृपया समय पर भोजन तैयार करें। धन्यवाद!
+
+--
+Today's Meal Plan - ${formattedDate}
 
 Please prepare the following meals:
 
 🌅 Breakfast:
-• Check the meal planner for today's breakfast items
+${formatMealList(meals.breakfast || [])}
 
 🌞 Lunch:
-• Check the meal planner for today's lunch items  
+${formatMealList(meals.lunch || [])}
 
 🌙 Dinner:
-• Check the meal planner for today's dinner items
+${formatMealList(meals.dinner || [])}
 
-Please ensure meals are prepared on time. Thank you!`,
-    
-    hindi: `🍽️ आज का भोजन योजना - ${today}
+📝 Format: Food Item - X servings - Specific instructions
 
-कृपया निम्नलिखित भोजन तैयार करें:
-
-🌅 नाश्ता:
-• आज के नाश्ते के लिए मील प्लानर देखें
-
-🌞 दोपहर का खाना:
-• आज के दोपहर के खाने के लिए मील प्लानर देखें
-
-🌙 रात का खाना:
-• आज के रात के खाने के लिए मील प्लानर देखें
-
-कृपया समय पर भोजन तैयार करें। धन्यवाद!`
-  };
-
-  return messages[language as keyof typeof messages] || messages.english;
+⏰ Please ensure meals are prepared on time. Thank you!`;
 }

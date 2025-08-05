@@ -311,6 +311,36 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_response_links: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          meal_date: string
+          meal_type: string
+          used: boolean | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          meal_date: string
+          meal_type: string
+          used?: boolean | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          meal_date?: string
+          meal_type?: string
+          used?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       meal_responses: {
         Row: {
           created_at: string
