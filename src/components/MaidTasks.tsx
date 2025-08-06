@@ -9,6 +9,7 @@ import {
   Share2
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import TaskAutoSendSettings from './TaskAutoSendSettings';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import ShareTaskModal from './ShareTaskModal';
@@ -106,6 +107,8 @@ const MaidTasks = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <TaskAutoSendSettings />
+      
       {/* Simplified Header */}
       <div className="bg-white shadow-sm border-b p-4 md:p-6">
         <div className="max-w-7xl mx-auto">

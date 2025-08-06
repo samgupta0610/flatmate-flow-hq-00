@@ -11,6 +11,7 @@ import { Bell, Clock, MessageSquare } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import MealAutoSendSettings from './MealAutoSendSettings';
 
 interface MealSettingsModalProps {
   open: boolean;
@@ -138,13 +139,15 @@ const MealSettingsModal: React.FC<MealSettingsModalProps> = ({ open, onOpenChang
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] mx-4 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg flex items-center gap-2">
             <Bell className="w-5 h-5" />
-            Meal Notification Settings
+            Meal Settings
           </DialogTitle>
         </DialogHeader>
+        
+        <MealAutoSendSettings />
         
         <div className="space-y-4 py-4">
           {settings.map((setting, index) => (

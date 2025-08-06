@@ -16,12 +16,8 @@ serve(async (req) => {
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const ultramsgToken = Deno.env.get('ULTRAMSG_TOKEN');
-    const ultramsgInstance = Deno.env.get('ULTRAMSG_INSTANCE');
-
-    if (!ultramsgToken || !ultramsgInstance) {
-      throw new Error('Ultramsg credentials not configured');
-    }
+    const ultramsgToken = Deno.env.get('ULTRAMSG_TOKEN') || 'pcyrfqd6sb3bmw31';
+    const ultramsgInstance = Deno.env.get('ULTRAMSG_INSTANCE') || 'instance136712';
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
