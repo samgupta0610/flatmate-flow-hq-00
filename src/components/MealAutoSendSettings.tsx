@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronUp, Clock, Send } from 'lucide-react';
+import { ChevronDown, ChevronUp, User, Send } from 'lucide-react';
 import { useMealContact } from '@/hooks/useMealContact';
 import { useUltramsgSender } from '@/hooks/useUltramsgSender';
 import { useToast } from '@/hooks/use-toast';
@@ -16,18 +13,9 @@ const MealAutoSendSettings = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('Cook');
-  const { mealContact, loading, saveMealContact, updateAutoSendSettings } = useMealContact();
+  const { mealContact, loading, saveMealContact } = useMealContact();
   const { sendMessage, isSending } = useUltramsgSender();
   const { toast } = useToast();
-
-  const [settings, setSettings] = useState({
-    auto_send: mealContact?.auto_send || false,
-    send_time: mealContact?.send_time || '08:00',
-    frequency: mealContact?.frequency || 'daily',
-    days_of_week: mealContact?.days_of_week || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-  });
-
-  const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
   const handleSaveContact = async () => {
     if (!phone) {
@@ -52,26 +40,6 @@ const MealAutoSendSettings = () => {
     }
   };
 
-  const handleSaveSettings = async () => {
-    if (!mealContact) {
-      toast({
-        title: "Error",
-        description: "Please save a contact first",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      await updateAutoSendSettings(settings);
-      toast({
-        title: "Success",
-        description: "Auto-send settings updated successfully!",
-      });
-    } catch (error) {
-      console.error('Error updating settings:', error);
-    }
-  };
 
   const handleSendNow = async () => {
     if (!mealContact) {
@@ -120,26 +88,6 @@ Hello! It's time to prepare today's meals.
     }
   };
 
-  const toggleDay = (day: string) => {
-    setSettings(prev => ({
-      ...prev,
-      days_of_week: prev.days_of_week.includes(day)
-        ? prev.days_of_week.filter(d => d !== day)
-        : [...prev.days_of_week, day]
-    }));
-  };
-
-  const getSchedulePreview = () => {
-    if (!settings.auto_send) return 'Auto-send disabled';
-    
-    const timeStr = settings.send_time;
-    if (settings.frequency === 'daily') {
-      return `Daily at ${timeStr}`;
-    } else {
-      const dayNames = settings.days_of_week.map(day => day.charAt(0).toUpperCase() + day.slice(1)).join(', ');
-      return `Weekly on ${dayNames} at ${timeStr}`;
-    }
-  };
 
   if (loading) {
     return <div className="text-center p-4">Loading...</div>;
@@ -151,11 +99,11 @@ Hello! It's time to prepare today's meals.
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Meal Auto-Send Settings
+              <User className="h-5 w-5" />
+              Cook Contact Settings
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              {getSchedulePreview()}
+              {mealContact ? `Contact: ${mealContact.name} (${mealContact.phone})` : 'No contact saved'}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -187,9 +135,9 @@ Hello! It's time to prepare today's meals.
       {isExpanded && (
         <CardContent className="space-y-6">
           {/* Contact Setup */}
-          {!mealContact && (
+          {!mealContact ? (
             <div className="space-y-4">
-              <h4 className="font-medium">1. Setup Cook Contact</h4>
+              <h4 className="font-medium">Setup Cook Contact</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="name">Name</Label>
@@ -216,90 +164,12 @@ Hello! It's time to prepare today's meals.
                 </div>
               </div>
             </div>
-          )}
-
-          {mealContact && (
-            <>
-              <div className="space-y-4">
-                <h4 className="font-medium">Contact: {mealContact.name} ({mealContact.phone})</h4>
-                
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="auto-send">Enable Auto-Send</Label>
-                  <Switch
-                    id="auto-send"
-                    checked={settings.auto_send}
-                    onCheckedChange={(checked) => setSettings(prev => ({ ...prev, auto_send: checked }))}
-                  />
-                </div>
-
-                {settings.auto_send && (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="send-time">Send Time (IST)</Label>
-                        <Input
-                          id="send-time"
-                          type="time"
-                          value={settings.send_time}
-                          onChange={(e) => setSettings(prev => ({ ...prev, send_time: e.target.value }))}
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="frequency">Frequency</Label>
-                        <Select
-                          value={settings.frequency}
-                          onValueChange={(value) => setSettings(prev => ({ ...prev, frequency: value }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="daily">Daily</SelectItem>
-                            <SelectItem value="weekly">Weekly</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    {settings.frequency === 'weekly' && (
-                      <div>
-                        <Label>Days of Week</Label>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {daysOfWeek.map((day) => (
-                            <Badge
-                              key={day}
-                              variant={settings.days_of_week.includes(day) ? "default" : "outline"}
-                              className="cursor-pointer"
-                              onClick={() => toggleDay(day)}
-                            >
-                              {day.charAt(0).toUpperCase() + day.slice(1)}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="bg-muted p-4 rounded-lg">
-                      <h5 className="font-medium mb-2">Schedule Preview:</h5>
-                      <p className="text-sm">{getSchedulePreview()}</p>
-                    </div>
-                  </>
-                )}
-
-                <div className="flex gap-2">
-                  <Button onClick={handleSaveSettings} className="flex-1">
-                    Save Settings
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsExpanded(false)}
-                  >
-                    Collapse
-                  </Button>
-                </div>
-              </div>
-            </>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-muted-foreground">
+                Cook contact is set up. Use the Share Meal Plan feature for auto-send scheduling.
+              </p>
+            </div>
           )}
         </CardContent>
       )}
