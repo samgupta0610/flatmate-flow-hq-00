@@ -6,8 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { MessageCircle, Clock, User, Globe, Loader2, Edit2, ChevronDown, CheckCircle, Phone, Users } from 'lucide-react';
+import { MessageCircle, Clock, User, Globe, Loader2, Edit2 } from 'lucide-react';
 import { getTranslatedMeal, getMealEmoji } from '@/utils/mealTranslations';
 import { useMealContact } from '@/hooks/useMealContact';
 import { useUltramsgSender } from '@/hooks/useUltramsgSender';
@@ -30,19 +29,20 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
   const { sendMessage, isSending } = useUltramsgSender();
   
   const [selectedLanguage, setSelectedLanguage] = useState('english');
-  const [autoSend, setAutoSend] = useState(false);
-  const [scheduledTime, setScheduledTime] = useState('08:00');
-  const [contactName, setContactName] = useState('');
-  const [contactPhone, setContactPhone] = useState('');
+  const [autoSend, setAutoSend] = useState(mealContact?.auto_send || false);
+  const [scheduledTime, setScheduledTime] = useState(mealContact?.send_time || '08:00');
+  const [contactName, setContactName] = useState(mealContact?.name || '');
+  const [contactPhone, setContactPhone] = useState(mealContact?.phone || '');
   const [customMessage, setCustomMessage] = useState('');
   const [isEditingMessage, setIsEditingMessage] = useState(false);
-  const [frequency, setFrequency] = useState('daily');
-  const [selectedDays, setSelectedDays] = useState<string[]>(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
-  const [isContactSectionOpen, setIsContactSectionOpen] = useState(false);
-  const [isScheduleSectionOpen, setIsScheduleSectionOpen] = useState(false);
+  const [frequency, setFrequency] = useState(mealContact?.frequency || 'daily');
+  const [selectedDays, setSelectedDays] = useState<string[]>(
+    mealContact?.days_of_week || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+  );
+  const [isEditingContact, setIsEditingContact] = useState(false);
   const [servings, setServings] = useState(4);
 
-  // Update state when mealContact changes and determine section states
+  // Update state when mealContact changes
   useEffect(() => {
     if (mealContact) {
       setContactName(mealContact.name || '');
@@ -51,16 +51,8 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
       setScheduledTime(mealContact.send_time || '08:00');
       setFrequency(mealContact.frequency || 'daily');
       setSelectedDays(mealContact.days_of_week || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
-      setIsContactSectionOpen(false); // Contact exists, keep closed
-    } else {
-      setIsContactSectionOpen(true); // No contact, open for setup
     }
   }, [mealContact]);
-
-  // Open schedule section when auto-send is enabled
-  useEffect(() => {
-    setIsScheduleSectionOpen(autoSend);
-  }, [autoSend]);
 
   const languages = [
     { value: 'english', label: 'English' },
@@ -250,24 +242,6 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
     return `${confirmationText} ${scheduleDetails}`;
   };
 
-  const getNextSendTime = () => {
-    if (!autoSend) return null;
-    
-    const now = new Date();
-    const [hours, minutes] = scheduledTime.split(':').map(Number);
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
-    
-    if (frequency === 'daily') {
-      return today > now ? today : new Date(today.getTime() + 24 * 60 * 60 * 1000);
-    }
-    
-    // For weekly, find next occurrence of selected day
-    const todayDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    const nextDay = selectedDays.find(day => day === todayDay) || selectedDays[0];
-    const daysUntilNext = selectedDays.indexOf(nextDay);
-    return new Date(today.getTime() + daysUntilNext * 24 * 60 * 60 * 1000);
-  };
-
   const handleSendNow = async () => {
     const messageToSend = isEditingMessage ? customMessage : generateTranslatedMessage();
     
@@ -331,101 +305,36 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
     }
   };
 
-  const isContactValid = contactName.trim() && contactPhone.trim();
-  const nextSendTime = getNextSendTime();
-  const totalItems = todaysPlan.breakfast.length + todaysPlan.lunch.length + 
-                    todaysPlan.dinner.length + (todaysPlan.snack?.length || 0);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-primary" />
-            Share Meal Plan ({totalItems} items)
+            <MessageCircle className="w-5 h-5 text-green-600" />
+            Share Meal Plan
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Servings */}
-          <div className="flex items-center gap-3">
-            <Users className="w-4 h-4 text-muted-foreground" />
-            <Label className="font-medium">Servings:</Label>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Number of Servings</Label>
             <Input
               type="number"
               value={servings}
               onChange={(e) => setServings(parseInt(e.target.value) || 1)}
               min="1"
               max="20"
-              className="w-20"
+              className="w-full"
             />
           </div>
 
-          {/* Contact Section */}
-          <Collapsible open={isContactSectionOpen} onOpenChange={setIsContactSectionOpen}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" className="w-full justify-between p-3 h-auto">
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-medium">Contact</span>
-                  {mealContact && <CheckCircle className="w-4 h-4 text-green-600" />}
-                </div>
-                <div className="flex items-center gap-2">
-                  {mealContact && !isContactSectionOpen && (
-                    <span className="text-sm text-muted-foreground">{mealContact.name}</span>
-                  )}
-                  <ChevronDown className="w-4 h-4" />
-                </div>
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-3 p-3 pt-0">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs text-muted-foreground">Name</Label>
-                  <Input
-                    value={contactName}
-                    onChange={(e) => setContactName(e.target.value)}
-                    placeholder="Contact name"
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">Phone</Label>
-                  <Input
-                    value={contactPhone}
-                    onChange={(e) => setContactPhone(e.target.value)}
-                    placeholder="+1234567890"
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-              {mealContact && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    try {
-                      await saveMealContact(contactPhone, contactName);
-                      setIsContactSectionOpen(false);
-                    } catch (error) {
-                      console.error('Error saving contact:', error);
-                    }
-                  }}
-                  className="w-full"
-                >
-                  Update Contact
-                </Button>
-              )}
-            </CollapsibleContent>
-          </Collapsible>
-
-          {/* Language & Message Section */}
-          <div className="space-y-3">
+          {/* Language Selection */}
+          <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Globe className="w-4 h-4 text-muted-foreground" />
-              <Label className="font-medium">Language & Message</Label>
+              <Globe className="w-4 h-4 text-green-600" />
+              <Label className="text-sm font-medium">Message Language</Label>
             </div>
-            
             <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
               <SelectTrigger>
                 <SelectValue />
@@ -438,43 +347,153 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
                 ))}
               </SelectContent>
             </Select>
+          </div>
 
-            <div className="bg-muted/50 rounded-lg p-3 max-h-32 overflow-y-auto">
+          {/* Message Preview */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Message Preview</Label>
+            <div className="bg-gray-50 rounded-lg p-4 max-h-48 overflow-y-auto">
               {isEditingMessage ? (
                 <Textarea
                   value={customMessage}
                   onChange={(e) => setCustomMessage(e.target.value)}
                   placeholder="Edit your message..."
-                  className="min-h-[80px] bg-background"
+                  className="min-h-[120px] bg-white"
                 />
               ) : (
-                <pre className="text-xs whitespace-pre-wrap text-foreground/80">
+                <pre className="text-sm whitespace-pre-wrap text-gray-700">
                   {customMessage || generateTranslatedMessage()}
                 </pre>
               )}
             </div>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                if (!isEditingMessage) {
-                  setCustomMessage(generateTranslatedMessage());
-                }
-                setIsEditingMessage(!isEditingMessage);
-              }}
-            >
-              <Edit2 className="w-3 h-3 mr-1" />
-              {isEditingMessage ? 'Save Changes' : 'Edit Message'}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (!isEditingMessage) {
+                    setCustomMessage(generateTranslatedMessage());
+                  }
+                  setIsEditingMessage(!isEditingMessage);
+                }}
+              >
+                {isEditingMessage ? 'Save Changes' : 'Edit Message'}
+              </Button>
+              {isEditingMessage && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setCustomMessage(generateTranslatedMessage());
+                    setIsEditingMessage(false);
+                  }}
+                >
+                  Reset
+                </Button>
+              )}
+            </div>
           </div>
 
-          {/* Auto-Send Section */}
+          {/* Contact Details */}
           <div className="space-y-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4 text-purple-600" />
+                <Label className="text-sm font-medium">Contact Details</Label>
+              </div>
+              {mealContact && !isEditingContact && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsEditingContact(true)}
+                  className="h-6 px-2 text-xs"
+                >
+                  <Edit2 className="w-3 h-3 mr-1" />
+                  Edit
+                </Button>
+              )}
+            </div>
+            
+            {mealContact && !isEditingContact ? (
+              <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Name:</span>
+                  <span className="text-sm font-medium">{mealContact.name}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Phone:</span>
+                  <span className="text-sm font-medium">{mealContact.phone}</span>
+                </div>
+                {mealContact.last_sent_at && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Last sent:</span>
+                    <span className="text-xs text-gray-500">
+                      {new Date(mealContact.last_sent_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-gray-600">Name</Label>
+                  <Input
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    placeholder="Contact name"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-600">Phone</Label>
+                  <Input
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    placeholder="+1234567890"
+                    className="mt-1"
+                  />
+                </div>
+                {isEditingContact && (
+                  <div className="col-span-2 flex gap-2 mt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          await saveMealContact(contactPhone, contactName);
+                          setIsEditingContact(false);
+                        } catch (error) {
+                          console.error('Error saving contact:', error);
+                        }
+                      }}
+                      className="flex-1"
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setContactName(mealContact?.name || '');
+                        setContactPhone(mealContact?.phone || '');
+                        setIsEditingContact(false);
+                      }}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Auto Send Toggle */}
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-muted-foreground" />
-                <Label className="font-medium">Auto-Send</Label>
+                <Clock className="w-4 h-4 text-blue-600" />
+                <Label className="text-sm font-medium">Auto Send</Label>
               </div>
               <Switch
                 checked={autoSend}
@@ -482,11 +501,11 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
               />
             </div>
             
-            <Collapsible open={isScheduleSectionOpen} onOpenChange={setIsScheduleSectionOpen}>
-              <CollapsibleContent className="space-y-3">
+            {autoSend && (
+              <div className="pl-6 space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-xs text-muted-foreground">Time</Label>
+                    <Label className="text-xs text-gray-600">Time</Label>
                     <Input
                       type="time"
                       value={scheduledTime}
@@ -495,7 +514,7 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
                     />
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground">Frequency</Label>
+                    <Label className="text-xs text-gray-600">Frequency</Label>
                     <Select value={frequency} onValueChange={setFrequency}>
                       <SelectTrigger className="mt-1">
                         <SelectValue />
@@ -507,18 +526,18 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
                     </Select>
                   </div>
                 </div>
-
+                
                 {frequency === 'weekly' && (
                   <div>
-                    <Label className="text-xs text-muted-foreground">Days</Label>
-                    <div className="flex flex-wrap gap-1 mt-1">
+                    <Label className="text-xs text-gray-600 mb-2 block">Days of Week</Label>
+                    <div className="flex flex-wrap gap-2">
                       {weekDays.map(day => (
                         <Button
                           key={day.value}
                           variant={selectedDays.includes(day.value) ? "default" : "outline"}
                           size="sm"
                           onClick={() => toggleDay(day.value)}
-                          className="h-7 px-2 text-xs"
+                          className="text-xs px-3 py-1"
                         >
                           {day.label}
                         </Button>
@@ -526,46 +545,42 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
                     </div>
                   </div>
                 )}
-
-                {nextSendTime && (
-                  <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-2">
-                    <p className="text-xs text-blue-700 dark:text-blue-300">
-                      Next message: {nextSendTime.toLocaleDateString()} at {scheduledTime}
-                    </p>
-                  </div>
-                )}
-              </CollapsibleContent>
-            </Collapsible>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-3 pt-4">
             <Button
               onClick={handleSendNow}
-              disabled={!isContactValid || isSending}
+              disabled={isSending || !contactPhone.trim()}
               className="flex-1"
             >
               {isSending ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Sending...
+                </>
               ) : (
-                <Phone className="w-4 h-4 mr-2" />
+                'Send Now'
               )}
-              Send Now
             </Button>
             
             {autoSend && (
               <Button
-                variant="outline"
                 onClick={handleEnableAutoSend}
-                disabled={!isContactValid || isSending}
+                disabled={isSending || !contactPhone.trim() || !contactName.trim()}
+                variant="outline"
                 className="flex-1"
               >
                 {isSending ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Setting up...
+                  </>
                 ) : (
-                  <Clock className="w-4 h-4 mr-2" />
+                  'Enable Auto-Send'
                 )}
-                Enable Auto-Send
               </Button>
             )}
           </div>

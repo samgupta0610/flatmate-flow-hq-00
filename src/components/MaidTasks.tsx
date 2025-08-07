@@ -9,7 +9,6 @@ import {
   Share2
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import ShareTaskModal from './ShareTaskModal';

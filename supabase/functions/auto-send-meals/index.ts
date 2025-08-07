@@ -12,15 +12,16 @@ serve(async (req) => {
   }
 
   try {
-    // Convert current UTC to IST for detailed logging
-    const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
-    const currentIST = new Date(Date.now() + istOffset);
-    console.log(`Starting auto-send meal execution at ${currentIST.toISOString().replace('T', ' ').slice(0, 19)} IST`);
+    console.log('Starting auto-send meal execution with Ultramsg and IST timezone...');
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const ultramsgToken = Deno.env.get('ULTRAMSG_TOKEN') || 'pcyrfqd6sb3bmw31';
-    const ultramsgInstance = Deno.env.get('ULTRAMSG_INSTANCE') || 'instance136712';
+    const ultramsgToken = Deno.env.get('ULTRAMSG_TOKEN');
+    const ultramsgInstance = Deno.env.get('ULTRAMSG_INSTANCE');
+
+    if (!ultramsgToken || !ultramsgInstance) {
+      throw new Error('Ultramsg credentials not configured');
+    }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -48,11 +49,9 @@ serve(async (req) => {
 
     for (const contact of contacts || []) {
       try {
-        const contactCheckTime = new Date(Date.now() + istOffset);
-        console.log(`Processing contact: ${contact.id} - ${contact.name} at ${contactCheckTime.toLocaleTimeString()} IST`);
-        console.log(`Contact settings: send_time=${contact.send_time}, frequency=${contact.frequency}, last_sent=${contact.last_sent_at}`);
+        console.log(`Processing contact: ${contact.id} - ${contact.name}`);
 
-        // Check if we should send using the improved database function
+        // Check if we should send using the IST-updated database function
         const { data: shouldSend, error: checkError } = await supabase
           .rpc('should_send_auto_reminder', {
             contact_auto_send: contact.auto_send,
@@ -64,17 +63,8 @@ serve(async (req) => {
 
         if (checkError) {
           console.error(`Error checking send status for ${contact.name}:`, checkError);
-          // Log the error to auto_send_history for debugging
-          await supabase.from('auto_send_history').insert({
-            user_id: contact.user_id,
-            contact_id: contact.id,
-            status: 'error',
-            error_message: `Reminder check failed: ${checkError.message}`
-          });
           continue;
         }
-
-        console.log(`Should send reminder for ${contact.name}: ${shouldSend}`);
 
         if (!shouldSend) {
           console.log(`Skipping ${contact.name} - not time to send yet`);
