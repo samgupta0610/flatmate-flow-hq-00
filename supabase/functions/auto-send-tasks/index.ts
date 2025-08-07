@@ -7,10 +7,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Ultramsg configuration
-const ULTRAMSG_INSTANCE = 'instance136712'
-const ULTRAMSG_TOKEN = 'pcyrfqd6sb3bmw31'
-const ULTRAMSG_API_URL = `https://api.ultramsg.com/${ULTRAMSG_INSTANCE}`
+// Ultramsg configuration - now using environment variables
+const ULTRAMSG_INSTANCE = Deno.env.get('ULTRAMSG_INSTANCE')
+const ULTRAMSG_TOKEN = Deno.env.get('ULTRAMSG_TOKEN')
+const ULTRAMSG_API_URL = ULTRAMSG_INSTANCE ? `https://api.ultramsg.com/${ULTRAMSG_INSTANCE}` : null
+
+console.log('🔧 Starting auto-send task execution with Ultramsg...')
+
+// Validate required environment variables
+if (!ULTRAMSG_INSTANCE || !ULTRAMSG_TOKEN) {
+  console.error('❌ Ultramsg credentials not configured')
+  throw new Error('Ultramsg credentials not configured. Please configure ULTRAMSG_INSTANCE and ULTRAMSG_TOKEN in Supabase secrets.')
+}
+
+console.log('✅ Ultramsg configuration validated')
 
 // Enhanced task translations for the edge function
 const taskTranslations: { [key: string]: { [lang: string]: string } } = {
@@ -61,46 +71,63 @@ const getTaskEmoji = (taskTitle: string): string => {
   const title = taskTitle.toLowerCase().trim();
   const emojiMap: { [key: string]: string } = {
     'clean kitchen': '🍽️',
-    'wash dishes': '🍴',
+    'vacuum living room': '🧹',
     'clean bathroom': '🚿',
+    'change bedsheet': '🛏️',
+    'clean washroom': '🚿',
+    'clean my room': '🛏️',
+    'dust furniture': '🪶',
+    'mop floors': '🧽',
+    'wash dishes': '🍴',
     'clean toilet': '🚽',
     'sweep floor': '🧹',
-    'mop floor': '🧽',
     'wash clothes': '👕',
     'iron clothes': '👔',
     'make bed': '🛏️',
-    'vacuum': '🌀',
-    'dusting': '🪶'
+    'vacuum': '🌀'
   };
   
-  return emojiMap[title] || '📝';
+  return emojiMap[title] || '✅';
 };
 
 const sendUltramsgMessage = async (phoneNumber: string, message: string, contactName: string) => {
+  console.log(`📤 Sending message to ${contactName} (${phoneNumber})`)
+  console.log(`📄 Message content: ${message}`)
+  
+  if (!ULTRAMSG_API_URL) {
+    throw new Error('Ultramsg API URL not configured')
+  }
+  
   const ultramsgUrl = `${ULTRAMSG_API_URL}/messages/chat`;
-  const ultramsgPayload = {
-    token: ULTRAMSG_TOKEN,
+  
+  // Use form-encoded data as required by Ultramsg API
+  const formData = new URLSearchParams({
+    token: ULTRAMSG_TOKEN!,
     to: phoneNumber,
     body: message,
-    priority: 1,
-    referenceId: `auto_task_${Date.now()}`
-  };
-
-  const response = await fetch(ultramsgUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(ultramsgPayload)
   });
 
-  const result = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(`Ultramsg API error: ${result.error || 'Unknown error'}`);
-  }
+  try {
+    const response = await fetch(ultramsgUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData
+    });
 
-  return result;
+    const result = await response.json();
+    console.log('📬 Ultramsg response:', result)
+    
+    if (!response.ok) {
+      throw new Error(`Ultramsg API error: ${result.error || 'Unknown error'}`);
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('❌ Error sending message via Ultramsg:', error)
+    throw error
+  }
 };
 
 serve(async (req) => {
@@ -115,7 +142,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    console.log('Starting auto-send task execution with Ultramsg...');
+    console.log('🚀 Auto-send task function triggered');
 
     // Get all contacts that need auto-sending
     const { data: contacts, error: contactsError } = await supabase
