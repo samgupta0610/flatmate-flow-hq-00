@@ -451,6 +451,42 @@ export type Database = {
           },
         ]
       }
+      user_feedback: {
+        Row: {
+          created_at: string
+          description: string
+          feedback_type: Database["public"]["Enums"]["feedback_type"]
+          id: string
+          rating: number | null
+          status: Database["public"]["Enums"]["feedback_status"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          feedback_type?: Database["public"]["Enums"]["feedback_type"]
+          id?: string
+          rating?: number | null
+          status?: Database["public"]["Enums"]["feedback_status"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          feedback_type?: Database["public"]["Enums"]["feedback_type"]
+          id?: string
+          rating?: number | null
+          status?: Database["public"]["Enums"]["feedback_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       vendor_contacts: {
         Row: {
           address: string | null
@@ -508,7 +544,12 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      feedback_status: "new" | "reviewed" | "in_progress" | "resolved"
+      feedback_type:
+        | "feature_request"
+        | "bug_report"
+        | "general"
+        | "improvement"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -635,6 +676,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      feedback_status: ["new", "reviewed", "in_progress", "resolved"],
+      feedback_type: [
+        "feature_request",
+        "bug_report",
+        "general",
+        "improvement",
+      ],
+    },
   },
 } as const

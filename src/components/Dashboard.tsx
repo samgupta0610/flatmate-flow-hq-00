@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import TodaysMenuWidget from "./TodaysMenuWidget";
 import TodaysTasksWidget from "./TodaysTasksWidget";
+import FeedbackWidget from "./FeedbackWidget";
 import { useState } from "react";
 import { MealItem, DailyPlan } from '@/types/meal';
 import { daysOfWeek, sampleWeeklyPlan } from '@/constants/meal';
@@ -131,6 +132,9 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* MVP Feedback Widget */}
+        <FeedbackWidget />
 
         {/* Floating Action Button */}
         <Button
