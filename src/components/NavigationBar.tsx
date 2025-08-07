@@ -73,6 +73,8 @@ const NavigationBar = () => {
             })}
           </nav>
           
+          {/* TEMPORARY: Logout button hidden during testing mode */}
+          {/*
           <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
             <Button
               onClick={logout}
@@ -83,6 +85,7 @@ const NavigationBar = () => {
               Sign out
             </Button>
           </div>
+          */}
         </div>
       </div>
     </div>
