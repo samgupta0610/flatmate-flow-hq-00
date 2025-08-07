@@ -24,6 +24,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* TEMPORARY: Auth route kept but not required for testing */}
           <Route path="/auth" element={<Auth />} />
           <Route element={
             <ProtectedRoute>

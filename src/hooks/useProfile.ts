@@ -12,10 +12,25 @@ interface UserProfile {
 }
 
 export const useProfile = () => {
+  // TEMPORARY: Mock profile data for testing
+  const mockProfile: UserProfile = {
+    id: 'mock-user-id',
+    username: 'Test User',
+    house_group_id: 'mock-house-group-id',
+    role: 'user',
+    phone_number: '+1234567890'
+  };
+
+  const [profile] = useState<UserProfile | null>(mockProfile);
+  const [loading] = useState(false);
+  const [error] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  // ORIGINAL CODE COMMENTED OUT FOR RESTORATION:
+  /*
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
 
   useEffect(() => {
     if (!user) {
@@ -42,8 +57,14 @@ export const useProfile = () => {
 
     fetchProfile();
   }, [user]);
+  */
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
+    // TEMPORARY: Mock update for testing
+    console.log('Mock profile update:', updates);
+    
+    // ORIGINAL CODE COMMENTED OUT:
+    /*
     if (!user) return;
 
     try {
@@ -57,6 +78,7 @@ export const useProfile = () => {
     } catch (err: any) {
       setError(err.message);
     }
+    */
   };
 
   return { profile, loading, error, updateProfile };
