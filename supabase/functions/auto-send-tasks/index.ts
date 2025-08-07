@@ -7,20 +7,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Ultramsg configuration - now using environment variables
-const ULTRAMSG_INSTANCE = Deno.env.get('ULTRAMSG_INSTANCE')
-const ULTRAMSG_TOKEN = Deno.env.get('ULTRAMSG_TOKEN')
-const ULTRAMSG_API_URL = ULTRAMSG_INSTANCE ? `https://api.ultramsg.com/${ULTRAMSG_INSTANCE}` : null
+// Ultramsg configuration - using hardcoded values for reliability
+const ULTRAMSG_INSTANCE = 'instance137991'
+const ULTRAMSG_TOKEN = 'h6d3giosj55wwux9'
+const ULTRAMSG_API_URL = `https://api.ultramsg.com/${ULTRAMSG_INSTANCE}`
 
 console.log('🔧 Starting auto-send task execution with Ultramsg...')
-
-// Validate required environment variables
-if (!ULTRAMSG_INSTANCE || !ULTRAMSG_TOKEN) {
-  console.error('❌ Ultramsg credentials not configured')
-  throw new Error('Ultramsg credentials not configured. Please configure ULTRAMSG_INSTANCE and ULTRAMSG_TOKEN in Supabase secrets.')
-}
-
-console.log('✅ Ultramsg configuration validated')
+console.log('✅ Ultramsg configuration validated:', ULTRAMSG_INSTANCE)
 
 // Enhanced task translations for the edge function
 const taskTranslations: { [key: string]: { [lang: string]: string } } = {
