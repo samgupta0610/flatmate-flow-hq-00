@@ -8,8 +8,8 @@ const corsHeaders = {
 }
 
 // Ultramsg configuration
-const ULTRAMSG_INSTANCE = 'instance136712'
-const ULTRAMSG_TOKEN = 'pcyrfqd6sb3bmw31'
+const ULTRAMSG_INSTANCE = 'instance137991'
+const ULTRAMSG_TOKEN = 'h6d3giosj55wwux9'
 const ULTRAMSG_API_URL = `https://api.ultramsg.com/${ULTRAMSG_INSTANCE}`
 
 interface MessageRequest {
