@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 export function useAuth() {
   // TEMPORARY: Mock authentication data for testing
   const mockUser: User = {
-    id: 'mock-user-id',
+    id: '00000000-0000-4000-8000-000000000001',
     email: 'test@example.com',
     created_at: '2023-01-01T00:00:00.000Z',
     updated_at: '2023-01-01T00:00:00.000Z',

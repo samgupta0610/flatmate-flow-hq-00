@@ -14,9 +14,9 @@ interface UserProfile {
 export const useProfile = () => {
   // TEMPORARY: Mock profile data for testing
   const mockProfile: UserProfile = {
-    id: 'mock-user-id',
+    id: '00000000-0000-4000-8000-000000000001',
     username: 'Test User',
-    house_group_id: 'mock-house-group-id',
+    house_group_id: '00000000-0000-4000-8000-000000000002',
     role: 'user',
     phone_number: '+1234567890'
   };
