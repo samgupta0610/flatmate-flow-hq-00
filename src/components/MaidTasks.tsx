@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import ShareTaskModal from './ShareTaskModal';
+import AutoSendTester from './AutoSendTester';
 import TaskTable from './TaskTable';
 import { useMaidTasks } from '@/hooks/useMaidTasks';
 
@@ -159,6 +160,11 @@ const MaidTasks = () => {
             </select>
           </div>
         </div>
+      </div>
+
+      {/* Auto-Send Testing Section */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+        <AutoSendTester />
       </div>
 
       {/* Task List */}
