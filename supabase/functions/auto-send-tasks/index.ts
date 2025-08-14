@@ -49,9 +49,41 @@ const taskTranslations: { [key: string]: { [lang: string]: string } } = {
   }
 };
 
+// Enhanced translation function with fuzzy matching
 const getTranslatedTask = (taskTitle: string, language: string): string => {
   const normalizedTitle = taskTitle.toLowerCase().trim();
-  const translation = taskTranslations[normalizedTitle];
+  
+  // Direct match
+  let translation = taskTranslations[normalizedTitle];
+  
+  // If no direct match, try fuzzy matching
+  if (!translation) {
+    for (const [key, value] of Object.entries(taskTranslations)) {
+      if (key.includes(normalizedTitle) || normalizedTitle.includes(key)) {
+        translation = value;
+        break;
+      }
+      
+      // Check word-by-word matching
+      const titleWords = normalizedTitle.split(/\s+/);
+      const keyWords = key.split(/\s+/);
+      let matchCount = 0;
+      
+      for (const titleWord of titleWords) {
+        for (const keyWord of keyWords) {
+          if (titleWord === keyWord || titleWord.includes(keyWord) || keyWord.includes(titleWord)) {
+            matchCount++;
+            break;
+          }
+        }
+      }
+      
+      if (matchCount >= Math.min(titleWords.length, keyWords.length) * 0.6) {
+        translation = value;
+        break;
+      }
+    }
+  }
   
   if (!translation || language === 'english') {
     return taskTitle;
@@ -195,8 +227,8 @@ serve(async (req) => {
           continue;
         }
 
-        // Get user's preferred language (default to Hindi for now)
-        const preferredLanguage = 'hindi';
+        // Get user's preferred language from contact or default to english
+        const preferredLanguage = contact.preferred_language || 'english';
 
         // Generate translated message
         const greeting = preferredLanguage === 'hindi' 

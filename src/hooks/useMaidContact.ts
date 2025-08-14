@@ -12,6 +12,7 @@ interface MaidContact {
   frequency: string;
   days_of_week: string[];
   last_sent_at: string | null;
+  preferred_language?: string;
 }
 
 export const useMaidContact = () => {
@@ -46,19 +47,24 @@ export const useMaidContact = () => {
     fetchMaidContact();
   }, [user]);
 
-  const saveMaidContact = async (phone: string, name: string = 'Maid') => {
+  const saveMaidContact = async (phone: string, name: string = 'Maid', preferredLanguage?: string) => {
     if (!user) return;
 
     try {
       if (maidContact) {
         // Update existing contact
+        const updateData: any = { phone, name };
+        if (preferredLanguage) {
+          updateData.preferred_language = preferredLanguage;
+        }
+        
         const { error } = await supabase
           .from('maid_contacts')
-          .update({ phone, name })
+          .update(updateData)
           .eq('id', maidContact.id);
 
         if (error) throw error;
-        setMaidContact({ ...maidContact, phone, name });
+        setMaidContact({ ...maidContact, ...updateData });
       } else {
         // Create new contact
         const { data, error } = await supabase
@@ -70,7 +76,8 @@ export const useMaidContact = () => {
             auto_send: false,
             send_time: '08:00',
             frequency: 'daily',
-            days_of_week: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+            days_of_week: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+            preferred_language: preferredLanguage || 'english'
           })
           .select()
           .single();
@@ -89,6 +96,7 @@ export const useMaidContact = () => {
     send_time: string;
     frequency: string;
     days_of_week: string[];
+    preferred_language?: string;
   }) => {
     if (!user || !maidContact) return;
 

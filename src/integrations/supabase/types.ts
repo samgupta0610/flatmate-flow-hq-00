@@ -111,6 +111,7 @@ export type Database = {
           last_sent_at: string | null
           name: string
           phone: string
+          preferred_language: string | null
           send_time: string | null
           updated_at: string
           user_id: string
@@ -124,6 +125,7 @@ export type Database = {
           last_sent_at?: string | null
           name?: string
           phone: string
+          preferred_language?: string | null
           send_time?: string | null
           updated_at?: string
           user_id: string
@@ -137,6 +139,7 @@ export type Database = {
           last_sent_at?: string | null
           name?: string
           phone?: string
+          preferred_language?: string | null
           send_time?: string | null
           updated_at?: string
           user_id?: string
@@ -419,6 +422,7 @@ export type Database = {
           house_group_id: string | null
           id: string
           phone_number: string | null
+          preferred_language: string | null
           role: string | null
           updated_at: string
           username: string | null
@@ -428,6 +432,7 @@ export type Database = {
           house_group_id?: string | null
           id: string
           phone_number?: string | null
+          preferred_language?: string | null
           role?: string | null
           updated_at?: string
           username?: string | null
@@ -437,6 +442,7 @@ export type Database = {
           house_group_id?: string | null
           id?: string
           phone_number?: string | null
+          preferred_language?: string | null
           role?: string | null
           updated_at?: string
           username?: string | null

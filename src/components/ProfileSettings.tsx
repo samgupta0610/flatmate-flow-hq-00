@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Home, Code, Mail } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { User, Home, Code, Mail, Globe } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useProfile } from '@/hooks/useProfile';
 import { useHouseGroupInfo } from '@/hooks/useHouseGroupInfo';
@@ -17,6 +18,7 @@ const ProfileSettings: React.FC = () => {
   const [flatNumber, setFlatNumber] = useState('');
   const [groupCode, setGroupCode] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [preferredLanguage, setPreferredLanguage] = useState('english');
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -29,6 +31,7 @@ const ProfileSettings: React.FC = () => {
     if (profile) {
       setUserName(profile.username || '');
       setFlatNumber(profile.phone_number || '');
+      setPreferredLanguage(profile.preferred_language || 'english');
     }
     if (houseGroup) {
       setGroupCode(houseGroup.join_code || '');
@@ -45,6 +48,7 @@ const ProfileSettings: React.FC = () => {
       await updateProfile({
         username: userName,
         phone_number: flatNumber,
+        preferred_language: preferredLanguage,
       });
       
       setIsEditing(false);
@@ -66,6 +70,7 @@ const ProfileSettings: React.FC = () => {
   const handleCancel = () => {
     setUserName(profile?.username || '');
     setFlatNumber(profile?.phone_number || '');
+    setPreferredLanguage(profile?.preferred_language || 'english');
     setGroupCode(houseGroup?.join_code || '');
     setUserEmail(user?.email || '');
     setIsEditing(false);
@@ -132,6 +137,28 @@ const ProfileSettings: React.FC = () => {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="preferred-language" className="flex items-center gap-2">
+                <Globe className="w-4 h-4" />
+                Preferred Language
+              </Label>
+              <Select value={preferredLanguage} onValueChange={setPreferredLanguage} disabled={!isEditing}>
+                <SelectTrigger id="preferred-language">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="english">English</SelectItem>
+                  <SelectItem value="hindi">Hindi</SelectItem>
+                  <SelectItem value="tamil">Tamil</SelectItem>
+                  <SelectItem value="telugu">Telugu</SelectItem>
+                  <SelectItem value="kannada">Kannada</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                Default language for task messages and notifications.
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="group-code" className="flex items-center gap-2">
                 <Code className="w-4 h-4" />
                 House Group Code
@@ -191,6 +218,10 @@ const ProfileSettings: React.FC = () => {
               <div>
                 <span className="text-gray-500">Flat:</span>
                 <p className="font-medium">{flatNumber || 'Not set'}</p>
+              </div>
+              <div>
+                <span className="text-gray-500">Language:</span>
+                <p className="font-medium">{preferredLanguage ? preferredLanguage.charAt(0).toUpperCase() + preferredLanguage.slice(1) : 'English'}</p>
               </div>
             </div>
           </div>

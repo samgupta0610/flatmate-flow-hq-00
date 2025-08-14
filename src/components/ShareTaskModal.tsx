@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MessageCircle, Clock, User, Globe, Loader2, Edit2 } from 'lucide-react';
-import { getTranslatedTask, getTaskEmoji } from '@/utils/consolidatedTranslations';
+import { getTranslatedTask, getTaskEmoji } from '@/utils/enhancedTranslations';
 import { useMaidContact } from '@/hooks/useMaidContact';
 import { useUltramsgSender } from '@/hooks/useUltramsgSender';
 
@@ -54,6 +54,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
       setScheduledTime(maidContact.send_time || '08:00');
       setFrequency(maidContact.frequency || 'daily');
       setSelectedDays(maidContact.days_of_week || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
+      setSelectedLanguage(maidContact.preferred_language || 'english');
     }
   }, [maidContact]);
 
@@ -210,10 +211,10 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
     });
 
     if (result.success) {
-      // Save contact info if new
-      if (contactName && contactPhone && !maidContact) {
+      // Save contact info if new or update language preference
+      if (contactName && contactPhone) {
         try {
-          await saveMaidContact(contactPhone, contactName);
+          await saveMaidContact(contactPhone, contactName, selectedLanguage);
         } catch (error) {
           console.error('Error saving contact:', error);
         }
@@ -230,15 +231,16 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
     }
 
     try {
-      // Save/update contact information first
-      await saveMaidContact(contactPhone, contactName);
+      // Save/update contact information first with language preference
+      await saveMaidContact(contactPhone, contactName, selectedLanguage);
       
-      // Update auto-send settings
+      // Update auto-send settings with language preference
       await updateAutoSendSettings({
         auto_send: true,
         send_time: scheduledTime,
         frequency,
-        days_of_week: frequency === 'daily' ? weekDays.map(d => d.value) : selectedDays
+        days_of_week: frequency === 'daily' ? weekDays.map(d => d.value) : selectedDays,
+        preferred_language: selectedLanguage
       });
 
       // Send confirmation message
@@ -401,7 +403,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
                       size="sm"
                       onClick={async () => {
                         try {
-                          await saveMaidContact(contactPhone, contactName);
+                          await saveMaidContact(contactPhone, contactName, selectedLanguage);
                           setIsEditingContact(false);
                         } catch (error) {
                           console.error('Error saving contact:', error);
