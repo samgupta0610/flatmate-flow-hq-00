@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -541,10 +541,10 @@ export type Database = {
       should_send_auto_reminder: {
         Args: {
           contact_auto_send: boolean
-          contact_send_time: string
-          contact_frequency: string
           contact_days_of_week: string[]
+          contact_frequency: string
           contact_last_sent_at: string
+          contact_send_time: string
         }
         Returns: boolean
       }
