@@ -4,8 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
-  Star, 
-  StarOff, 
   Edit3, 
   Trash2
 } from 'lucide-react';
@@ -30,15 +28,13 @@ interface TaskTableProps {
   onUpdate: (taskId: string, updates: any) => void;
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
-  onToggleFavorite: (taskId: string, favorite: boolean) => void;
 }
 
 const TaskTable: React.FC<TaskTableProps> = ({
   tasks,
   onUpdate,
   onDelete,
-  onEdit,
-  onToggleFavorite
+  onEdit
 }) => {
   const getPriorityColor = (priority?: string) => {
     switch (priority) {
@@ -67,7 +63,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
       {/* Mobile-friendly header */}
       <div className="bg-gray-50 border-b px-4 py-3 hidden md:block">
         <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700">
-          <div className="col-span-1"></div>
+          <div className="col-span-1">ENABLE</div>
           <div className="col-span-5">TASK NAME</div>
           <div className="col-span-3">CATEGORIZATION</div>
           <div className="col-span-2">CREATED BY</div>
@@ -97,9 +93,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     <div className="flex items-center gap-2 mb-1">
                       <div className={`w-3 h-3 rounded-full ${getPriorityColor(task.priority)}`}></div>
                       <span className="font-medium text-gray-900">{task.title}</span>
-                      {task.favorite && (
-                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      )}
+                      <span className="text-xs text-gray-500 capitalize">{task.priority}</span>
                     </div>
                     
                     {task.remarks && (
@@ -124,21 +118,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
                 </div>
                 
                 <div className="flex items-center gap-1 ml-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onToggleFavorite(task.id, !task.favorite)}
-                    className={`h-8 w-8 p-0 ${
-                      task.favorite ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-500'
-                    }`}
-                  >
-                    {task.favorite ? (
-                      <Star className="w-4 h-4 fill-current" />
-                    ) : (
-                      <StarOff className="w-4 h-4" />
-                    )}
-                  </Button>
-                  
                   <Button
                     variant="ghost"
                     size="sm"
@@ -176,14 +155,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-medium text-gray-900">{task.title}</span>
-                      {task.favorite && (
-                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      )}
-                      {task.optional && (
-                        <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
-                          optional
-                        </Badge>
-                      )}
+                      <Badge variant="outline" className="text-xs px-1.5 py-0.5 capitalize">
+                        {task.priority || 'medium'}
+                      </Badge>
                     </div>
                     
                     {task.remarks && (
@@ -209,21 +183,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
               </div>
 
               <div className="col-span-1 flex items-center justify-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onToggleFavorite(task.id, !task.favorite)}
-                  className={`h-8 w-8 p-0 ${
-                    task.favorite ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-500'
-                  }`}
-                >
-                  {task.favorite ? (
-                    <Star className="w-4 h-4 fill-current" />
-                  ) : (
-                    <StarOff className="w-4 h-4" />
-                  )}
-                </Button>
-                
                 <Button
                   variant="ghost"
                   size="sm"

@@ -19,6 +19,7 @@ interface ShareTaskModalProps {
     title: string;
     task_category?: string;
     remarks?: string;
+    priority?: string;
   }>;
   onSend: () => void;
 }
@@ -76,8 +77,33 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
     { value: 'sunday', label: 'Sun' }
   ];
 
+  const getPriorityEmoji = (priority?: string) => {
+    switch (priority) {
+      case 'urgent': return '🔴';
+      case 'high': return '🟠';
+      case 'medium': return '🟡';
+      case 'low': return '🟢';
+      default: return '🟡';
+    }
+  };
+
+  const getPriorityOrder = (priority?: string) => {
+    switch (priority) {
+      case 'urgent': return 4;
+      case 'high': return 3;
+      case 'medium': return 2;
+      case 'low': return 1;
+      default: return 2;
+    }
+  };
+
   const generateTranslatedMessage = () => {
     if (tasks.length === 0) return 'No tasks selected';
+
+    // Sort tasks by priority (urgent → high → medium → low)
+    const sortedTasks = [...tasks].sort((a, b) => 
+      getPriorityOrder(b.priority) - getPriorityOrder(a.priority)
+    );
 
     const greeting = selectedLanguage === 'hindi' 
       ? 'नमस्ते!' 
@@ -111,11 +137,13 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
 
     let message = `${greeting}\n\n${taskListHeader}\n`;
     
-    tasks.forEach((task, index) => {
+    sortedTasks.forEach((task, index) => {
       const translatedTask = getTranslatedTask(task.title, selectedLanguage);
       const emoji = getTaskEmoji(task.title);
+      const priorityEmoji = getPriorityEmoji(task.priority);
+      const priorityText = task.priority ? ` ${task.priority}`.toUpperCase() : '';
       
-      message += `${index + 1}. ${emoji} ${translatedTask}`;
+      message += `${index + 1}. ${priorityEmoji} ${emoji} ${translatedTask}${priorityText}`;
       if (task.remarks) {
         message += ` (${task.remarks})`;
       }
@@ -132,7 +160,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
       ? 'ಒಟ್ಟು ಕೆಲಸಗಳು:'
       : 'Total tasks:';
 
-    message += `\n${totalTasksText} ${tasks.length}\n\n${thankYou}`;
+    message += `\n${totalTasksText} ${sortedTasks.length}\n\n${thankYou}`;
     
     return message;
   };

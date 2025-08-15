@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PrioritySlider } from "@/components/ui/priority-slider";
-import { Pencil, Star, Calendar } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 
 interface MaidTask {
   id: string;
@@ -31,8 +31,6 @@ interface EditTaskModalProps {
     daysOfWeek: string[];
     category: string;
     remarks: string;
-    favorite: boolean;
-    optional: boolean;
     priority: string;
   }) => Promise<void>;
   task: MaidTask | null;
@@ -51,8 +49,6 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
   const [frequency, setFrequency] = useState<'daily' | 'weekly'>('daily');
   const [area, setArea] = useState('');
   const [remarks, setRemarks] = useState('');
-  const [favorite, setFavorite] = useState(false);
-  const [optional, setOptional] = useState(false);
   const [priority, setPriority] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -77,8 +73,6 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
       setFrequency(task.category === 'weekly' ? 'weekly' : 'daily');
       setArea(task.task_category || '');
       setRemarks(task.remarks || '');
-      setFavorite(task.favorite || false);
-      setOptional(task.optional || false);
       setPriority(priorityIndexMap[task.priority as keyof typeof priorityIndexMap] || 1);
     }
   }, [task]);
@@ -101,8 +95,6 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
         daysOfWeek: frequency === 'daily' ? weekdays.map(d => d.id) : selectedDays,
         category: frequency,
         remarks,
-        favorite,
-        optional,
         priority: priorityMap[priority]
       });
       
@@ -202,32 +194,6 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
             />
           </div>
 
-          {/* Task Options */}
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="favorite"
-                checked={favorite}
-                onCheckedChange={(checked) => setFavorite(checked as boolean)}
-              />
-              <Label htmlFor="favorite" className="flex items-center gap-2 text-sm">
-                <Star className={`w-4 h-4 ${favorite ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`} />
-                Mark as Favorite
-              </Label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="optional"
-                checked={optional}
-                onCheckedChange={(checked) => setOptional(checked as boolean)}
-              />
-              <Label htmlFor="optional" className="flex items-center gap-2 text-sm">
-                <Calendar className={`w-4 h-4 ${optional ? 'text-blue-500' : 'text-gray-400'}`} />
-                Mark as Optional
-              </Label>
-            </div>
-          </div>
 
           {/* Remarks */}
           <div className="space-y-2">

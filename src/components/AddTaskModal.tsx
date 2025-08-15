@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PrioritySlider } from "@/components/ui/priority-slider";
-import { Plus, Star, Calendar } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -17,8 +17,6 @@ interface AddTaskModalProps {
     daysOfWeek: string[];
     category: string;
     remarks: string;
-    favorite: boolean;
-    optional: boolean;
     priority: string;
   }) => Promise<void>;
   existingTasks?: Array<{ title: string; id: string }>;
@@ -35,8 +33,6 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
   const [frequency, setFrequency] = useState<'daily' | 'weekly'>('daily');
   const [area, setArea] = useState('');
   const [remarks, setRemarks] = useState('');
-  const [favorite, setFavorite] = useState(false);
-  const [optional, setOptional] = useState(false);
   const [priority, setPriority] = useState(1); // 0=Low, 1=Medium, 2=High, 3=Urgent
   const [isSaving, setIsSaving] = useState(false);
 
@@ -70,8 +66,6 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
         daysOfWeek: frequency === 'daily' ? weekdays.map(d => d.id) : selectedDays,
         category: frequency,
         remarks,
-        favorite,
-        optional,
         priority: priorityMap[priority]
       });
       
@@ -81,8 +75,6 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
       setFrequency('daily');
       setArea('');
       setRemarks('');
-      setFavorite(false);
-      setOptional(false);
       setPriority(1);
       onClose();
     } catch (error) {
@@ -180,32 +172,6 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
             />
           </div>
 
-          {/* Task Options */}
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="favorite"
-                checked={favorite}
-                onCheckedChange={(checked) => setFavorite(checked as boolean)}
-              />
-              <Label htmlFor="favorite" className="flex items-center gap-2 text-sm">
-                <Star className={`w-4 h-4 ${favorite ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`} />
-                Mark as Favorite
-              </Label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="optional"
-                checked={optional}
-                onCheckedChange={(checked) => setOptional(checked as boolean)}
-              />
-              <Label htmlFor="optional" className="flex items-center gap-2 text-sm">
-                <Calendar className={`w-4 h-4 ${optional ? 'text-blue-500' : 'text-gray-400'}`} />
-                Mark as Optional
-              </Label>
-            </div>
-          </div>
 
           {/* Remarks */}
           <div className="space-y-2">

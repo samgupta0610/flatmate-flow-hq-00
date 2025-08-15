@@ -209,8 +209,8 @@ serve(async (req) => {
           continue;
         }
 
-        // Get user's selected tasks
-        const { data: tasks, error: tasksError } = await supabase
+        // Get user's selected tasks with frequency-based filtering
+        const { data: allTasks, error: tasksError } = await supabase
           .from('maid_tasks')
           .select('*')
           .eq('user_id', contact.user_id)
@@ -222,10 +222,31 @@ serve(async (req) => {
           continue;
         }
 
-        if (!tasks || tasks.length === 0) {
+        if (!allTasks || allTasks.length === 0) {
           console.log(`No tasks found for user ${contact.user_id}`);
           continue;
         }
+
+        // Filter tasks based on frequency and current day
+        const currentDay = new Date().toLocaleDateString('en', { weekday: 'lowercase' });
+        const tasks = allTasks.filter(task => {
+          if (task.category === 'daily') {
+            return true; // Daily tasks are always included
+          }
+          if (task.category === 'weekly') {
+            return task.days_of_week && task.days_of_week.includes(currentDay);
+          }
+          return true; // Default to include
+        });
+
+        if (tasks.length === 0) {
+          console.log(`No tasks scheduled for today (${currentDay}) for user ${contact.user_id}`);
+          continue;
+        }
+
+        // Sort tasks by priority (urgent → high → medium → low)
+        const priorityOrder = { urgent: 4, high: 3, medium: 2, low: 1 };
+        tasks.sort((a, b) => (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0));
 
         // Get user's preferred language from contact or default to english
         const preferredLanguage = contact.preferred_language || 'english';
@@ -266,8 +287,12 @@ serve(async (req) => {
         tasks.forEach((task, index) => {
           const translatedTask = getTranslatedTask(task.title, preferredLanguage);
           const emoji = getTaskEmoji(task.title);
+          const priorityEmoji = task.priority === 'urgent' ? '🔴' : 
+                               task.priority === 'high' ? '🟠' : 
+                               task.priority === 'medium' ? '🟡' : '🟢';
+          const priorityText = task.priority ? ` ${task.priority.toUpperCase()}` : '';
           
-          message += `${index + 1}. ${emoji} ${translatedTask}`;
+          message += `${index + 1}. ${priorityEmoji} ${emoji} ${translatedTask}${priorityText}`;
           if (task.remarks) {
             message += ` (${task.remarks})`;
           }

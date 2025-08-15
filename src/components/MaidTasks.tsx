@@ -19,8 +19,7 @@ const MaidTasks = () => {
     isLoading,
     addTask,
     updateTask,
-    deleteTask,
-    toggleFavorite
+    deleteTask
   } = useMaidTasks();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -77,15 +76,18 @@ const MaidTasks = () => {
     daysOfWeek: string[];
     category: string;
     remarks: string;
-    favorite: boolean;
-    optional: boolean;
     priority: string;
   }) => {
-    const updatedTask = {
-      ...taskData,
-      task_category: taskData.category === 'daily' ? 'cleaning' : 'cleaning'
-    };
-    await addTask(updatedTask.title, updatedTask.category, updatedTask.daysOfWeek, 'cleaning', updatedTask.remarks, updatedTask.favorite, updatedTask.optional);
+    await addTask(
+      taskData.title, 
+      taskData.category, 
+      taskData.daysOfWeek, 
+      'cleaning', 
+      taskData.remarks, 
+      false, // favorite (removed)
+      false, // optional (removed)
+      taskData.priority
+    );
   };
   const handleUpdateTask = async (taskId: string, updates: any) => {
     await updateTask(taskId, updates);
@@ -138,7 +140,7 @@ const MaidTasks = () => {
 
       {/* Task List */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
-        <TaskTable tasks={filteredTasks} onUpdate={updateTask} onDelete={deleteTask} onEdit={setEditingTask} onToggleFavorite={toggleFavorite} />
+        <TaskTable tasks={filteredTasks} onUpdate={updateTask} onDelete={deleteTask} onEdit={setEditingTask} />
       </div>
 
       {/* Modals */}
