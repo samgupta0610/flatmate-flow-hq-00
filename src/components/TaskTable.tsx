@@ -48,37 +48,40 @@ const TaskTable: React.FC<TaskTableProps> = ({
 
   if (tasks.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border p-8">
-        <div className="text-center">
-          <div className="text-gray-400 text-4xl mb-4">📝</div>
-          <p className="text-gray-500 text-lg mb-2">No tasks found</p>
-          <p className="text-gray-400 text-sm">Create your first task to get started</p>
+      <div className="bg-gradient-card rounded-xl shadow-md border border-border/50 p-12 backdrop-blur-sm">
+        <div className="text-center space-y-4">
+          <div className="text-6xl mb-6 animate-bounce-light">📝</div>
+          <div className="space-y-2">
+            <p className="text-foreground text-xl font-semibold">No tasks found</p>
+            <p className="text-muted-foreground">Create your first task to get started and stay organized</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+    <div className="bg-gradient-card rounded-xl shadow-md border border-border/50 overflow-hidden backdrop-blur-sm">
       {/* Mobile-friendly header */}
-      <div className="bg-gray-50 border-b px-4 py-3 hidden md:block">
-        <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700">
-          <div className="col-span-1">ENABLE</div>
-          <div className="col-span-5">TASK NAME</div>
-          <div className="col-span-3">CATEGORIZATION</div>
-          <div className="col-span-2">CREATED BY</div>
-          <div className="col-span-1 text-center">ACTIONS</div>
+      <div className="bg-gradient-to-r from-muted/50 to-muted/30 border-b border-border/50 px-4 py-4 hidden md:block">
+        <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+          <div className="col-span-1">Enable</div>
+          <div className="col-span-5">Task Name</div>
+          <div className="col-span-3">Category</div>
+          <div className="col-span-2">Created By</div>
+          <div className="col-span-1 text-center">Actions</div>
         </div>
       </div>
 
       {/* Task List */}
-      <div className="divide-y divide-gray-100">
-        {tasks.map((task) => (
+      <div className="divide-y divide-border/30">
+        {tasks.map((task, index) => (
           <div
             key={task.id}
-            className={`p-4 hover:bg-gray-50 transition-colors ${
-              task.selected ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+            className={`p-4 transition-all duration-200 hover:bg-muted/30 hover:shadow-sm group animate-slide-up ${
+              task.selected ? 'bg-primary/5 border-l-4 border-l-primary shadow-sm' : ''
             }`}
+            style={{ animationDelay: `${index * 50}ms` }}
           >
             {/* Mobile Layout */}
             <div className="block md:hidden space-y-3">
@@ -122,7 +125,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(task)}
-                    className="h-8 w-8 p-0 text-gray-400 hover:text-blue-500"
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 hover:scale-110 transition-all duration-200"
                   >
                     <Edit3 className="w-4 h-4" />
                   </Button>
@@ -131,7 +134,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => onDelete(task.id)}
-                    className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:scale-110 transition-all duration-200"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -187,7 +190,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => onEdit(task)}
-                  className="h-8 w-8 p-0 text-gray-400 hover:text-blue-500"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 hover:scale-110 transition-all duration-200"
                 >
                   <Edit3 className="w-4 h-4" />
                 </Button>
@@ -196,7 +199,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => onDelete(task.id)}
-                  className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:scale-110 transition-all duration-200"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>

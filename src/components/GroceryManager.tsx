@@ -51,13 +51,15 @@ const GroceryManager = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-subtle">
       {/* Mobile Header */}
-      <div className="bg-white shadow-sm border-b p-4 mb-4">
-        <div className="flex justify-between items-center mb-3">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">Grocery Manager</h1>
-            <p className="text-sm text-gray-500">Smart grocery shopping</p>
+      <div className="bg-gradient-card shadow-lg border-b border-border/50 p-6 mb-6 backdrop-blur-sm">
+        <div className="flex justify-between items-center">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Grocery Manager
+            </h1>
+            <p className="text-sm text-muted-foreground font-medium">Smart grocery shopping made simple</p>
           </div>
         </div>
       </div>

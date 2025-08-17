@@ -86,27 +86,29 @@ const FeedbackWidget = () => {
   };
 
   return (
-    <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200">
+    <Card className="bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50 border-blue-200/50 backdrop-blur-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate-slide-up">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-blue-100/50 transition-colors">
+          <CardHeader className="cursor-pointer hover:bg-blue-100/30 transition-all duration-300 rounded-t-lg">
             <CardTitle className="flex items-center justify-between text-blue-800">
-              <div className="flex items-center gap-2">
-                <div className="bg-blue-100 p-2 rounded-full">
-                  <MessageSquare className="w-4 h-4 text-blue-600" />
+              <div className="flex items-center gap-3">
+                <div className="bg-gradient-to-br from-blue-100 to-cyan-100 p-3 rounded-full hover:scale-110 transition-transform duration-300">
+                  <MessageSquare className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <span className="font-medium">MVP Feedback</span>
-                  <p className="text-sm font-normal text-blue-700 mt-1">
+                  <span className="font-semibold">MVP Feedback</span>
+                  <p className="text-sm font-normal text-blue-700 mt-1 leading-relaxed">
                     Help us improve MaidEasy with your thoughts!
                   </p>
                 </div>
               </div>
-              {isOpen ? (
-                <ChevronUp className="w-5 h-5 text-blue-600" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-blue-600" />
-              )}
+              <div className="transition-transform duration-300 hover:scale-110">
+                {isOpen ? (
+                  <ChevronUp className="w-5 h-5 text-blue-600" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-blue-600" />
+                )}
+              </div>
             </CardTitle>
           </CardHeader>
         </CollapsibleTrigger>
@@ -185,10 +187,13 @@ const FeedbackWidget = () => {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
                 >
                   {isSubmitting ? (
-                    "Submitting..."
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Submitting...
+                    </div>
                   ) : (
                     <>
                       <Send className="w-4 h-4 mr-2" />

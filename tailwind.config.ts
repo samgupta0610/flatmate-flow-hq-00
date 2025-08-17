@@ -120,6 +120,22 @@ export default {
         "float": {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-5px)" }
+        },
+        "shimmer": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" }
+        },
+        "slide-up": {
+          "0%": { transform: "translateY(20px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" }
+        },
+        "slide-down": {
+          "0%": { transform: "translateY(-20px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" }
+        },
+        "pulse-glow": {
+          "0%, 100%": { boxShadow: "0 0 20px hsl(159 84% 39% / 0.1)" },
+          "50%": { boxShadow: "0 0 30px hsl(159 84% 39% / 0.3)" }
         }
       },
       animation: {
@@ -128,7 +144,11 @@ export default {
         "fade-in": "fade-in 0.5s ease-out",
         "bounce-light": "bounce-light 2s infinite",
         "confetti": "confetti 1s ease-out forwards",
-        "float": "float 3s ease-in-out infinite"
+        "float": "float 3s ease-in-out infinite",
+        "shimmer": "shimmer 2s infinite",
+        "slide-up": "slide-up 0.3s ease-out",
+        "slide-down": "slide-down 0.3s ease-out",
+        "pulse-glow": "pulse-glow 2s ease-in-out infinite"
       },
       fontFamily: {
         poppins: ["Poppins", "sans-serif"],
