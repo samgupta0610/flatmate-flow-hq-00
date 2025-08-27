@@ -32,21 +32,65 @@ const MealWhatsAppReminder: React.FC<MealWhatsAppReminderProps> = ({ mealPlan, s
   const generateMealMessage = () => {
     if (!selectedDayPlan) return 'No meals planned for today';
 
+    const greeting = selectedLanguage === 'hindi' 
+      ? 'नमस्ते!' 
+      : selectedLanguage === 'tamil' 
+      ? 'வணக்கம்!' 
+      : selectedLanguage === 'telugu'
+      ? 'నమస్కారం!'
+      : selectedLanguage === 'kannada'
+      ? 'ನಮಸ್ಕಾರ!'
+      : 'Hello!';
+    
+    const mealPlanHeader = selectedLanguage === 'hindi' 
+      ? `आज का भोजन (${selectedDay}):` 
+      : selectedLanguage === 'tamil' 
+      ? `இன்றைய உணவு (${selectedDay}):` 
+      : selectedLanguage === 'telugu'
+      ? `నేటి భోజనం (${selectedDay}):`
+      : selectedLanguage === 'kannada'
+      ? `ಇಂದಿನ ಊಟ (${selectedDay}):`
+      : `Today's meal plan (${selectedDay}):`;
+    
+    const thankYou = selectedLanguage === 'hindi' 
+      ? 'कृपया इन्हें तैयार करें। धन्यवाद!' 
+      : selectedLanguage === 'tamil' 
+      ? 'இவற்றை தயாரிக்கவும். நன்றி!' 
+      : selectedLanguage === 'telugu'
+      ? 'దయచేసి వీటిని తయారు చేయండి. ధన్యవాదాలు!'
+      : selectedLanguage === 'kannada'
+      ? 'ದಯವಿಟ್ಟು ಇವುಗಳನ್ನು ತಯಾರಿಸಿ. ಧನ್ಯವಾದಗಳು!'
+      : 'Please prepare accordingly. Thank you!';
+
     const meals = [];
     if (selectedDayPlan.breakfast) {
-      meals.push(`Breakfast: ${selectedDayPlan.breakfast.name} (${selectedDayPlan.attendees.breakfast} people)`);
+      const breakfastLabel = selectedLanguage === 'hindi' ? 'नाश्ता' 
+        : selectedLanguage === 'tamil' ? 'காலை உணவு' 
+        : selectedLanguage === 'telugu' ? 'అల్పాహారం'
+        : selectedLanguage === 'kannada' ? 'ಬೆಳಗಿನ ಊಟ'
+        : 'Breakfast';
+      meals.push(`${breakfastLabel}: ${selectedDayPlan.breakfast.name} (${selectedDayPlan.attendees.breakfast} people)`);
     }
     if (selectedDayPlan.lunch) {
-      meals.push(`Lunch: ${selectedDayPlan.lunch.name} (${selectedDayPlan.attendees.lunch} people)`);
+      const lunchLabel = selectedLanguage === 'hindi' ? 'दोपहर का खाना' 
+        : selectedLanguage === 'tamil' ? 'மதிய உணவு' 
+        : selectedLanguage === 'telugu' ? 'మధ్యాహ్న భోజనం'
+        : selectedLanguage === 'kannada' ? 'ಮಧ್ಯಾಹ್ನದ ಊಟ'
+        : 'Lunch';
+      meals.push(`${lunchLabel}: ${selectedDayPlan.lunch.name} (${selectedDayPlan.attendees.lunch} people)`);
     }
     if (selectedDayPlan.dinner) {
-      meals.push(`Dinner: ${selectedDayPlan.dinner.name} (${selectedDayPlan.attendees.dinner} people)`);
+      const dinnerLabel = selectedLanguage === 'hindi' ? 'रात का खाना' 
+        : selectedLanguage === 'tamil' ? 'இரவு உணவு' 
+        : selectedLanguage === 'telugu' ? 'రాత్రి భోజనం'
+        : selectedLanguage === 'kannada' ? 'ರಾತ್ರಿಯ ಊಟ'
+        : 'Dinner';
+      meals.push(`${dinnerLabel}: ${selectedDayPlan.dinner.name} (${selectedDayPlan.attendees.dinner} people)`);
     }
 
     if (meals.length === 0) return 'No meals planned for today';
 
-    const message = `Hello! Here are today's meal plans:\n${meals.join('\n')}\n\nPlease prepare accordingly. Thank you!`;
-    return getTranslatedMessage(message, selectedLanguage);
+    return `${greeting}\n\n${mealPlanHeader}\n\n${meals.join('\n')}\n\n${thankYou}`;
   };
 
   const handleSendMealReminder = async () => {

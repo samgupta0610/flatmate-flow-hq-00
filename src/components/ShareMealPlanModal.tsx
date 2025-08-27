@@ -242,6 +242,13 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
     return `${confirmationText} ${scheduleDetails}`;
   };
 
+  // Reset custom message when language changes to ensure preview updates
+  useEffect(() => {
+    if (!isEditingMessage && customMessage) {
+      setCustomMessage(''); // Clear cached message to force regeneration
+    }
+  }, [selectedLanguage]);
+
   const handleSendNow = async () => {
     const messageToSend = isEditingMessage ? customMessage : generateTranslatedMessage();
     
@@ -362,7 +369,7 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
                 />
               ) : (
                 <pre className="text-sm whitespace-pre-wrap text-gray-700">
-                  {customMessage || generateTranslatedMessage()}
+                  {generateTranslatedMessage()}
                 </pre>
               )}
             </div>
@@ -384,7 +391,7 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    setCustomMessage(generateTranslatedMessage());
+                    setCustomMessage('');
                     setIsEditingMessage(false);
                   }}
                 >

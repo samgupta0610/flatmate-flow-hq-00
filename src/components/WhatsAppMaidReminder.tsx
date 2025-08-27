@@ -12,9 +12,10 @@ import { Link } from 'react-router-dom';
 
 interface WhatsAppMaidReminderProps {
   selectedTasks: Array<{ title: string }>;
+  selectedLanguage?: string;
 }
 
-const WhatsAppMaidReminder: React.FC<WhatsAppMaidReminderProps> = ({ selectedTasks }) => {
+const WhatsAppMaidReminder: React.FC<WhatsAppMaidReminderProps> = ({ selectedTasks, selectedLanguage = 'english' }) => {
   const [selectedContact, setSelectedContact] = useState<any>(null);
   const { contacts, loading } = useHouseholdContacts();
   const { houseGroup } = useHouseGroupInfo();
@@ -38,7 +39,7 @@ const WhatsAppMaidReminder: React.FC<WhatsAppMaidReminderProps> = ({ selectedTas
       title: task.title, 
       selected: true 
     }));
-    const message = generateWhatsAppMessage(tasksWithSelected, 'english', houseGroup?.group_name);
+    const message = generateWhatsAppMessage(tasksWithSelected, selectedLanguage, houseGroup?.group_name);
     
     await sendMessage({
       to: selectedContact.phone_number,
@@ -109,7 +110,7 @@ const WhatsAppMaidReminder: React.FC<WhatsAppMaidReminderProps> = ({ selectedTas
                   title: task.title, 
                   selected: true 
                 })), 
-                'english', 
+                selectedLanguage, 
                 houseGroup?.group_name
               ) : 
               'No tasks selected'
