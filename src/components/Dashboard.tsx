@@ -1,18 +1,32 @@
 
 import { useNavigate } from "react-router-dom";
-import { Plus, Lightbulb, Heart, Sparkles } from "lucide-react";
+import { Plus, Heart, Sparkles, Info, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import TodaysMenuWidget from "./TodaysMenuWidget";
 import TodaysTasksWidget from "./TodaysTasksWidget";
 import FeedbackWidget from "./FeedbackWidget";
-import { useState } from "react";
+import OnboardingGuide from "./OnboardingGuide";
+import DashboardSidebar from "./DashboardSidebar";
+import { useState, useEffect } from "react";
 import { MealItem, DailyPlan } from '@/types/meal';
 import { daysOfWeek, sampleWeeklyPlan } from '@/constants/meal';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [weeklyPlan] = useState(sampleWeeklyPlan);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
+
+  useEffect(() => {
+    // Check if user has completed onboarding
+    const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+    const isGuest = localStorage.getItem('guestMode');
+    
+    if (!onboardingCompleted && (isGuest || window.location.pathname === '/')) {
+      setShowOnboarding(true);
+    }
+  }, []);
 
   // Get today's day name
   const getTodayName = () => {
@@ -49,13 +63,11 @@ const Dashboard = () => {
     "🏠 Keep your home organized with daily routines"
   ];
 
-  const randomTip = tips[Math.floor(Math.random() * tips.length)];
-
   return (
     <div className="min-h-screen bg-gradient-subtle p-4">
       <div className="max-w-md mx-auto md:max-w-2xl space-y-6">
         {/* Welcome Header */}
-        <div className="text-center space-y-4 p-6 animate-slide-down">
+        <div className="text-center space-y-4 p-6 animate-slide-down relative">
           <div className="relative">
             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent flex items-center justify-center gap-3">
               <div className="p-2 bg-gradient-brand rounded-full animate-pulse-glow">
@@ -68,6 +80,16 @@ const Dashboard = () => {
           <p className="text-sm md:text-base text-muted-foreground font-medium">
             {getCurrentDate()} • <span className="text-primary">Let's make your day amazing!</span>
           </p>
+          
+          {/* Info Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowSidebar(true)}
+            className="absolute top-2 right-2 text-muted-foreground hover:text-primary transition-colors"
+          >
+            <Info className="w-4 h-4" />
+          </Button>
         </div>
 
         {/* Today's Menu Widget */}
@@ -101,52 +123,6 @@ const Dashboard = () => {
           </Button>
         </div>
 
-        {/* Daily Tip */}
-        <Card className="bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 border-amber-200/50 backdrop-blur-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate-slide-up">
-          <CardContent className="p-5">
-            <div className="flex items-start space-x-4">
-              <div className="bg-gradient-to-br from-amber-100 to-yellow-100 p-3 rounded-full hover:scale-110 transition-transform duration-300 hover:rotate-12">
-                <Lightbulb className="w-5 h-5 text-amber-600" />
-              </div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-amber-800 mb-2 flex items-center gap-2">
-                  Daily Tip
-                  <div className="h-1 w-1 bg-amber-400 rounded-full animate-pulse"></div>
-                </h4>
-                <p className="text-sm text-amber-700 leading-relaxed">
-                  {randomTip}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Helpful Hints */}
-        <Card className="bg-gradient-to-br from-violet-50 via-purple-50 to-pink-50 border-violet-200/50 backdrop-blur-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate-slide-up">
-          <CardContent className="p-5">
-            <h4 className="font-semibold text-violet-800 mb-4 flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-violet-100 to-purple-100 rounded-full hover:scale-110 transition-transform duration-300">
-                <Sparkles className="w-4 h-4 text-violet-600" />
-              </div>
-              Make the Most of MaidEasy
-            </h4>
-            <div className="space-y-3 text-sm text-violet-700">
-              <div className="flex items-center gap-3 group">
-                <div className="w-2 h-2 bg-gradient-to-r from-violet-400 to-purple-400 rounded-full group-hover:scale-125 transition-transform duration-300"></div>
-                <span className="leading-relaxed">Plan your meals in advance to save time and reduce stress</span>
-              </div>
-              <div className="flex items-center gap-3 group">
-                <div className="w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full group-hover:scale-125 transition-transform duration-300"></div>
-                <span className="leading-relaxed">Create recurring tasks for daily routines like cleaning</span>
-              </div>
-              <div className="flex items-center gap-3 group">
-                <div className="w-2 h-2 bg-gradient-to-r from-pink-400 to-violet-400 rounded-full group-hover:scale-125 transition-transform duration-300"></div>
-                <span className="leading-relaxed">Share plans with your household for better coordination</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* MVP Feedback Widget */}
         <FeedbackWidget />
 
@@ -158,6 +134,18 @@ const Dashboard = () => {
         >
           <Plus className="w-6 h-6" />
         </Button>
+
+        {/* Onboarding Guide */}
+        <OnboardingGuide 
+          isOpen={showOnboarding} 
+          onClose={() => setShowOnboarding(false)} 
+        />
+
+        {/* Dashboard Sidebar */}
+        <DashboardSidebar 
+          isOpen={showSidebar} 
+          onClose={() => setShowSidebar(false)} 
+        />
       </div>
     </div>
   );

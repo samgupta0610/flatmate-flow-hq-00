@@ -25,8 +25,8 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // If not authenticated, redirect to login
-  if (!user) {
+  // If not authenticated and not in guest mode, redirect to login
+  if (!user && !localStorage.getItem('guestMode')) {
     return <Navigate to="/auth" replace />;
   }
 
