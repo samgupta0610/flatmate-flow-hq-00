@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User, ArrowRight } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -24,6 +24,12 @@ const Auth = () => {
       navigate('/', { replace: true });
     }
   }, [user, navigate]);
+
+  const handleGuestAccess = () => {
+    // Store guest mode in localStorage and navigate to dashboard
+    localStorage.setItem('guestMode', 'true');
+    navigate('/', { replace: true });
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,9 +64,13 @@ const Auth = () => {
         }
       } else {
         toast({
-          title: "Check your email",
-          description: "We've sent you a confirmation link to complete your registration.",
+          title: "Account created successfully! ✅",
+          description: "You can now sign in to your account.",
         });
+        // Auto-signin after successful signup for faster onboarding
+        setTimeout(() => {
+          handleSignIn(e);
+        }, 1000);
       }
     } catch (error: any) {
       toast({
@@ -217,6 +227,24 @@ const Auth = () => {
               </form>
             </TabsContent>
           </Tabs>
+
+          {/* Guest Access Option */}
+          <div className="mt-6 pt-6 border-t border-border">
+            <div className="text-center space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Want to explore first?
+              </p>
+              <Button
+                variant="outline"
+                onClick={handleGuestAccess}
+                className="w-full flex items-center gap-2 hover:bg-muted/50"
+              >
+                <User className="w-4 h-4" />
+                Continue as Guest
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
