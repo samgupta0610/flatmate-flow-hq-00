@@ -26,7 +26,7 @@ const MaidTasks = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [editingTask, setEditingTask] = useState<any>(null);
-  const [bulkMode, setBulkMode] = useState(false);
+  
   const categories = [{
     value: "all",
     label: "All Categories"
@@ -92,23 +92,6 @@ const MaidTasks = () => {
       description: "Your changes have been saved successfully."
     });
   };
-  const handleBulkAction = async (action: 'activate' | 'deactivate' | 'delete') => {
-    const selectedTaskIds = tasks.filter(task => task.selected && !task.completed).map(task => task.id);
-    for (const taskId of selectedTaskIds) {
-      if (action === 'delete') {
-        await deleteTask(taskId);
-      } else {
-        await updateTask(taskId, {
-          selected: false
-        }); // Reset selection after action
-      }
-    }
-    setBulkMode(false);
-    toast({
-      title: `${action === 'delete' ? 'Tasks deleted' : action === 'activate' ? 'Tasks activated' : 'Tasks deactivated'}! ✅`,
-      description: `${selectedTaskIds.length} task${selectedTaskIds.length > 1 ? 's' : ''} ${action === 'delete' ? 'deleted' : action + 'd'} successfully.`
-    });
-  };
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -160,32 +143,6 @@ const MaidTasks = () => {
         </div>
       </div>
 
-      {/* Bulk Action Bar */}
-      {selectedTasks.length > 0 && <div className="sticky top-16 z-30 bg-primary/5 backdrop-blur-sm border-b border-primary/20 p-3">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-primary">
-                  {selectedTasks.length} task{selectedTasks.length > 1 ? 's' : ''} selected
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => handleBulkAction('activate')} className="flex items-center gap-2 hover:bg-green-50 hover:border-green-200">
-                  <Check className="w-4 h-4" />
-                  Activate
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => handleBulkAction('deactivate')} className="flex items-center gap-2 hover:bg-yellow-50 hover:border-yellow-200">
-                  <X className="w-4 h-4" />
-                  Deactivate
-                </Button>
-                <Button variant="destructive" size="sm" onClick={() => handleBulkAction('delete')} className="flex items-center gap-2">
-                  <Trash2 className="w-4 h-4" />
-                  Delete
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>}
 
       {/* Auto-Send Testing Section */}
       
