@@ -149,7 +149,7 @@ const MaidTasks = () => {
               <Button 
                 onClick={() => setShowAddModal(true)} 
                 size="lg" 
-                className="bg-gradient-primary hover:shadow-glow flex items-center gap-2 px-6 py-3 text-base font-semibold hover:scale-105 transition-all duration-200"
+                className="bg-gradient-primary text-white hover:shadow-glow flex items-center gap-2 px-6 py-3 text-base font-semibold hover:scale-105 transition-all duration-200 border border-white/20 shadow-md"
               >
                 <Plus className="w-5 h-5" />
                 <span className="hidden sm:inline">Add New Task</span>
