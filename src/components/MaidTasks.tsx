@@ -79,16 +79,11 @@ const MaidTasks = () => {
     remarks: string;
     priority: string;
   }) => {
-    await addTask(
-      taskData.title, 
-      taskData.category, 
-      taskData.daysOfWeek, 
-      'cleaning', 
-      taskData.remarks, 
-      false, // favorite (removed)
-      false, // optional (removed)
-      taskData.priority
-    );
+    await addTask(taskData.title, taskData.category, taskData.daysOfWeek, 'cleaning', taskData.remarks, false,
+    // favorite (removed)
+    false,
+    // optional (removed)
+    taskData.priority);
   };
   const handleUpdateTask = async (taskId: string, updates: any) => {
     await updateTask(taskId, updates);
@@ -97,18 +92,17 @@ const MaidTasks = () => {
       description: "Your changes have been saved successfully."
     });
   };
-
   const handleBulkAction = async (action: 'activate' | 'deactivate' | 'delete') => {
     const selectedTaskIds = tasks.filter(task => task.selected && !task.completed).map(task => task.id);
-    
     for (const taskId of selectedTaskIds) {
       if (action === 'delete') {
         await deleteTask(taskId);
       } else {
-        await updateTask(taskId, { selected: false }); // Reset selection after action
+        await updateTask(taskId, {
+          selected: false
+        }); // Reset selection after action
       }
     }
-    
     setBulkMode(false);
     toast({
       title: `${action === 'delete' ? 'Tasks deleted' : action === 'activate' ? 'Tasks activated' : 'Tasks deactivated'}! ✅`,
@@ -133,24 +127,14 @@ const MaidTasks = () => {
               <p className="text-muted-foreground">Manage your cleaning tasks efficiently</p>
             </div>
             <div className="flex items-center gap-3">
-              <Button 
-                onClick={() => setShowShareModal(true)} 
-                variant="outline" 
-                size="default"
-                disabled={selectedTasks.length === 0} 
-                className="flex items-center gap-2 hover:scale-105 transition-all"
-              >
+              <Button onClick={() => setShowShareModal(true)} variant="outline" size="default" disabled={selectedTasks.length === 0} className="flex items-center gap-2 hover:scale-105 transition-all">
                 <Share2 className="w-4 h-4" />
                 <span className="hidden sm:inline">Share</span> 
                 <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs">
                   {selectedTasks.length}
                 </span>
               </Button>
-              <Button 
-                onClick={() => setShowAddModal(true)} 
-                size="lg" 
-                className="bg-gradient-primary text-white hover:shadow-glow flex items-center gap-2 px-6 py-3 text-base font-semibold hover:scale-105 transition-all duration-200 border border-white/20 shadow-md"
-              >
+              <Button onClick={() => setShowAddModal(true)} size="lg" className="bg-gradient-primary hover:shadow-glow flex items-center gap-2 px-6 py-3 text-base font-semibold hover:scale-105 transition-all duration-200 border border-white/20 shadow-md text-slate-900">
                 <Plus className="w-5 h-5" />
                 <span className="hidden sm:inline">Add New Task</span>
                 <span className="sm:hidden">Add</span>
@@ -166,19 +150,10 @@ const MaidTasks = () => {
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input 
-                placeholder="Search tasks..." 
-                value={searchTerm} 
-                onChange={e => setSearchTerm(e.target.value)} 
-                className="pl-10 bg-background/50 backdrop-blur-sm border-border/50 focus:bg-background transition-all" 
-              />
+              <Input placeholder="Search tasks..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 bg-background/50 backdrop-blur-sm border-border/50 focus:bg-background transition-all" />
             </div>
             
-            <select 
-              value={categoryFilter} 
-              onChange={e => setCategoryFilter(e.target.value)} 
-              className="flex h-10 w-full sm:w-56 rounded-lg border border-border/50 bg-background/50 backdrop-blur-sm px-3 py-2 text-sm focus:bg-background transition-all"
-            >
+            <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} className="flex h-10 w-full sm:w-56 rounded-lg border border-border/50 bg-background/50 backdrop-blur-sm px-3 py-2 text-sm focus:bg-background transition-all">
               {categories.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
             </select>
           </div>
@@ -186,8 +161,7 @@ const MaidTasks = () => {
       </div>
 
       {/* Bulk Action Bar */}
-      {selectedTasks.length > 0 && (
-        <div className="sticky top-16 z-30 bg-primary/5 backdrop-blur-sm border-b border-primary/20 p-3">
+      {selectedTasks.length > 0 && <div className="sticky top-16 z-30 bg-primary/5 backdrop-blur-sm border-b border-primary/20 p-3">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -196,50 +170,29 @@ const MaidTasks = () => {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleBulkAction('activate')}
-                  className="flex items-center gap-2 hover:bg-green-50 hover:border-green-200"
-                >
+                <Button variant="outline" size="sm" onClick={() => handleBulkAction('activate')} className="flex items-center gap-2 hover:bg-green-50 hover:border-green-200">
                   <Check className="w-4 h-4" />
                   Activate
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleBulkAction('deactivate')}
-                  className="flex items-center gap-2 hover:bg-yellow-50 hover:border-yellow-200"
-                >
+                <Button variant="outline" size="sm" onClick={() => handleBulkAction('deactivate')} className="flex items-center gap-2 hover:bg-yellow-50 hover:border-yellow-200">
                   <X className="w-4 h-4" />
                   Deactivate
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleBulkAction('delete')}
-                  className="flex items-center gap-2"
-                >
+                <Button variant="destructive" size="sm" onClick={() => handleBulkAction('delete')} className="flex items-center gap-2">
                   <Trash2 className="w-4 h-4" />
                   Delete
                 </Button>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        </div>}
 
       {/* Auto-Send Testing Section */}
       
 
       {/* Task List */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
-        <TaskTable 
-          tasks={filteredTasks} 
-          onUpdate={handleUpdateTask} 
-          onDelete={deleteTask} 
-          onEdit={setEditingTask} 
-        />
+        <TaskTable tasks={filteredTasks} onUpdate={handleUpdateTask} onDelete={deleteTask} onEdit={setEditingTask} />
       </div>
 
       {/* Modals */}
