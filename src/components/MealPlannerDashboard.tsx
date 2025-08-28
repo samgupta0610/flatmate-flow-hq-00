@@ -1,23 +1,27 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, Settings, Share2, FileText, UtensilsCrossed, CalendarIcon } from 'lucide-react';
 import { format } from "date-fns";
+import { CalendarIcon, Plus, Share2, Settings, ChefHat, Library, FileText, UtensilsCrossed } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { MealItem, DailyPlan } from '@/types/meal';
+import { MealMenu } from '@/hooks/useMenuManagement';
 import CreateMenuModal from './CreateMenuModal';
 import MealSettingsModal from './MealSettingsModal';
 import ShareMealPlanModal from './ShareMealPlanModal';
 import AddFoodItemModal from './AddFoodItemModal';
+import MenuOnboardingWizard from './MenuOnboardingWizard';
+import MenuLibrary from './MenuLibrary';
 
 interface MealPlannerDashboardProps {
   selectedDate: Date;
   selectedDatePlan: DailyPlan;
   mealItems: MealItem[];
+  activeMenu?: MealMenu | null;
   onDateSelect: (date: Date) => void;
   onAddMealToDay: (day: string, mealType: keyof DailyPlan, meal: MealItem) => void;
   onRemoveMealFromDay: (day: string, mealType: keyof DailyPlan, mealId: number) => void;
@@ -28,6 +32,7 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
   selectedDate,
   selectedDatePlan,
   mealItems,
+  activeMenu,
   onDateSelect,
   onAddMealToDay,
   onRemoveMealFromDay,
@@ -37,6 +42,8 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
   const [showSettings, setShowSettings] = useState(false);
   const [showSharePlan, setShowSharePlan] = useState(false);
   const [showAddFood, setShowAddFood] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
   const [selectedMealType, setSelectedMealType] = useState<keyof DailyPlan>('breakfast');
 
   const getTotalServingsForMeal = (mealType: keyof DailyPlan) => {
