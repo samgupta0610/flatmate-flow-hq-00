@@ -29,14 +29,20 @@ const MealPlanner = () => {
   };
 
   const selectedDayName = getDayNameFromDate(selectedDate);
-  const selectedDatePlan = weeklyPlan[selectedDayName];
+  const selectedDatePlan = weeklyPlan[selectedDayName] || {
+    breakfast: [],
+    lunch: [],
+    dinner: [],
+    snack: []
+  };
 
   const addMealToDay = (day: string, mealType: keyof DailyPlan, meal: MealItem) => {
+    const currentDayPlan = weeklyPlan[day] || { breakfast: [], lunch: [], dinner: [], snack: [] };
     const updatedPlan = {
       ...weeklyPlan,
       [day]: {
-        ...weeklyPlan[day],
-        [mealType]: [...weeklyPlan[day][mealType], meal]
+        ...currentDayPlan,
+        [mealType]: [...(currentDayPlan[mealType] || []), meal]
       }
     };
     setWeeklyPlan(updatedPlan);
@@ -48,11 +54,12 @@ const MealPlanner = () => {
   };
 
   const removeMealFromDay = (day: string, mealType: keyof DailyPlan, mealId: number) => {
+    const currentDayPlan = weeklyPlan[day] || { breakfast: [], lunch: [], dinner: [], snack: [] };
     const updatedPlan = {
       ...weeklyPlan,
       [day]: {
-        ...weeklyPlan[day],
-        [mealType]: weeklyPlan[day][mealType].filter(meal => meal.id !== mealId)
+        ...currentDayPlan,
+        [mealType]: (currentDayPlan[mealType] || []).filter(meal => meal.id !== mealId)
       }
     };
     setWeeklyPlan(updatedPlan);
@@ -64,11 +71,12 @@ const MealPlanner = () => {
   };
 
   const updateMealPeopleCount = (day: string, mealType: keyof DailyPlan, mealId: number, peopleCount: number) => {
+    const currentDayPlan = weeklyPlan[day] || { breakfast: [], lunch: [], dinner: [], snack: [] };
     const updatedPlan = {
       ...weeklyPlan,
       [day]: {
-        ...weeklyPlan[day],
-        [mealType]: weeklyPlan[day][mealType].map(meal => 
+        ...currentDayPlan,
+        [mealType]: (currentDayPlan[mealType] || []).map(meal => 
           meal.id === mealId ? { ...meal, peopleCount } : meal
         )
       }
