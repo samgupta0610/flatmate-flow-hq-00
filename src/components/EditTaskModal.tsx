@@ -1,13 +1,23 @@
-
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { PrioritySlider } from "@/components/ui/priority-slider";
-import { Pencil } from 'lucide-react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Box,
+  Typography,
+  Chip,
+  Stack,
+  Slider,
+  FormControl,
+  FormLabel,
+  ToggleButtonGroup,
+  ToggleButton,
+  Divider,
+} from '@mui/material';
+import { Edit as EditIcon } from '@mui/icons-material';
 
 interface MaidTask {
   id: string;
@@ -63,6 +73,8 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
   ];
 
   const priorityMap = ['low', 'medium', 'high', 'urgent'];
+  const priorityLabels = ['Low', 'Medium', 'High', 'Urgent'];
+  const priorityColors = ['#10B981', '#FBBF24', '#F59E0B', '#EF4444'];
   const priorityIndexMap = { low: 0, medium: 1, high: 2, urgent: 3 };
 
   // Pre-populate form when task changes
@@ -106,117 +118,188 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Pencil className="w-5 h-5 text-blue-600" />
-            Edit Task
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-5">
-          {/* Task Name */}
-          <div className="space-y-2">
-            <Label htmlFor="task-name" className="text-sm font-medium">Task Name</Label>
-            <Input
-              id="task-name"
-              value={taskName}
-              onChange={(e) => setTaskName(e.target.value)}
-              placeholder="Enter task name..."
-              className="w-full"
-            />
-          </div>
+  const handleClose = () => {
+    if (!isSaving) {
+      onClose();
+    }
+  };
 
-          {/* Priority Slider */}
-          <PrioritySlider
-            value={priority}
-            onChange={setPriority}
+  return (
+    <Dialog
+      open={isOpen}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          maxHeight: '90vh',
+        },
+      }}
+    >
+      <DialogTitle>
+        <Box display="flex" alignItems="center" gap={1}>
+          <EditIcon sx={{ color: 'primary.main' }} />
+          <Typography variant="h6" component="span" fontWeight={600}>
+            Edit Task
+          </Typography>
+        </Box>
+      </DialogTitle>
+
+      <DialogContent dividers>
+        <Stack spacing={3}>
+          {/* Task Name */}
+          <TextField
+            label="Task Name"
+            placeholder="Enter task name..."
+            value={taskName}
+            onChange={(e) => setTaskName(e.target.value)}
+            required
+            fullWidth
+            autoFocus
+            variant="outlined"
           />
 
+          {/* Priority Slider */}
+          <FormControl fullWidth>
+            <FormLabel sx={{ mb: 2, fontWeight: 500 }}>
+              Priority: {priorityLabels[priority]}
+            </FormLabel>
+            <Slider
+              value={priority}
+              onChange={(_, value) => setPriority(value as number)}
+              min={0}
+              max={3}
+              step={1}
+              marks={priorityLabels.map((label, idx) => ({
+                value: idx,
+                label,
+              }))}
+              sx={{
+                color: priorityColors[priority],
+                '& .MuiSlider-markLabel': {
+                  fontSize: '0.75rem',
+                },
+              }}
+            />
+          </FormControl>
+
+          <Divider />
+
           {/* Frequency Selection */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Frequency</Label>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant={frequency === 'daily' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFrequency('daily')}
-                className="flex-1"
-              >
-                DAILY
-              </Button>
-              <Button
-                type="button"
-                variant={frequency === 'weekly' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFrequency('weekly')}
-                className="flex-1"
-              >
-                WEEKLY
-              </Button>
-            </div>
-          </div>
+          <FormControl fullWidth>
+            <FormLabel sx={{ mb: 1.5, fontWeight: 500 }}>
+              Frequency
+            </FormLabel>
+            <ToggleButtonGroup
+              value={frequency}
+              exclusive
+              onChange={(_, value) => {
+                if (value !== null) {
+                  setFrequency(value);
+                }
+              }}
+              fullWidth
+              sx={{
+                '& .MuiToggleButton-root': {
+                  py: 1,
+                  textTransform: 'uppercase',
+                  fontWeight: 500,
+                },
+              }}
+            >
+              <ToggleButton value="daily">Daily</ToggleButton>
+              <ToggleButton value="weekly">Weekly</ToggleButton>
+            </ToggleButtonGroup>
+          </FormControl>
 
           {/* Weekday Selection for Weekly */}
           {frequency === 'weekly' && (
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">Select Days</Label>
-              <div className="flex gap-2 justify-center">
+            <FormControl fullWidth>
+              <FormLabel sx={{ mb: 1.5, fontWeight: 500 }}>
+                Select Days
+              </FormLabel>
+              <Stack
+                direction="row"
+                spacing={1}
+                justifyContent="center"
+                flexWrap="wrap"
+              >
                 {weekdays.map((day) => (
-                  <button
+                  <Chip
                     key={day.id}
-                    type="button"
+                    label={day.short}
                     onClick={() => toggleDay(day.id)}
-                    className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${
-                      selectedDays.includes(day.id)
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {day.short}
-                  </button>
+                    color={selectedDays.includes(day.id) ? 'primary' : 'default'}
+                    variant={selectedDays.includes(day.id) ? 'filled' : 'outlined'}
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '50%',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      '&:hover': {
+                        transform: 'scale(1.1)',
+                      },
+                    }}
+                  />
                 ))}
-              </div>
-            </div>
+              </Stack>
+            </FormControl>
           )}
 
-          {/* Area */}
-          <div className="space-y-2">
-            <Label htmlFor="area" className="text-sm font-medium">Area</Label>
-            <Input
-              id="area"
-              value={area}
-              onChange={(e) => setArea(e.target.value)}
-              placeholder="e.g., Kitchen, Bathroom, Living Room"
-            />
-          </div>
+          <Divider />
 
+          {/* Area */}
+          <TextField
+            label="Area"
+            placeholder="e.g., Kitchen, Bathroom, Living Room"
+            value={area}
+            onChange={(e) => setArea(e.target.value)}
+            fullWidth
+            variant="outlined"
+          />
 
           {/* Remarks */}
-          <div className="space-y-2">
-            <Label htmlFor="remarks" className="text-sm font-medium">Optional Remarks</Label>
-            <Textarea
-              id="remarks"
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
-              placeholder="Add any special instructions..."
-              rows={3}
-            />
-          </div>
-
-          {/* Save Button */}
-          <Button
-            onClick={handleSave}
-            disabled={!taskName.trim() || isSaving}
-            className="w-full bg-blue-600 hover:bg-blue-700"
-          >
-            {isSaving ? 'Updating...' : 'Update Task'}
-          </Button>
-        </div>
+          <TextField
+            label="Optional Remarks"
+            placeholder="Add any special instructions..."
+            value={remarks}
+            onChange={(e) => setRemarks(e.target.value)}
+            fullWidth
+            multiline
+            rows={3}
+            variant="outlined"
+          />
+        </Stack>
       </DialogContent>
+
+      <DialogActions sx={{ p: 2.5, gap: 1 }}>
+        <Button
+          onClick={handleClose}
+          variant="outlined"
+          disabled={isSaving}
+          sx={{ flex: 1 }}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleSave}
+          variant="contained"
+          disabled={!taskName.trim() || isSaving}
+          sx={{
+            flex: 2,
+            background: 'linear-gradient(135deg, #34D399 0%, #10B981 100%)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+              boxShadow: '0 4px 12px rgba(52, 211, 153, 0.4)',
+            },
+          }}
+        >
+          {isSaving ? 'Updating...' : 'Update Task'}
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 };

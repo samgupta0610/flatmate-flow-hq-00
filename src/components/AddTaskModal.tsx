@@ -1,13 +1,29 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { PrioritySlider } from "@/components/ui/priority-slider";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Plus, Settings, ChevronDown } from 'lucide-react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Box,
+  Typography,
+  Chip,
+  Stack,
+  Collapse,
+  Slider,
+  FormControl,
+  FormLabel,
+  ToggleButtonGroup,
+  ToggleButton,
+  Divider,
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Settings as SettingsIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+} from '@mui/icons-material';
 interface AddTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -37,41 +53,31 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
   const [priority, setPriority] = useState(1); // 0=Low, 1=Medium, 2=High, 3=Urgent
   const [isSaving, setIsSaving] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const weekdays = [{
-    id: 'monday',
-    label: 'Mon',
-    short: 'M'
-  }, {
-    id: 'tuesday',
-    label: 'Tue',
-    short: 'T'
-  }, {
-    id: 'wednesday',
-    label: 'Wed',
-    short: 'W'
-  }, {
-    id: 'thursday',
-    label: 'Thu',
-    short: 'T'
-  }, {
-    id: 'friday',
-    label: 'Fri',
-    short: 'F'
-  }, {
-    id: 'saturday',
-    label: 'Sat',
-    short: 'S'
-  }, {
-    id: 'sunday',
-    label: 'Sun',
-    short: 'S'
-  }];
+
+  const weekdays = [
+    { id: 'monday', label: 'Mon', short: 'M' },
+    { id: 'tuesday', label: 'Tue', short: 'T' },
+    { id: 'wednesday', label: 'Wed', short: 'W' },
+    { id: 'thursday', label: 'Thu', short: 'T' },
+    { id: 'friday', label: 'Fri', short: 'F' },
+    { id: 'saturday', label: 'Sat', short: 'S' },
+    { id: 'sunday', label: 'Sun', short: 'S' },
+  ];
+
   const priorityMap = ['low', 'medium', 'high', 'urgent'];
+  const priorityLabels = ['Low', 'Medium', 'High', 'Urgent'];
+  const priorityColors = ['#10B981', '#FBBF24', '#F59E0B', '#EF4444'];
   const toggleDay = (dayId: string) => {
-    setSelectedDays(prev => prev.includes(dayId) ? prev.filter(d => d !== dayId) : [...prev, dayId]);
+    setSelectedDays(prev =>
+      prev.includes(dayId)
+        ? prev.filter(d => d !== dayId)
+        : [...prev, dayId]
+    );
   };
+
   const handleSave = async () => {
     if (!taskName.trim()) return;
+    
     setIsSaving(true);
     try {
       await onSave({
@@ -79,7 +85,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
         daysOfWeek: frequency === 'daily' ? weekdays.map(d => d.id) : selectedDays,
         category: frequency,
         remarks,
-        priority: priorityMap[priority]
+        priority: priorityMap[priority],
       });
 
       // Reset form
@@ -96,91 +102,220 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
       setIsSaving(false);
     }
   };
-  return <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Plus className="w-5 h-5 text-blue-600" />
+
+  const handleClose = () => {
+    if (!isSaving) {
+      onClose();
+    }
+  };
+  return (
+    <Dialog
+      open={isOpen}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          maxHeight: '90vh',
+        },
+      }}
+    >
+      <DialogTitle>
+        <Box display="flex" alignItems="center" gap={1}>
+          <AddIcon sx={{ color: 'primary.main' }} />
+          <Typography variant="h6" component="span" fontWeight={600}>
             Create Task
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-5">
-          {/* Task Name - Only Required Field */}
-          <div className="space-y-2">
-            <Label htmlFor="task-name" className="text-sm font-medium">
-              Task Name <span className="text-red-500">*</span>
-            </Label>
-            <Input id="task-name" value={taskName} onChange={e => setTaskName(e.target.value)} placeholder="What needs to be done?" className="w-full h-12 text-base" autoFocus />
-            <p className="text-xs text-muted-foreground">
-              Quick tip: Just enter the task name and hit create. You can always add details later!
-            </p>
-          </div>
+          </Typography>
+        </Box>
+      </DialogTitle>
+
+      <DialogContent dividers>
+        <Stack spacing={3}>
+          {/* Task Name - Required Field */}
+          <FormControl fullWidth>
+            <TextField
+              autoFocus
+              label="Task Name"
+              placeholder="What needs to be done?"
+              value={taskName}
+              onChange={(e) => setTaskName(e.target.value)}
+              required
+              fullWidth
+              variant="outlined"
+              helperText="Quick tip: Just enter the task name and hit create. You can always add details later!"
+              sx={{
+                '& .MuiInputBase-root': {
+                  height: '56px',
+                },
+              }}
+            />
+          </FormControl>
 
           {/* Advanced Options - Collapsible */}
-          <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
-            <CollapsibleTrigger asChild>
-              <Button variant="outline" className="w-full flex items-center justify-between p-3 h-auto" type="button">
-                <div className="flex items-center gap-2">
-                  <Settings className="w-4 h-4" />
-                  <span>Advanced Options</span>
-                </div>
-                <ChevronDown className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
-              </Button>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent className="space-y-4 mt-4 animate-accordion-down">
-              {/* Priority Slider */}
-              <PrioritySlider value={priority} onChange={setPriority} />
-
-              {/* Frequency Selection */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Frequency</Label>
-                <div className="flex gap-2">
-                  <Button type="button" variant={frequency === 'daily' ? 'default' : 'outline'} size="sm" onClick={() => setFrequency('daily')} className="flex-1">
-                    DAILY
-                  </Button>
-                  <Button type="button" variant={frequency === 'weekly' ? 'default' : 'outline'} size="sm" onClick={() => setFrequency('weekly')} className="flex-1">
-                    WEEKLY
-                  </Button>
-                </div>
-              </div>
-
-              {/* Weekday Selection for Weekly */}
-              {frequency === 'weekly' && <div className="space-y-3">
-                  <Label className="text-sm font-medium">Select Days</Label>
-                  <div className="flex gap-2 justify-center">
-                    {weekdays.map(day => <button key={day.id} type="button" onClick={() => toggleDay(day.id)} className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${selectedDays.includes(day.id) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
-                        {day.short}
-                      </button>)}
-                  </div>
-                </div>}
-
-              {/* Area */}
-              <div className="space-y-2">
-                <Label htmlFor="area" className="text-sm font-medium">Area</Label>
-                <Input id="area" value={area} onChange={e => setArea(e.target.value)} placeholder="e.g., Kitchen, Bathroom, Living Room" />
-              </div>
-
-              {/* Remarks */}
-              <div className="space-y-2">
-                <Label htmlFor="remarks" className="text-sm font-medium">Notes</Label>
-                <Textarea id="remarks" value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Add any special instructions..." rows={3} />
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-
-          {/* Save Button */}
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose} className="flex-1" type="button">
-              Cancel
+          <Box>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<SettingsIcon />}
+              endIcon={showAdvanced ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              sx={{
+                justifyContent: 'space-between',
+                py: 1.5,
+                textTransform: 'none',
+              }}
+            >
+              Advanced Options
             </Button>
-            <Button onClick={handleSave} disabled={!taskName.trim() || isSaving} className="flex-2 bg-gradient-primary hover:shadow-glow text-slate-950">
-              {isSaving ? 'Creating...' : 'Create Task'}
-            </Button>
-          </div>
-        </div>
+
+            <Collapse in={showAdvanced}>
+              <Stack spacing={3} mt={3}>
+                {/* Priority Slider */}
+                <FormControl fullWidth>
+                  <FormLabel sx={{ mb: 2, fontWeight: 500 }}>
+                    Priority: {priorityLabels[priority]}
+                  </FormLabel>
+                  <Slider
+                    value={priority}
+                    onChange={(_, value) => setPriority(value as number)}
+                    min={0}
+                    max={3}
+                    step={1}
+                    marks={priorityLabels.map((label, idx) => ({
+                      value: idx,
+                      label,
+                    }))}
+                    sx={{
+                      color: priorityColors[priority],
+                      '& .MuiSlider-markLabel': {
+                        fontSize: '0.75rem',
+                      },
+                    }}
+                  />
+                </FormControl>
+
+                <Divider />
+
+                {/* Frequency Selection */}
+                <FormControl fullWidth>
+                  <FormLabel sx={{ mb: 1.5, fontWeight: 500 }}>
+                    Frequency
+                  </FormLabel>
+                  <ToggleButtonGroup
+                    value={frequency}
+                    exclusive
+                    onChange={(_, value) => {
+                      if (value !== null) {
+                        setFrequency(value);
+                      }
+                    }}
+                    fullWidth
+                    sx={{
+                      '& .MuiToggleButton-root': {
+                        py: 1,
+                        textTransform: 'uppercase',
+                        fontWeight: 500,
+                      },
+                    }}
+                  >
+                    <ToggleButton value="daily">Daily</ToggleButton>
+                    <ToggleButton value="weekly">Weekly</ToggleButton>
+                  </ToggleButtonGroup>
+                </FormControl>
+
+                {/* Weekday Selection for Weekly */}
+                {frequency === 'weekly' && (
+                  <FormControl fullWidth>
+                    <FormLabel sx={{ mb: 1.5, fontWeight: 500 }}>
+                      Select Days
+                    </FormLabel>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      justifyContent="center"
+                      flexWrap="wrap"
+                    >
+                      {weekdays.map((day) => (
+                        <Chip
+                          key={day.id}
+                          label={day.short}
+                          onClick={() => toggleDay(day.id)}
+                          color={selectedDays.includes(day.id) ? 'primary' : 'default'}
+                          variant={selectedDays.includes(day.id) ? 'filled' : 'outlined'}
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: '50%',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                              transform: 'scale(1.1)',
+                            },
+                          }}
+                        />
+                      ))}
+                    </Stack>
+                  </FormControl>
+                )}
+
+                <Divider />
+
+                {/* Area */}
+                <TextField
+                  label="Area"
+                  placeholder="e.g., Kitchen, Bathroom, Living Room"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                />
+
+                {/* Remarks */}
+                <TextField
+                  label="Notes"
+                  placeholder="Add any special instructions..."
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  fullWidth
+                  multiline
+                  rows={3}
+                  variant="outlined"
+                />
+              </Stack>
+            </Collapse>
+          </Box>
+        </Stack>
       </DialogContent>
-    </Dialog>;
+
+      <DialogActions sx={{ p: 2.5, gap: 1 }}>
+        <Button
+          onClick={handleClose}
+          variant="outlined"
+          disabled={isSaving}
+          sx={{ flex: 1 }}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleSave}
+          variant="contained"
+          disabled={!taskName.trim() || isSaving}
+          sx={{
+            flex: 2,
+            background: 'linear-gradient(135deg, #34D399 0%, #10B981 100%)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+              boxShadow: '0 4px 12px rgba(52, 211, 153, 0.4)',
+            },
+          }}
+        >
+          {isSaving ? 'Creating...' : 'Create Task'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
 };
+
 export default AddTaskModal;
