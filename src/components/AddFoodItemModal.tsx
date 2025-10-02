@@ -1,11 +1,34 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search } from 'lucide-react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+  Box,
+  Typography,
+  Paper,
+  Stack,
+  IconButton,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemButton,
+  Divider,
+  Chip
+} from '@mui/material';
+import {
+  Add,
+  Search,
+  Close,
+  Restaurant
+} from '@mui/icons-material';
 import { MealItem, DailyPlan } from '@/types/meal';
 import { useToast } from "@/hooks/use-toast";
 
@@ -57,113 +80,222 @@ const AddFoodItemModal: React.FC<AddFoodItemModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] mx-4 max-h-[90vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="text-lg flex items-center gap-2 capitalize">
-            <Plus className="w-5 h-5" />
-            Add Food Item to {selectedMealType}
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4">
+    <Dialog 
+      open={open} 
+      onClose={() => onOpenChange(false)}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: { borderRadius: 2 }
+      }}
+    >
+      <DialogTitle>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Add color="primary" />
+            <Typography variant="h6" fontWeight="bold" textTransform="capitalize">
+              Add Food Item to {selectedMealType}
+            </Typography>
+          </Stack>
+          <IconButton onClick={() => onOpenChange(false)} size="small">
+            <Close />
+          </IconButton>
+        </Stack>
+      </DialogTitle>
+      
+      <DialogContent>
+        <Stack spacing={3} sx={{ pt: 1 }}>
           {/* Search and Filter */}
-          <div className="space-y-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search food items..."
-                className="pl-10"
-              />
-            </div>
+          <Stack spacing={2}>
+            <TextField
+              label="Search food items"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search food items..."
+              fullWidth
+              InputProps={{
+                startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />
+              }}
+              variant="outlined"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 1,
+                  '& fieldset': {
+                    borderColor: 'grey.300',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'grey.400',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                },
+              }}
+            />
 
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Label className="text-sm">Category</Label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="breakfast">Breakfast</SelectItem>
-                    <SelectItem value="lunch">Lunch</SelectItem>
-                    <SelectItem value="dinner">Dinner</SelectItem>
-                    <SelectItem value="general">General</SelectItem>
-                  </SelectContent>
+            <Stack direction="row" spacing={2} alignItems="flex-start">
+              <FormControl fullWidth>
+                <InputLabel 
+                  sx={{ 
+                    fontSize: '0.875rem',
+                    '&.Mui-focused': {
+                      color: 'primary.main',
+                    },
+                    '&.MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -9px) scale(0.75)',
+                    },
+                  }}
+                >
+                  Category
+                </InputLabel>
+                <Select 
+                  value={selectedCategory} 
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  label="Category"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 1,
+                      minHeight: 56,
+                      '& fieldset': {
+                        borderColor: 'grey.300',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'grey.400',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                    },
+                    '& .MuiSelect-select': {
+                      padding: '16px 14px',
+                      fontSize: '0.875rem',
+                      minHeight: 'auto',
+                    },
+                  }}
+                >
+                  <MenuItem value="all" sx={{ fontSize: '0.875rem' }}>All Categories</MenuItem>
+                  <MenuItem value="breakfast" sx={{ fontSize: '0.875rem' }}>Breakfast</MenuItem>
+                  <MenuItem value="lunch" sx={{ fontSize: '0.875rem' }}>Lunch</MenuItem>
+                  <MenuItem value="dinner" sx={{ fontSize: '0.875rem' }}>Dinner</MenuItem>
+                  <MenuItem value="general" sx={{ fontSize: '0.875rem' }}>General</MenuItem>
                 </Select>
-              </div>
-              <div className="w-24">
-                <Label className="text-sm">People</Label>
-                <Input
-                  type="number"
-                  value={peopleCount}
-                  onChange={(e) => setPeopleCount(e.target.value)}
-                  min="1"
-                  max="20"
-                  className="mt-1"
-                />
-              </div>
-            </div>
-          </div>
+              </FormControl>
+              <TextField
+                label="People"
+                type="number"
+                value={peopleCount}
+                onChange={(e) => setPeopleCount(e.target.value)}
+                inputProps={{ min: 1, max: 20 }}
+                sx={{ 
+                  width: 120,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 1,
+                    minHeight: 56,
+                    '& fieldset': {
+                      borderColor: 'grey.300',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: 'grey.400',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    fontSize: '0.875rem',
+                    '&.Mui-focused': {
+                      color: 'primary.main',
+                    },
+                    '&.MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -9px) scale(0.75)',
+                    },
+                  },
+                  '& .MuiInputBase-input': {
+                    padding: '16px 14px',
+                    fontSize: '0.875rem',
+                    minHeight: 'auto',
+                  },
+                }}
+                variant="outlined"
+              />
+            </Stack>
+          </Stack>
 
           {/* Food Items List */}
-          <div className="border rounded-lg max-h-96 overflow-y-auto">
-            <div className="space-y-0">
-              {filteredItems.length > 0 ? (
-                filteredItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-3 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer"
-                    onClick={() => handleAddItem(item)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-sm">{item.name}</h4>
-                        <p className="text-xs text-gray-600">
-                          {item.calories} cal • {item.ingredients.join(', ')}
-                        </p>
-                        {item.suggestions && (
-                          <p className="text-xs text-gray-500 mt-1 italic">
-                            {item.suggestions}
-                          </p>
-                        )}
-                      </div>
-                      <Button
-                        size="sm"
-                        className="ml-3 h-8 text-xs"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddItem(item);
-                        }}
-                      >
-                        <Plus className="w-3 h-3 mr-1" />
-                        Add
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="p-8 text-center text-gray-500">
-                  <p className="text-sm">No food items found</p>
-                  <p className="text-xs mt-1">Try adjusting your search or category filter</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-end pt-4">
-          <Button 
-            onClick={() => onOpenChange(false)} 
-            variant="outline"
-          >
-            Close
-          </Button>
-        </div>
+          <Paper variant="outlined" sx={{ maxHeight: 400, overflow: 'auto' }}>
+            {filteredItems.length > 0 ? (
+              <List disablePadding>
+                {filteredItems.map((item, index) => (
+                  <React.Fragment key={item.id}>
+                    <ListItemButton
+                      onClick={() => handleAddItem(item)}
+                      sx={{ 
+                        '&:hover': { bgcolor: 'action.hover' },
+                        py: 2
+                      }}
+                    >
+                      <ListItemText
+                        primary={
+                          <Stack direction="row" justifyContent="space-between" alignItems="center">
+                            <Typography variant="subtitle2" fontWeight="medium">
+                              {item.name}
+                            </Typography>
+                            <Button
+                              variant="contained"
+                              size="small"
+                              startIcon={<Add />}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddItem(item);
+                              }}
+                              sx={{ minWidth: 'auto' }}
+                            >
+                              Add
+                            </Button>
+                          </Stack>
+                        }
+                        secondary={
+                          <Stack spacing={0.5} sx={{ mt: 1 }}>
+                            <Typography variant="body2" color="text.secondary">
+                              {item.calories} cal • {item.ingredients.join(', ')}
+                            </Typography>
+                            {item.suggestions && (
+                              <Typography variant="caption" color="text.secondary" fontStyle="italic">
+                                {item.suggestions}
+                              </Typography>
+                            )}
+                          </Stack>
+                        }
+                      />
+                    </ListItemButton>
+                    {index < filteredItems.length - 1 && <Divider />}
+                  </React.Fragment>
+                ))}
+              </List>
+            ) : (
+              <Box sx={{ p: 4, textAlign: 'center' }}>
+                <Restaurant sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+                <Typography variant="body2" color="text.secondary">
+                  No food items found
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Try adjusting your search or category filter
+                </Typography>
+              </Box>
+            )}
+          </Paper>
+        </Stack>
       </DialogContent>
+
+      <DialogActions sx={{ p: 3, pt: 1 }}>
+        <Button 
+          onClick={() => onOpenChange(false)} 
+          variant="outlined"
+          fullWidth
+        >
+          Close
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 };

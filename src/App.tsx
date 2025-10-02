@@ -32,10 +32,10 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route element={
               <ProtectedRoute>
-                <div className="flex min-h-screen bg-maideasy-background">
+                <div className="flex h-screen bg-maideasy-background">
                   <NavigationBar />
                   <div className="flex-1 md:ml-64">
-                    <div className="flex-1 overflow-auto pt-16 md:pt-0 pb-20 md:pb-0">
+                    <div className="h-full overflow-hidden">
                       <Outlet />
                     </div>
                   </div>

@@ -1,19 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
+  TextField,
+  Card,
+  CardContent,
+  CardHeader,
+  Tabs,
+  Tab,
+  Stack,
+  CircularProgress,
+  IconButton,
+  InputAdornment
+} from '@mui/material';
+import {
+  Person as UserIcon,
+  ArrowForward as ArrowRightIcon,
+  Visibility,
+  VisibilityOff
+} from '@mui/icons-material';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
-import { Loader2, User, ArrowRight } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [tabValue, setTabValue] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -124,130 +142,210 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold text-primary">
-            MaidEasy
-          </CardTitle>
-          <CardDescription className="text-lg">
-            Your household management companion
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="signin" className="space-y-4 mt-6">
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
-                  <Input
-                    id="signin-email"
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: 'background.default',
+        p: 2,
+      }}
+    >
+      <Container maxWidth="sm">
+        <Card
+          sx={{
+            boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.12)',
+            borderRadius: 4,
+          }}
+        >
+          <CardHeader sx={{ textAlign: 'center', pb: 2 }}>
+            <Typography
+              variant="h3"
+              component="h1"
+              fontWeight="bold"
+              color="primary.main"
+              gutterBottom
+            >
+              MaidEasy
+            </Typography>
+            <Typography variant="h6" color="text.secondary">
+              Your household management companion
+            </Typography>
+          </CardHeader>
+          
+          <CardContent sx={{ px: 4, pb: 4 }}>
+            <Box sx={{ mb: 3 }}>
+              <Tabs
+                value={tabValue}
+                onChange={(_, newValue) => setTabValue(newValue)}
+                variant="fullWidth"
+                sx={{
+                  '& .MuiTab-root': {
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    fontSize: '1rem',
+                  },
+                }}
+              >
+                <Tab label="Sign In" />
+                <Tab label="Sign Up" />
+              </Tabs>
+            </Box>
+
+            {tabValue === 0 && (
+              <Box component="form" onSubmit={handleSignIn}>
+                <Stack spacing={3}>
+                  <TextField
+                    label="Email"
                     type="email"
                     placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={loading}
                     required
+                    fullWidth
+                    variant="outlined"
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
-                  <Input
-                    id="signin-password"
-                    type="password"
+                  <TextField
+                    label="Password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={loading}
                     required
+                    fullWidth
+                    variant="outlined"
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
                   />
-                </div>
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Signing in...
-                    </>
-                  ) : (
-                    'Sign In'
-                  )}
-                </Button>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="signup" className="space-y-4 mt-6">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={loading}
+                    fullWidth
+                    size="large"
+                    sx={{
+                      background: 'linear-gradient(135deg, #34D399 0%, #10B981 100%)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                      },
+                    }}
+                  >
+                    {loading ? (
+                      <>
+                        <CircularProgress size={20} sx={{ mr: 1 }} />
+                        Signing in...
+                      </>
+                    ) : (
+                      'Sign In'
+                    )}
+                  </Button>
+                </Stack>
+              </Box>
+            )}
+
+            {tabValue === 1 && (
+              <Box component="form" onSubmit={handleSignUp}>
+                <Stack spacing={3}>
+                  <TextField
+                    label="Email"
                     type="email"
                     placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={loading}
                     required
+                    fullWidth
+                    variant="outlined"
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
+                  <TextField
+                    label="Password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="Create a password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={loading}
                     required
+                    fullWidth
+                    variant="outlined"
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
                   />
-                </div>
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating account...
-                    </>
-                  ) : (
-                    'Sign Up'
-                  )}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={loading}
+                    fullWidth
+                    size="large"
+                    sx={{
+                      background: 'linear-gradient(135deg, #34D399 0%, #10B981 100%)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                      },
+                    }}
+                  >
+                    {loading ? (
+                      <>
+                        <CircularProgress size={20} sx={{ mr: 1 }} />
+                        Creating account...
+                      </>
+                    ) : (
+                      'Sign Up'
+                    )}
+                  </Button>
+                </Stack>
+              </Box>
+            )}
 
-          {/* Guest Access Option */}
-          <div className="mt-6 pt-6 border-t border-border">
-            <div className="text-center space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Want to explore first?
-              </p>
-              <Button
-                variant="outline"
-                onClick={handleGuestAccess}
-                className="w-full flex items-center gap-2 hover:bg-muted/50"
-              >
-                <User className="w-4 h-4" />
-                Continue as Guest
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+            {/* Guest Access Option */}
+            <Box sx={{ mt: 4, pt: 3, borderTop: 1, borderColor: 'divider' }}>
+              <Stack spacing={2} alignItems="center">
+                <Typography variant="body2" color="text.secondary">
+                  Want to explore first?
+                </Typography>
+                <Button
+                  variant="outlined"
+                  onClick={handleGuestAccess}
+                  startIcon={<UserIcon />}
+                  endIcon={<ArrowRightIcon />}
+                  fullWidth
+                  sx={{
+                    textTransform: 'none',
+                    '&:hover': {
+                      bgcolor: 'action.hover',
+                    },
+                  }}
+                >
+                  Continue as Guest
+                </Button>
+              </Stack>
+            </Box>
+          </CardContent>
+        </Card>
+      </Container>
+    </Box>
   );
 };
 
