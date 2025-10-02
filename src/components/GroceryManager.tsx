@@ -1,9 +1,23 @@
 
 import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, Settings } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Tabs,
+  Tab,
+  Stack,
+  Paper,
+  CircularProgress
+} from '@mui/material';
+import {
+  Warning as AlertCircleIcon,
+  Settings as SettingsIcon
+} from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { useGroceryList } from '@/hooks/useGroceryList';
 import { useVendorContacts } from '@/hooks/useVendorContacts';
@@ -41,53 +55,103 @@ const GroceryManager = () => {
 
   if (vendorsLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="bg-white shadow-sm border-b p-4 mb-4">
-          <h1 className="text-xl font-bold text-gray-900">Grocery Manager</h1>
-          <p className="text-sm text-gray-500">Loading vendor contacts...</p>
-        </div>
-      </div>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+        <Paper elevation={1} sx={{ p: 3, mb: 2 }}>
+          <Typography variant="h5" fontWeight="bold" gutterBottom>
+            Grocery Manager
+          </Typography>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <CircularProgress size={20} />
+            <Typography variant="body2" color="text.secondary">
+              Loading vendor contacts...
+            </Typography>
+          </Stack>
+        </Paper>
+      </Box>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      {/* Mobile Header */}
-      <div className="bg-gradient-card shadow-lg border-b border-border/50 p-6 mb-6 backdrop-blur-sm">
-        <div className="flex justify-between items-center">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Grocery Manager
-            </h1>
-            <p className="text-sm text-muted-foreground font-medium">Smart grocery shopping made simple</p>
-          </div>
-        </div>
-      </div>
+    <Box sx={{ 
+      height: { xs: 'calc(100vh - 80px)', md: '100vh' },
+      bgcolor: 'background.default',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden'
+    }}>
+      {/* Header */}
+      <Paper
+        elevation={2}
+        sx={{
+          p: 3,
+          mb: 3,
+          background: (theme) => theme.palette.mode === 'dark' 
+            ? 'linear-gradient(135deg, #1A1A1A 0%, #0F0F0F 100%)'
+            : 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
+      >
+        <Box>
+          <Typography
+            variant="h4"
+            component="h1"
+            fontWeight="bold"
+            sx={{
+              background: 'linear-gradient(135deg, #34D399 0%, #10B981 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              mb: 1,
+            }}
+          >
+            Grocery Manager
+          </Typography>
+          <Typography variant="body1" color="text.secondary" fontWeight="medium">
+            Smart grocery shopping made simple
+          </Typography>
+        </Box>
+      </Paper>
 
-      <div className="px-4 pb-24">
+      <Box sx={{ 
+        flex: 1, 
+        overflow: 'auto',
+        px: 2, 
+        pb: 6 
+      }}>
+        <Container maxWidth="lg">
         {/* Vendor Contact and Language Selection */}
         {vendors.length === 0 ? (
-          <Card className="mb-4">
+          <Card sx={{ mb: 3 }}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-orange-500" />
-                No Vendor Contacts
-              </CardTitle>
-              <CardDescription>Add vendor contacts in your profile to place grocery orders.</CardDescription>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <AlertCircleIcon color="warning" />
+                <Typography variant="h6" fontWeight="bold">
+                  No Vendor Contacts
+                </Typography>
+              </Stack>
+              <Typography variant="body2" color="text.secondary">
+                Add vendor contacts in your profile to place grocery orders.
+              </Typography>
             </CardHeader>
             <CardContent>
-              <Link to="/profile">
-                <Button variant="outline" className="w-full">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Add Vendor Contact in Profile
-                </Button>
-              </Link>
+              <Button
+                component={Link}
+                to="/profile"
+                variant="outlined"
+                startIcon={<SettingsIcon />}
+                fullWidth
+              >
+                Add Vendor Contact in Profile
+              </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="mb-4 grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Vendor Contact</label>
+          <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" fontWeight="medium" sx={{ mb: 1 }}>
+                Vendor Contact
+              </Typography>
               <ContactDropdown
                 contacts={vendors.map(v => ({ ...v, name: v.shop_name }))}
                 selectedContact={selectedVendor ? { ...selectedVendor, name: selectedVendor.shop_name } : null}
@@ -95,47 +159,55 @@ const GroceryManager = () => {
                 placeholder="Choose vendor"
                 type="vendor"
               />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Language</label>
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" fontWeight="medium" sx={{ mb: 1 }}>
+                Language
+              </Typography>
               <LanguageSelector 
                 selectedLanguage={selectedLanguage}
                 onLanguageChange={setSelectedLanguage}
               />
-            </div>
-          </div>
+            </Box>
+          </Stack>
         )}
 
         {/* Message Preview and WhatsApp Send Side by Side */}
         {selectedVendor && (
-          <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-            <GroceryMessagePreview 
-              cartItems={cartItems}
-              selectedLanguage={selectedLanguage}
-            />
-            <GroceryWhatsAppReminder 
-              cartItems={cartItems} 
-              selectedLanguage={selectedLanguage}
-              vendorContact={selectedVendor.phone_number}
-              onOrderPlaced={handleOrderPlaced}
-            />
-          </div>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 3 }}>
+            <Box sx={{ flex: 1 }}>
+              <GroceryMessagePreview 
+                cartItems={cartItems}
+                selectedLanguage={selectedLanguage}
+              />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <GroceryWhatsAppReminder 
+                cartItems={cartItems} 
+                selectedLanguage={selectedLanguage}
+                vendorContact={selectedVendor.phone_number}
+                onOrderPlaced={handleOrderPlaced}
+              />
+            </Box>
+          </Stack>
         )}
 
         {/* Frequently Bought Items */}
-        <FrequentlyBoughtItems 
-          items={frequentlyBoughtItems}
-          onToggleInCart={toggleInCart}
-        />
+        <Box sx={{ mb: 3 }}>
+          <FrequentlyBoughtItems 
+            items={frequentlyBoughtItems}
+            onToggleInCart={toggleInCart}
+          />
+        </Box>
 
         {/* Main Tabs */}
-        <Tabs defaultValue="cart" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="cart">Cart ({cartItems.length})</TabsTrigger>
-            <TabsTrigger value="grocery-list">Grocery List</TabsTrigger>
-          </TabsList>
+        <Box sx={{ mb: 3 }}>
+          <Tabs value={0} sx={{ mb: 2 }}>
+            <Tab label={`Cart (${cartItems.length})`} />
+            <Tab label="Grocery List" />
+          </Tabs>
           
-          <TabsContent value="cart">
+          <Box>
             <GroceryCart 
               cartItems={cartItems}
               onToggleInCart={toggleInCart}
@@ -144,25 +216,16 @@ const GroceryManager = () => {
               selectedLanguage={selectedLanguage}
               onOrderPlaced={handleOrderPlaced}
             />
-          </TabsContent>
-          
-          <TabsContent value="grocery-list">
-            <GroceryItemsList 
-              items={groceryItems}
-              onToggleInCart={toggleInCart}
-              onUpdateQuantity={updateQuantity}
-              onDeleteItem={deleteItem}
-              onAddNewItem={addNewItem}
-            />
-          </TabsContent>
-        </Tabs>
+          </Box>
+        </Box>
 
         {/* Compact Grocery Order Log */}
-        <div className="mt-4">
+        <Box>
           <GroceryOrderLog />
-        </div>
-      </div>
-    </div>
+        </Box>
+        </Container>
+      </Box>
+    </Box>
   );
 };
 

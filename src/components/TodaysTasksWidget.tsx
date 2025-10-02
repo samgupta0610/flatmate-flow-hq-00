@@ -1,8 +1,20 @@
-
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { CalendarCheck, Plus } from 'lucide-react';
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  Typography,
+  Button,
+  Stack,
+  Box,
+  CircularProgress,
+  Chip,
+} from '@mui/material';
+import {
+  CalendarToday as CalendarIcon,
+  Add as AddIcon,
+  Star as StarIcon,
+} from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
 import { useMaidTasks } from '@/hooks/useMaidTasks';
 
@@ -14,60 +26,117 @@ const TodaysTasksWidget: React.FC = () => {
   const displayTasks = pendingTasks.slice(0, 3); // Show only first 3 tasks
 
   return (
-    <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <CalendarCheck className="w-5 h-5 text-blue-600" />
+    <Card
+      sx={{
+        background: 'linear-gradient(135deg, #EBF5FF 0%, #E0F2FE 100%)',
+        borderColor: '#93C5FD',
+        boxShadow: '0 2px 8px rgba(59, 130, 246, 0.1)',
+      }}
+    >
+      <CardHeader
+        avatar={<CalendarIcon sx={{ color: 'primary.main' }} />}
+        title={
+          <Typography variant="h6" fontWeight={600}>
             Today's Tasks
-          </CardTitle>
+          </Typography>
+        }
+        action={
           <Button
-            variant="ghost"
-            size="sm"
+            variant="text"
+            size="small"
             onClick={() => navigate("/maid-tasks")}
-            className="text-blue-600 hover:text-blue-700 p-0 h-auto text-sm"
+            sx={{
+              color: 'primary.main',
+              fontWeight: 500,
+              '&:hover': {
+                color: 'primary.dark',
+              },
+            }}
           >
             {pendingTasks.length > 0 ? 'View All →' : 'Add Tasks →'}
           </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
+        }
+        sx={{ pb: 1 }}
+      />
+      
+      <CardContent>
         {isLoading ? (
-          <div className="text-center py-4">
-            <div className="text-sm text-gray-500">Loading tasks...</div>
-          </div>
+          <Box textAlign="center" py={3}>
+            <CircularProgress size={24} />
+            <Typography variant="body2" color="text.secondary" mt={1}>
+              Loading tasks...
+            </Typography>
+          </Box>
         ) : pendingTasks.length > 0 ? (
-          <div className="space-y-2">
+          <Stack spacing={2}>
             {displayTasks.map((task) => (
-              <div key={task.id} className="flex items-center justify-between p-2 bg-white rounded border">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm text-gray-700">{task.title}</span>
-                </div>
+              <Box
+                key={task.id}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  p: 1.5,
+                  bgcolor: (theme) => theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.05)' 
+                    : 'white',
+                  borderRadius: 2,
+                  border: 1,
+                  borderColor: 'divider',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                    transform: 'translateY(-1px)',
+                  },
+                }}
+              >
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      bgcolor: 'primary.main',
+                      borderRadius: '50%',
+                    }}
+                  />
+                  <Typography variant="body2" color="text.primary">
+                    {task.title}
+                  </Typography>
+                </Stack>
                 {task.favorite && (
-                  <span className="text-yellow-500 text-xs">⭐</span>
+                  <StarIcon sx={{ fontSize: 16, color: 'warning.main' }} />
                 )}
-              </div>
+              </Box>
             ))}
+            
             {pendingTasks.length > 3 && (
-              <div className="text-center pt-2">
-                <span className="text-xs text-blue-600 font-medium">
-                  +{pendingTasks.length - 3} more task{pendingTasks.length - 3 !== 1 ? 's' : ''}
-                </span>
-              </div>
+              <Box textAlign="center" pt={1}>
+                <Chip
+                  label={`+${pendingTasks.length - 3} more task${pendingTasks.length - 3 !== 1 ? 's' : ''}`}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  sx={{ fontWeight: 500 }}
+                />
+              </Box>
             )}
-            <div className="pt-1 text-center">
-              <span className="text-xs text-blue-600 font-medium">
+            
+            <Box textAlign="center" pt={0.5}>
+              <Typography variant="caption" color="primary.main" fontWeight={600}>
                 {pendingTasks.length} pending task{pendingTasks.length !== 1 ? 's' : ''}
-              </span>
-            </div>
-          </div>
+              </Typography>
+            </Box>
+          </Stack>
         ) : (
-          <div className="text-center py-4">
-            <Plus className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-500 mb-2">No tasks for today</p>
-            <p className="text-xs text-gray-400">Tap "Add Tasks" to get started</p>
-          </div>
+          <Box textAlign="center" py={3}>
+            <AddIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              No tasks for today
+            </Typography>
+            <Typography variant="caption" color="text.disabled">
+              Tap "Add Tasks" to get started
+            </Typography>
+          </Box>
         )}
       </CardContent>
     </Card>

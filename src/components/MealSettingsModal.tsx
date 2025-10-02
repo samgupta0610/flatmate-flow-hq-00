@@ -1,13 +1,32 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bell, Clock, MessageSquare } from 'lucide-react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+  Box,
+  Typography,
+  Paper,
+  Stack,
+  IconButton,
+  Switch,
+  FormControlLabel,
+  Card,
+  CardContent,
+  CardHeader,
+  Divider,
+  Chip
+} from '@mui/material';
+import {
+  Notifications,
+  AccessTime,
+  Message,
+  Close,
+  Info
+} from '@mui/icons-material';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -137,96 +156,142 @@ const MealSettingsModal: React.FC<MealSettingsModalProps> = ({ open, onOpenChang
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] mx-4 max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-lg flex items-center gap-2">
-            <Bell className="w-5 h-5" />
-            Meal Notification Settings
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4 py-4">
+    <Dialog 
+      open={open} 
+      onClose={() => onOpenChange(false)}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: { borderRadius: 2 }
+      }}
+    >
+      <DialogTitle>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Notifications color="primary" />
+            <Typography variant="h6" fontWeight="bold">
+              Meal Notification Settings
+            </Typography>
+          </Stack>
+          <IconButton onClick={() => onOpenChange(false)} size="small">
+            <Close />
+          </IconButton>
+        </Stack>
+      </DialogTitle>
+      
+      <DialogContent sx={{ maxHeight: '70vh', overflow: 'auto' }}>
+        <Stack spacing={3} sx={{ pt: 1 }}>
           {settings.map((setting, index) => (
-            <Card key={setting.mealType} className="border">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{getMealIcon(setting.mealType)}</span>
-                    <span className="capitalize">{setting.mealType} Notification</span>
-                  </div>
-                  <Switch
-                    checked={setting.enabled}
-                    onCheckedChange={(enabled) => updateSetting(index, 'enabled', enabled)}
-                  />
-                </CardTitle>
-              </CardHeader>
+            <Card key={setting.mealType} variant="outlined" elevation={1}>
+              <CardHeader
+                title={
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Typography variant="h6" component="span">
+                        {getMealIcon(setting.mealType)}
+                      </Typography>
+                      <Typography variant="h6" textTransform="capitalize">
+                        {setting.mealType} Notification
+                      </Typography>
+                    </Stack>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={setting.enabled}
+                          onChange={(e) => updateSetting(index, 'enabled', e.target.checked)}
+                          color="primary"
+                        />
+                      }
+                      label=""
+                    />
+                  </Stack>
+                }
+              />
               
               {setting.enabled && (
-                <CardContent className="pt-0 space-y-3">
-                  <div>
-                    <Label className="text-sm font-medium flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      Notification Time
-                    </Label>
-                    <Input
+                <CardContent sx={{ pt: 0 }}>
+                  <Stack spacing={3}>
+                    <TextField
+                      label="Notification Time"
                       type="time"
                       value={setting.notificationTime}
                       onChange={(e) => updateSetting(index, 'notificationTime', e.target.value)}
-                      className="mt-1"
+                      fullWidth
+                      InputProps={{
+                        startAdornment: <AccessTime sx={{ mr: 1, color: 'text.secondary' }} />
+                      }}
+                      variant="outlined"
                     />
-                  </div>
 
-                  <div>
-                    <Label className="text-sm font-medium flex items-center gap-1">
-                      <MessageSquare className="w-3 h-3" />
-                      Custom Message (Optional)
-                    </Label>
-                    <Textarea
+                    <TextField
+                      label="Custom Message (Optional)"
                       value={setting.customMessage}
                       onChange={(e) => updateSetting(index, 'customMessage', e.target.value)}
                       placeholder={`Will you be having ${setting.mealType} today?`}
+                      multiline
                       rows={2}
-                      className="mt-1 text-sm"
+                      fullWidth
+                      InputProps={{
+                        startAdornment: <Message sx={{ mr: 1, color: 'text.secondary' }} />
+                      }}
+                      variant="outlined"
                     />
-                  </div>
+                  </Stack>
                 </CardContent>
               )}
             </Card>
           ))}
 
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="pt-4">
-              <div className="text-sm text-blue-800">
-                <p className="font-medium mb-1">How it works:</p>
-                <ul className="list-disc pl-4 space-y-1 text-xs">
-                  <li>Notifications will be sent at the specified times</li>
-                  <li>Recipients can respond with Yes, No, or Maybe</li>
-                  <li>People count will be updated based on responses</li>
-                  <li>Custom messages will override the default text</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="flex gap-2 pt-4">
-          <Button 
-            onClick={() => onOpenChange(false)} 
-            variant="outline" 
-            className="flex-1"
+          <Paper 
+            variant="outlined" 
+            sx={{ 
+              p: 3, 
+              bgcolor: 'info.light', 
+              borderColor: 'info.main',
+              borderWidth: 1
+            }}
           >
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleSave} 
-            className="flex-1"
-            disabled={isLoading || !user}
-          >
-            {isLoading ? 'Saving...' : 'Save Settings'}
-          </Button>
-        </div>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+              <Info color="info" />
+              <Typography variant="subtitle1" fontWeight="bold" color="info.dark">
+                How it works:
+              </Typography>
+            </Stack>
+            <Box component="ul" sx={{ pl: 2, m: 0 }}>
+              <Typography component="li" variant="body2" sx={{ mb: 0.5 }}>
+                Notifications will be sent at the specified times
+              </Typography>
+              <Typography component="li" variant="body2" sx={{ mb: 0.5 }}>
+                Recipients can respond with Yes, No, or Maybe
+              </Typography>
+              <Typography component="li" variant="body2" sx={{ mb: 0.5 }}>
+                People count will be updated based on responses
+              </Typography>
+              <Typography component="li" variant="body2">
+                Custom messages will override the default text
+              </Typography>
+            </Box>
+          </Paper>
+        </Stack>
       </DialogContent>
+
+      <DialogActions sx={{ p: 3, pt: 1 }}>
+        <Button 
+          onClick={() => onOpenChange(false)} 
+          variant="outlined"
+          fullWidth
+        >
+          Cancel
+        </Button>
+        <Button 
+          onClick={handleSave} 
+          variant="contained"
+          fullWidth
+          disabled={isLoading || !user}
+        >
+          {isLoading ? 'Saving...' : 'Save Settings'}
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 };

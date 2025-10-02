@@ -57,8 +57,43 @@ This project is built with:
 - Vite
 - TypeScript
 - React
-- shadcn-ui
+- **Material UI v7** (Material Design 3) - Primary design system
+- shadcn-ui (being migrated to MUI)
 - Tailwind CSS
+- Supabase (Backend & Auth)
+
+## 🎨 Design System
+
+This project uses **Material Design 3** with Material UI as the primary design system.
+
+### Key Features:
+- 🎨 Material Design 3 aesthetics (rounded corners, modern shadows)
+- 🎯 Custom theme with brand colors (Emerald Green, Midnight Blue)
+- 📱 Fully responsive components
+- ♿ Enhanced accessibility
+- 🌙 Dark mode support (coming soon)
+
+### Documentation:
+- **[Migration Guide](./MIGRATION_TO_MUI.md)** - Complete guide for migrating components
+- **[Quick Reference](./MUI_QUICK_REFERENCE.md)** - Cheat sheet for MUI components
+- **[Migration Status](./MUI_MIGRATION_STATUS.md)** - Current progress tracker
+- **[Theme Config](./src/theme/muiTheme.ts)** - Material Design 3 theme
+
+### Getting Started with MUI:
+```tsx
+// Import components
+import { Button, TextField, Dialog } from '@mui/material';
+import { Add, Edit, Delete } from '@mui/icons-material';
+
+// Use with sx prop for styling
+<Button 
+  variant="contained" 
+  startIcon={<Add />}
+  sx={{ borderRadius: 2, px: 3 }}
+>
+  Create
+</Button>
+```
 
 ## How can I deploy this project?
 

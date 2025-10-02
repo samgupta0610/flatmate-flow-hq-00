@@ -3,9 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Plus, Heart, Sparkles, Info, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import TodaysMenuWidget from "./TodaysMenuWidget";
-import TodaysTasksWidget from "./TodaysTasksWidget";
-import FeedbackWidget from "./FeedbackWidget";
 import OnboardingGuide from "./OnboardingGuide";
 import DashboardSidebar from "./DashboardSidebar";
 import { useState, useEffect } from "react";
@@ -64,7 +61,12 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-subtle p-4">
+    <div 
+      className="bg-gradient-subtle p-4 overflow-auto"
+      style={{ 
+        height: window.innerWidth < 768 ? 'calc(100vh - 80px)' : '100vh'
+      }}
+    >
       <div className="max-w-md mx-auto md:max-w-2xl space-y-6">
         {/* Welcome Header */}
         <div className="text-center space-y-4 p-6 animate-slide-down relative">
@@ -92,12 +94,6 @@ const Dashboard = () => {
           </Button>
         </div>
 
-        {/* Today's Menu Widget */}
-        <TodaysMenuWidget todaysPlan={todaysPlan} todayName={todayName} />
-
-        {/* Today's Tasks Widget */}
-        <TodaysTasksWidget />
-
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-4 animate-slide-up">
           <Button
@@ -123,17 +119,7 @@ const Dashboard = () => {
           </Button>
         </div>
 
-        {/* MVP Feedback Widget */}
-        <FeedbackWidget />
 
-        {/* Floating Action Button */}
-        <Button
-          size="icon"
-          className="floating-action text-white"
-          onClick={() => navigate("/maid-tasks")}
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
 
         {/* Onboarding Guide */}
         <OnboardingGuide 

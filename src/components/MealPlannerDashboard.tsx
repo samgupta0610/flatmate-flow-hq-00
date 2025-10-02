@@ -1,13 +1,39 @@
 
 import React, { useState } from 'react';
 import { format } from "date-fns";
-import { CalendarIcon, Plus, Share2, Settings, ChefHat, Library, FileText, UtensilsCrossed } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  Button, 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  Chip, 
+  Grid, 
+  Paper,
+  IconButton,
+  Fab,
+  AppBar,
+  Toolbar,
+  Stack,
+  Divider,
+  TextField
+} from '@mui/material';
+import { 
+  CalendarToday, 
+  Add, 
+  Share, 
+  Settings, 
+  Restaurant, 
+  LibraryBooks, 
+  Description, 
+  RestaurantMenu 
+} from '@mui/icons-material';
+// Alternative: Using native HTML date input for simplicity
+// import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+// import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+// import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { MealItem, DailyPlan } from '@/types/meal';
 import { MealMenu } from '@/hooks/useMenuManagement';
 import CreateMenuModal from './CreateMenuModal';
@@ -78,229 +104,390 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b p-4 mb-4">
-        <div className="flex justify-between items-center mb-3">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">Meal Planner</h1>
-            <p className="text-sm text-gray-500">{getSelectedDateName()}</p>
-          </div>
-          <Button 
-            onClick={() => setShowSharePlan(true)}
-            className="bg-green-600 hover:bg-green-700 text-white"
-            size="sm"
-          >
-            <Share2 className="w-4 h-4 mr-1" />
-            Share Plan
-          </Button>
-        </div>
-        
-        <div className="flex gap-2">
-          <Button 
-            onClick={() => setShowCreateMenu(true)}
-            variant="outline" 
-            size="sm" 
-            className="flex-1"
-          >
-            <FileText className="w-4 h-4 mr-1" />
-            Create Menu
-          </Button>
-          <Button 
-            onClick={() => setShowAddFood(true)}
-            variant="outline" 
-            size="sm" 
-            className="flex-1"
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            Create Item
-          </Button>
-          <Button 
-            onClick={() => setShowSettings(true)}
-            variant="outline" 
-            size="sm"
-          >
-            <Settings className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
+    <Box sx={{ 
+      height: { xs: 'calc(100vh - 80px)', md: '100vh' },
+      bgcolor: 'background.default',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden'
+    }}>
+        {/* Header */}
+        <Box sx={{ bgcolor: 'background.paper', p: 3, borderBottom: 1, borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box>
+              <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
+                Meal Planner
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                {getSelectedDateName()}
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <IconButton
+                onClick={() => setShowSettings(true)}
+                sx={{ 
+                  border: 1, 
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  width: 40,
+                  height: 40
+                }}
+              >
+                <Settings />
+              </IconButton>
+              <IconButton
+                onClick={() => setShowSharePlan(true)}
+                sx={{ 
+                  bgcolor: 'success.main', 
+                  '&:hover': { bgcolor: 'success.dark' },
+                  borderRadius: 2,
+                  width: 40,
+                  height: 40,
+                  color: 'white'
+                }}
+              >
+                <Share />
+              </IconButton>
+            </Stack>
+          </Box>
+        </Box>
 
-      <div className="px-4 space-y-4">
-        {/* Date Selection Calendar */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5 text-blue-600" />
-              Select Date
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Popover>
-              <PopoverTrigger asChild>
+        <Box sx={{ 
+          flex: 1, 
+          overflow: 'auto',
+          py: 3
+        }}>
+          <Container maxWidth="lg">
+          <Stack spacing={3}>
+            {/* Action Buttons */}
+            <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
+              <Stack direction="row" spacing={2}>
                 <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    "text-foreground"
-                  )}
+                  variant="outlined"
+                  startIcon={<Description />}
+                  onClick={() => setShowCreateMenu(true)}
+                  sx={{ flex: 1, py: 1.5, borderRadius: 2 }}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(selectedDate, "PPP")}
+                  Create Menu
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => date && onDateSelect(date)}
-                  initialFocus
-                  className="p-3 pointer-events-auto"
+                <Button
+                  variant="outlined"
+                  startIcon={<Add />}
+                  onClick={() => setShowAddFood(true)}
+                  sx={{ flex: 1, py: 1.5, borderRadius: 2 }}
+                >
+                  Create Item
+                </Button>
+              </Stack>
+            </Paper>
+
+            {/* Date Selection */}
+            <Card elevation={1} sx={{ borderRadius: 2 }}>
+              <CardHeader
+                title={
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <CalendarToday color="primary" />
+                    <Typography variant="h6">Select Date</Typography>
+                  </Stack>
+                }
+                sx={{ pb: 1 }}
+              />
+              <CardContent sx={{ pt: 0 }}>
+                <TextField
+                  type="date"
+                  value={selectedDate.toISOString().split('T')[0]}
+                  onChange={(e) => onDateSelect(new Date(e.target.value))}
+                  fullWidth
+                  variant="outlined"
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2
+                    }
+                  }}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
                 />
-              </PopoverContent>
-            </Popover>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        {/* Selected Date's Meals */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <UtensilsCrossed className="w-5 h-5 text-blue-600" />
-              Meals for {getSelectedDateName()}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Breakfast */}
-            <div className="border rounded-lg p-3 bg-orange-50">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-orange-700">🌅 Breakfast</h3>
-                  {selectedDatePlan?.breakfast?.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {getTotalServingsForMeal('breakfast')} servings
-                    </Badge>
-                  )}
-                </div>
-                <Button
-                  onClick={() => handleAddFoodItem('breakfast')}
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs border-orange-300 text-orange-700 hover:bg-orange-100"
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add Food Item
-                </Button>
-              </div>
-              <div className="space-y-1">
-                {selectedDatePlan?.breakfast?.length > 0 ? (
-                  selectedDatePlan.breakfast.map(meal => (
-                    <div key={meal.id} className="text-sm text-gray-700 bg-white p-3 rounded border-l-4 border-orange-400">
-                      <div className="font-medium">{formatMealDisplay(meal)}</div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500 italic">No breakfast planned</p>
-                )}
-              </div>
-            </div>
+            {/* Meals Section */}
+            <Card elevation={1} sx={{ borderRadius: 2 }}>
+              <CardHeader
+                title={
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <RestaurantMenu color="primary" />
+                    <Typography variant="h6">Meals for {getSelectedDateName()}</Typography>
+                  </Stack>
+                }
+                sx={{ pb: 1 }}
+              />
+              <CardContent sx={{ pt: 0 }}>
+                <Stack spacing={3}>
+                  {/* Breakfast */}
+                  <Paper 
+                    elevation={0} 
+                    sx={{ 
+                      p: 2, 
+                      bgcolor: (theme) => theme.palette.mode === 'dark' 
+                        ? 'rgba(255, 193, 7, 0.1)' 
+                        : 'warning.50', 
+                      borderLeft: 4, 
+                      borderColor: 'warning.main',
+                      borderRadius: 2
+                    }}
+                  >
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+                      <Stack direction="row" alignItems="center" spacing={2}>
+                        <Typography variant="h6" color="warning.dark" fontWeight="bold">
+                          🌅 Breakfast
+                        </Typography>
+                        {selectedDatePlan?.breakfast?.length > 0 && (
+                          <Chip 
+                            label={`${getTotalServingsForMeal('breakfast')} servings`}
+                            size="small"
+                            color="warning"
+                            sx={{ fontWeight: 'bold' }}
+                          />
+                        )}
+                      </Stack>
+                      <Button
+                        variant="text"
+                        size="small"
+                        onClick={() => handleAddFoodItem('breakfast')}
+                        sx={{ 
+                          color: 'warning.dark',
+                          '&:hover': { bgcolor: 'warning.light' },
+                          borderRadius: '50%',
+                          minWidth: 40,
+                          width: 40,
+                          height: 40,
+                          p: 0
+                        }}
+                      >
+                        <Add />
+                      </Button>
+                    </Stack>
+                    <Stack spacing={1}>
+                      {selectedDatePlan?.breakfast?.length > 0 ? (
+                        selectedDatePlan.breakfast.map(meal => (
+                          <Paper 
+                            key={meal.id} 
+                            elevation={0} 
+                            sx={{ 
+                              p: 2, 
+                              bgcolor: 'background.paper',
+                              borderRadius: 1
+                            }}
+                          >
+                            <Typography variant="body2" fontWeight="medium">
+                              {formatMealDisplay(meal)}
+                            </Typography>
+                          </Paper>
+                        ))
+                      ) : (
+                        <Typography variant="body2" color="text.secondary" fontStyle="italic">
+                          No breakfast planned
+                        </Typography>
+                      )}
+                    </Stack>
+                  </Paper>
 
-            {/* Lunch */}
-            <div className="border rounded-lg p-3 bg-green-50">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-green-700">🌞 Lunch</h3>
-                  {selectedDatePlan?.lunch?.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {getTotalServingsForMeal('lunch')} servings
-                    </Badge>
-                  )}
-                </div>
-                <Button
-                  onClick={() => handleAddFoodItem('lunch')}
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs border-green-300 text-green-700 hover:bg-green-100"
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add Food Item
-                </Button>
-              </div>
-              <div className="space-y-1">
-                {selectedDatePlan?.lunch?.length > 0 ? (
-                  selectedDatePlan.lunch.map(meal => (
-                    <div key={meal.id} className="text-sm text-gray-700 bg-white p-3 rounded border-l-4 border-green-400">
-                      <div className="font-medium">{formatMealDisplay(meal)}</div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500 italic">No lunch planned</p>
-                )}
-              </div>
-            </div>
+                  {/* Lunch */}
+                  <Paper 
+                    elevation={0} 
+                    sx={{ 
+                      p: 2, 
+                      bgcolor: (theme) => theme.palette.mode === 'dark' 
+                        ? 'rgba(16, 185, 129, 0.1)' 
+                        : 'success.50', 
+                      borderLeft: 4, 
+                      borderColor: 'success.main',
+                      borderRadius: 2
+                    }}
+                  >
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+                      <Stack direction="row" alignItems="center" spacing={2}>
+                        <Typography variant="h6" color="success.dark" fontWeight="bold">
+                          🌞 Lunch
+                        </Typography>
+                        {selectedDatePlan?.lunch?.length > 0 && (
+                          <Chip 
+                            label={`${getTotalServingsForMeal('lunch')} servings`}
+                            size="small"
+                            color="success"
+                            sx={{ fontWeight: 'bold' }}
+                          />
+                        )}
+                      </Stack>
+                      <Button
+                        variant="text"
+                        size="small"
+                        onClick={() => handleAddFoodItem('lunch')}
+                        sx={{ 
+                          color: 'success.dark',
+                          '&:hover': { bgcolor: 'success.light' },
+                          borderRadius: '50%',
+                          minWidth: 40,
+                          width: 40,
+                          height: 40,
+                          p: 0
+                        }}
+                      >
+                        <Add />
+                      </Button>
+                    </Stack>
+                    <Stack spacing={1}>
+                      {selectedDatePlan?.lunch?.length > 0 ? (
+                        selectedDatePlan.lunch.map(meal => (
+                          <Paper 
+                            key={meal.id} 
+                            elevation={0} 
+                            sx={{ 
+                              p: 2, 
+                              bgcolor: 'background.paper',
+                              borderRadius: 1
+                            }}
+                          >
+                            <Typography variant="body2" fontWeight="medium">
+                              {formatMealDisplay(meal)}
+                            </Typography>
+                          </Paper>
+                        ))
+                      ) : (
+                        <Typography variant="body2" color="text.secondary" fontStyle="italic">
+                          No lunch planned
+                        </Typography>
+                      )}
+                    </Stack>
+                  </Paper>
 
-            {/* Dinner */}
-            <div className="border rounded-lg p-3 bg-purple-50">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-purple-700">🌙 Dinner</h3>
-                  {selectedDatePlan?.dinner?.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {getTotalServingsForMeal('dinner')} servings
-                    </Badge>
-                  )}
-                </div>
-                <Button
-                  onClick={() => handleAddFoodItem('dinner')}
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs border-purple-300 text-purple-700 hover:bg-purple-100"
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add Food Item
-                </Button>
-              </div>
-              <div className="space-y-1">
-                {selectedDatePlan?.dinner?.length > 0 ? (
-                  selectedDatePlan.dinner.map(meal => (
-                    <div key={meal.id} className="text-sm text-gray-700 bg-white p-3 rounded border-l-4 border-purple-400">
-                      <div className="font-medium">{formatMealDisplay(meal)}</div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500 italic">No dinner planned</p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                  {/* Dinner */}
+                  <Paper 
+                    elevation={0} 
+                    sx={{ 
+                      p: 2, 
+                      bgcolor: (theme) => theme.palette.mode === 'dark' 
+                        ? 'rgba(30, 58, 138, 0.1)' 
+                        : 'secondary.50', 
+                      borderLeft: 4, 
+                      borderColor: 'secondary.main',
+                      borderRadius: 2
+                    }}
+                  >
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+                      <Stack direction="row" alignItems="center" spacing={2}>
+                        <Typography variant="h6" color="secondary.dark" fontWeight="bold">
+                          🌙 Dinner
+                        </Typography>
+                        {selectedDatePlan?.dinner?.length > 0 && (
+                          <Chip 
+                            label={`${getTotalServingsForMeal('dinner')} servings`}
+                            size="small"
+                            color="secondary"
+                            sx={{ fontWeight: 'bold' }}
+                          />
+                        )}
+                      </Stack>
+                      <Button
+                        variant="text"
+                        size="small"
+                        onClick={() => handleAddFoodItem('dinner')}
+                        sx={{ 
+                          color: 'secondary.dark',
+                          '&:hover': { bgcolor: 'secondary.light' },
+                          borderRadius: '50%',
+                          minWidth: 40,
+                          width: 40,
+                          height: 40,
+                          p: 0
+                        }}
+                      >
+                        <Add />
+                      </Button>
+                    </Stack>
+                    <Stack spacing={1}>
+                      {selectedDatePlan?.dinner?.length > 0 ? (
+                        selectedDatePlan.dinner.map(meal => (
+                          <Paper 
+                            key={meal.id} 
+                            elevation={0} 
+                            sx={{ 
+                              p: 2, 
+                              bgcolor: 'background.paper',
+                              borderRadius: 1
+                            }}
+                          >
+                            <Typography variant="body2" fontWeight="medium">
+                              {formatMealDisplay(meal)}
+                            </Typography>
+                          </Paper>
+                        ))
+                      ) : (
+                        <Typography variant="body2" color="text.secondary" fontStyle="italic">
+                          No dinner planned
+                        </Typography>
+                      )}
+                    </Stack>
+                  </Paper>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Stack>
+          </Container>
+        </Box>
 
-      {/* Modals */}
-      <CreateMenuModal 
-        open={showCreateMenu} 
-        onOpenChange={setShowCreateMenu}
-      />
-      
-      <MealSettingsModal 
-        open={showSettings} 
-        onOpenChange={setShowSettings}
-      />
-      
-      <ShareMealPlanModal 
-        open={showSharePlan} 
-        onOpenChange={setShowSharePlan}
-        todaysPlan={selectedDatePlan}
-        todayName={getSelectedDayName()}
-      />
-      
-      <AddFoodItemModal
-        open={showAddFood}
-        onOpenChange={setShowAddFood}
-        mealItems={mealItems}
-        selectedMealType={selectedMealType}
-        onAddMeal={(meal) => onAddMealToDay(getSelectedDayName(), selectedMealType, meal)}
-      />
-    </div>
+        {/* Floating Action Button */}
+        <Fab
+          color="primary"
+          aria-label="add meal"
+          sx={{
+            position: 'fixed',
+            bottom: { xs: 100, md: 32 },
+            right: { xs: 24, md: 32 },
+            zIndex: 1000,
+            background: 'linear-gradient(135deg, #34D399 0%, #10B981 100%)',
+            boxShadow: '0 6px 20px rgba(52, 211, 153, 0.4)',
+            width: 56,
+            height: 56,
+            '&:hover': {
+              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+              boxShadow: '0 8px 24px rgba(52, 211, 153, 0.5)',
+              transform: 'scale(1.05)',
+            },
+            transition: 'all 0.2s',
+          }}
+          onClick={() => setShowAddFood(true)}
+        >
+          <Add />
+        </Fab>
+
+        {/* Modals */}
+        <CreateMenuModal 
+          open={showCreateMenu} 
+          onOpenChange={setShowCreateMenu}
+        />
+        
+        <MealSettingsModal 
+          open={showSettings} 
+          onOpenChange={setShowSettings}
+        />
+        
+        <ShareMealPlanModal 
+          open={showSharePlan} 
+          onOpenChange={setShowSharePlan}
+          todaysPlan={selectedDatePlan}
+          todayName={getSelectedDayName()}
+        />
+        
+        <AddFoodItemModal
+          open={showAddFood}
+          onOpenChange={setShowAddFood}
+          mealItems={mealItems}
+          selectedMealType={selectedMealType}
+          onAddMeal={(meal) => onAddMealToDay(getSelectedDayName(), selectedMealType, meal)}
+        />
+      </Box>
   );
 };
 

@@ -52,8 +52,8 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, selectedLanguage, onUpdate, o
 
   return (
     <div className={`flex items-center justify-between p-3 border rounded-lg ${
-      task.favorite ? 'border-yellow-300 bg-yellow-50' : ''
-    } ${task.completed ? 'bg-gray-50 opacity-75' : 'bg-white'} transition-all duration-200`}>
+      task.favorite ? 'border-yellow-300 bg-yellow-50 dark:border-yellow-600 dark:bg-yellow-900/20' : ''
+    } ${task.completed ? 'bg-gray-50 dark:bg-gray-800 opacity-75' : 'bg-white dark:bg-gray-900'} transition-all duration-200`}>
       <div className="flex items-center gap-3 flex-1">
         <Checkbox
           checked={task.completed || false}
@@ -84,19 +84,19 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, selectedLanguage, onUpdate, o
             <div>
               <div className="flex items-center gap-2">
                 <span>{emoji}</span>
-                <span className={`${task.completed ? 'line-through text-gray-500' : task.selected ? 'font-medium text-gray-900' : 'text-gray-600'}`}>
+                <span className={`${task.completed ? 'line-through text-gray-500 dark:text-gray-400' : task.selected ? 'font-medium text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-300'}`}>
                   {task.title}
                 </span>
                 {task.favorite && (
                   <>
                     <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-800">
+                    <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200">
                       fav
                     </Badge>
                   </>
                 )}
                 {task.optional && (
-                  <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-800">
+                  <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
                     op
                   </Badge>
                 )}

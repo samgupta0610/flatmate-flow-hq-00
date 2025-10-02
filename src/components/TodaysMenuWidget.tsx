@@ -1,8 +1,21 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ChefHat, Plus } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Typography,
+  Button,
+  Box,
+  Stack,
+  Chip,
+  IconButton
+} from '@mui/material';
+import {
+  Restaurant as ChefHat,
+  Add as Plus,
+  Edit as EditIcon
+} from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
 import { DailyPlan } from '@/types/meal';
 
@@ -21,62 +34,138 @@ const TodaysMenuWidget: React.FC<TodaysMenuWidgetProps> = ({ todaysPlan, todayNa
   const hasAnyMeals = getMealCount() > 0;
 
   return (
-    <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <ChefHat className="w-5 h-5 text-green-600" />
+    <Card
+      sx={{
+        background: (theme) => theme.palette.mode === 'dark' 
+          ? 'linear-gradient(135deg, #1A1A1A 0%, #0F0F0F 100%)'
+          : 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
+        borderColor: (theme) => theme.palette.mode === 'dark' ? '#374151' : '#86EFAC',
+        boxShadow: (theme) => theme.palette.mode === 'dark' 
+          ? '0 2px 8px rgba(0, 0, 0, 0.3)'
+          : '0 2px 8px rgba(34, 197, 94, 0.1)',
+        borderRadius: 3,
+      }}
+    >
+      <CardHeader
+        avatar={<ChefHat sx={{ color: 'success.main' }} />}
+        title={
+          <Typography variant="h6" fontWeight={600} color="success.dark">
             Today's Menu
-          </CardTitle>
+          </Typography>
+        }
+        action={
           <Button
-            variant="ghost"
-            size="sm"
+            variant="text"
+            size="small"
             onClick={() => navigate("/meal-planner")}
-            className="text-green-600 hover:text-green-700 p-0 h-auto text-sm"
+            sx={{
+              color: 'success.main',
+              fontWeight: 500,
+              '&:hover': {
+                color: 'success.dark',
+                backgroundColor: 'success.light',
+              },
+            }}
+            endIcon={<EditIcon />}
           >
-            {hasAnyMeals ? 'Edit Menu →' : 'Plan Meals →'}
+            {hasAnyMeals ? 'Edit Menu' : 'Plan Meals'}
           </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
+        }
+        sx={{ pb: 1 }}
+      />
+      
+      <CardContent>
         {hasAnyMeals ? (
-          <div className="space-y-2">
+          <Stack spacing={2}>
             {todaysPlan.breakfast.length > 0 && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-orange-700">Breakfast:</span>
-                <span className="text-sm text-gray-600">
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  p: 1.5,
+                  bgcolor: (theme) => theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 193, 7, 0.1)' 
+                    : 'warning.light',
+                  borderRadius: 2,
+                  borderLeft: 4,
+                  borderColor: 'warning.main',
+                }}
+              >
+                <Typography variant="body2" fontWeight="medium" color="warning.dark">
+                  🌅 Breakfast:
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
                   {todaysPlan.breakfast.map(m => m.name).join(', ')}
-                </span>
-              </div>
+                </Typography>
+              </Box>
             )}
             {todaysPlan.lunch.length > 0 && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-green-700">Lunch:</span>
-                <span className="text-sm text-gray-600">
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  p: 1.5,
+                  bgcolor: (theme) => theme.palette.mode === 'dark' 
+                    ? 'rgba(16, 185, 129, 0.1)' 
+                    : 'success.light',
+                  borderRadius: 2,
+                  borderLeft: 4,
+                  borderColor: 'success.main',
+                }}
+              >
+                <Typography variant="body2" fontWeight="medium" color="success.dark">
+                  🌞 Lunch:
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
                   {todaysPlan.lunch.map(m => m.name).join(', ')}
-                </span>
-              </div>
+                </Typography>
+              </Box>
             )}
             {todaysPlan.dinner.length > 0 && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-purple-700">Dinner:</span>
-                <span className="text-sm text-gray-600">
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  p: 1.5,
+                  bgcolor: (theme) => theme.palette.mode === 'dark' 
+                    ? 'rgba(30, 58, 138, 0.1)' 
+                    : 'secondary.light',
+                  borderRadius: 2,
+                  borderLeft: 4,
+                  borderColor: 'secondary.main',
+                }}
+              >
+                <Typography variant="body2" fontWeight="medium" color="secondary.dark">
+                  🌙 Dinner:
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
                   {todaysPlan.dinner.map(m => m.name).join(', ')}
-                </span>
-              </div>
+                </Typography>
+              </Box>
             )}
-            <div className="pt-2 text-center">
-              <span className="text-xs text-green-600 font-medium">
-                {getMealCount()} meal{getMealCount() !== 1 ? 's' : ''} planned for {todayName}
-              </span>
-            </div>
-          </div>
+            <Box textAlign="center" pt={1}>
+              <Chip
+                label={`${getMealCount()} meal${getMealCount() !== 1 ? 's' : ''} planned for ${todayName}`}
+                size="small"
+                color="success"
+                variant="outlined"
+                sx={{ fontWeight: 500 }}
+              />
+            </Box>
+          </Stack>
         ) : (
-          <div className="text-center py-4">
-            <Plus className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-500 mb-2">No meals planned for today</p>
-            <p className="text-xs text-gray-400">Tap "Plan Meals" to get started</p>
-          </div>
+          <Box textAlign="center" py={3}>
+            <Plus sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              No meals planned for today
+            </Typography>
+            <Typography variant="caption" color="text.disabled">
+              Tap "Plan Meals" to get started
+            </Typography>
+          </Box>
         )}
       </CardContent>
     </Card>
