@@ -116,7 +116,7 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box>
               <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
-                Meal Planner
+                Meal Planner - abc
               </Typography>
               <Typography variant="body1" color="text.secondary">
                 {getSelectedDateName()}
