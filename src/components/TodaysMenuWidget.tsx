@@ -36,9 +36,13 @@ const TodaysMenuWidget: React.FC<TodaysMenuWidgetProps> = ({ todaysPlan, todayNa
   return (
     <Card
       sx={{
-        background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
-        borderColor: '#86EFAC',
-        boxShadow: '0 2px 8px rgba(34, 197, 94, 0.1)',
+        background: (theme) => theme.palette.mode === 'dark' 
+          ? 'linear-gradient(135deg, #1A1A1A 0%, #0F0F0F 100%)'
+          : 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
+        borderColor: (theme) => theme.palette.mode === 'dark' ? '#374151' : '#86EFAC',
+        boxShadow: (theme) => theme.palette.mode === 'dark' 
+          ? '0 2px 8px rgba(0, 0, 0, 0.3)'
+          : '0 2px 8px rgba(34, 197, 94, 0.1)',
         borderRadius: 3,
       }}
     >
@@ -80,7 +84,9 @@ const TodaysMenuWidget: React.FC<TodaysMenuWidgetProps> = ({ todaysPlan, todayNa
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   p: 1.5,
-                  bgcolor: 'warning.light',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 193, 7, 0.1)' 
+                    : 'warning.light',
                   borderRadius: 2,
                   borderLeft: 4,
                   borderColor: 'warning.main',
@@ -101,7 +107,9 @@ const TodaysMenuWidget: React.FC<TodaysMenuWidgetProps> = ({ todaysPlan, todayNa
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   p: 1.5,
-                  bgcolor: 'success.light',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' 
+                    ? 'rgba(16, 185, 129, 0.1)' 
+                    : 'success.light',
                   borderRadius: 2,
                   borderLeft: 4,
                   borderColor: 'success.main',
@@ -122,7 +130,9 @@ const TodaysMenuWidget: React.FC<TodaysMenuWidgetProps> = ({ todaysPlan, todayNa
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   p: 1.5,
-                  bgcolor: 'secondary.light',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' 
+                    ? 'rgba(30, 58, 138, 0.1)' 
+                    : 'secondary.light',
                   borderRadius: 2,
                   borderLeft: 4,
                   borderColor: 'secondary.main',

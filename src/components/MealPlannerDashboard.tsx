@@ -229,7 +229,9 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
                     elevation={0} 
                     sx={{ 
                       p: 2, 
-                      bgcolor: 'warning.50', 
+                      bgcolor: (theme) => theme.palette.mode === 'dark' 
+                        ? 'rgba(255, 193, 7, 0.1)' 
+                        : 'warning.50', 
                       borderLeft: 4, 
                       borderColor: 'warning.main',
                       borderRadius: 2
@@ -296,7 +298,9 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
                     elevation={0} 
                     sx={{ 
                       p: 2, 
-                      bgcolor: 'success.50', 
+                      bgcolor: (theme) => theme.palette.mode === 'dark' 
+                        ? 'rgba(16, 185, 129, 0.1)' 
+                        : 'success.50', 
                       borderLeft: 4, 
                       borderColor: 'success.main',
                       borderRadius: 2
@@ -363,7 +367,9 @@ const MealPlannerDashboard: React.FC<MealPlannerDashboardProps> = ({
                     elevation={0} 
                     sx={{ 
                       p: 2, 
-                      bgcolor: 'secondary.50', 
+                      bgcolor: (theme) => theme.palette.mode === 'dark' 
+                        ? 'rgba(30, 58, 138, 0.1)' 
+                        : 'secondary.50', 
                       borderLeft: 4, 
                       borderColor: 'secondary.main',
                       borderRadius: 2

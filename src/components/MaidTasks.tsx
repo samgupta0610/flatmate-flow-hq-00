@@ -217,11 +217,15 @@ const MaidTasks = () => {
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  bgcolor: 'grey.50',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.05)' 
+                    : 'grey.50',
                   borderRadius: 3,
                   fontSize: { xs: '0.938rem', md: '1rem' },
                   '& fieldset': {
-                    borderColor: 'grey.200',
+                    borderColor: (theme) => theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.1)' 
+                      : 'grey.200',
                   },
                 },
               }}
@@ -236,11 +240,15 @@ const MaidTasks = () => {
                 label="Category"
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 sx={{
-                  bgcolor: 'grey.50',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.05)' 
+                    : 'grey.50',
                   borderRadius: 3,
                   fontSize: { xs: '0.938rem', md: '1rem' },
                   '& fieldset': {
-                    borderColor: 'grey.200',
+                    borderColor: (theme) => theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.1)' 
+                      : 'grey.200',
                   },
                 }}
               >
@@ -261,6 +269,7 @@ const MaidTasks = () => {
           flex: 1,
           overflow: 'auto',
           px: { xs: 2, md: 3 },
+          pt: { xs: 2, md: 3 },
           pb: { xs: 2, md: 4 },
         }}
       >

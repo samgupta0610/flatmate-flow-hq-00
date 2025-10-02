@@ -77,7 +77,9 @@ const TodaysTasksWidget: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   p: 1.5,
-                  bgcolor: 'white',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.05)' 
+                    : 'white',
                   borderRadius: 2,
                   border: 1,
                   borderColor: 'divider',

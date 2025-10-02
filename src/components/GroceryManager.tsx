@@ -85,7 +85,9 @@ const GroceryManager = () => {
         sx={{
           p: 3,
           mb: 3,
-          background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
+          background: (theme) => theme.palette.mode === 'dark' 
+            ? 'linear-gradient(135deg, #1A1A1A 0%, #0F0F0F 100%)'
+            : 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
           borderBottom: 1,
           borderColor: 'divider',
         }}

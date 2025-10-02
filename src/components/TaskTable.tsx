@@ -165,7 +165,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
           p: { xs: 6, md: 8 },
           textAlign: 'center',
           borderRadius: 3,
-          background: 'linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%)',
+          background: (theme) => theme.palette.mode === 'dark' 
+            ? 'linear-gradient(135deg, #1A1A1A 0%, #0F0F0F 100%)'
+            : 'linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%)',
         }}
       >
         <Typography 
@@ -211,7 +213,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
         sx={{
           borderRadius: { xs: 2, md: 3 },
           overflow: 'hidden',
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+          background: (theme) => theme.palette.mode === 'dark' 
+            ? 'linear-gradient(135deg, #1A1A1A 0%, #0F0F0F 100%)'
+            : 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
         }}
       >
       {/* Desktop Header */}

@@ -44,7 +44,9 @@ const MobileNav = () => {
         right: 0,
         zIndex: 1000,
         display: { xs: 'block', md: 'none' },
-        background: 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,250,252,0.95) 100%)',
+        background: (theme) => theme.palette.mode === 'dark' 
+          ? 'linear-gradient(180deg, rgba(26,26,26,0.98) 0%, rgba(15,15,15,0.95) 100%)'
+          : 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,250,252,0.95) 100%)',
         backdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(226, 232, 240, 0.8)',
         boxShadow: '0px -8px 32px rgba(0, 0, 0, 0.08), 0px -2px 8px rgba(0, 0, 0, 0.04)',
@@ -60,6 +62,7 @@ const MobileNav = () => {
           py: 1,
           px: 2,
           minHeight: 72,
+          position: 'relative',
         }}
       >
         {navItems.map((item) => {
