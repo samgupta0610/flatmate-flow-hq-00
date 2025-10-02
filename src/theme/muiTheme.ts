@@ -1,13 +1,14 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme, ThemeOptions } from '@mui/material/styles';
 
 /**
  * Material Design 3 Theme Configuration
  * Based on Material You principles: https://m3.material.io/
  */
-export const muiTheme = createTheme({
+
+// Base theme configuration that can be used for both light and dark modes
+const baseThemeOptions: ThemeOptions = {
   // Material Design 3 Color System
   palette: {
-    mode: 'light',
     primary: {
       main: '#34D399',        // Emerald Green (from maideasy theme)
       light: '#6EE7B7',
@@ -44,16 +45,6 @@ export const muiTheme = createTheme({
       dark: '#059669',
       contrastText: '#FFFFFF',
     },
-    background: {
-      default: '#FAFAFA',     // Soft Pearl White
-      paper: '#FFFFFF',
-    },
-    text: {
-      primary: '#111827',     // Near black
-      secondary: '#4B5563',   // Gray
-      disabled: '#9CA3AF',    // Light gray
-    },
-    divider: '#E5E7EB',
     // Material Design 3 State Colors
     action: {
       hover: 'rgba(52, 211, 153, 0.08)',
@@ -494,7 +485,156 @@ export const muiTheme = createTheme({
       sharp: 'cubic-bezier(0.4, 0, 0.6, 1)',
     },
   },
-});
+};
+
+// Light theme configuration
+const lightThemeOptions: ThemeOptions = {
+  ...baseThemeOptions,
+  palette: {
+    ...baseThemeOptions.palette,
+    mode: 'light',
+    background: {
+      default: '#FAFAFA',     // Soft Pearl White
+      paper: '#FFFFFF',
+    },
+    text: {
+      primary: '#111827',     // Near black
+      secondary: '#4B5563',   // Gray
+      disabled: '#9CA3AF',    // Light gray
+    },
+    divider: '#E5E7EB',
+  },
+};
+
+// Dark theme configuration
+const darkThemeOptions: ThemeOptions = {
+  ...baseThemeOptions,
+  palette: {
+    ...baseThemeOptions.palette,
+    mode: 'dark',
+    background: {
+      default: '#0F0F0F',     // Deep black
+      paper: '#1A1A1A',       // Dark gray
+    },
+    text: {
+      primary: '#FFFFFF',     // White
+      secondary: '#B0B0B0',    // Light gray
+      disabled: '#666666',      // Medium gray
+    },
+    divider: '#333333',
+    // Override action colors for dark mode
+    action: {
+      hover: 'rgba(52, 211, 153, 0.12)',
+      selected: 'rgba(52, 211, 153, 0.18)',
+      disabled: 'rgba(255, 255, 255, 0.26)',
+      disabledBackground: 'rgba(255, 255, 255, 0.12)',
+    },
+  },
+  components: {
+    ...baseThemeOptions.components,
+    // Override components for dark mode
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
+          '&:hover': {
+            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.4)',
+          },
+        },
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          borderRadius: 28,
+          boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.4)',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+        },
+        elevation1: {
+          boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)',
+        },
+        elevation2: {
+          boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.25)',
+        },
+        elevation3: {
+          boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.3)',
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.2)',
+        },
+      },
+    },
+    MuiFormControl: {
+      styleOverrides: {
+        root: {
+          '& .MuiInputLabel-root': {
+            color: '#B0B0B0',
+            '&.Mui-focused': {
+              color: '#34D399',
+            },
+          },
+        },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          color: '#B0B0B0',
+          '&.Mui-focused': {
+            color: '#34D399',
+          },
+        },
+      },
+    },
+    MuiSwitch: {
+      styleOverrides: {
+        root: {
+          width: 52,
+          height: 32,
+          padding: 0,
+          '& .MuiSwitch-switchBase': {
+            padding: 0,
+            margin: 4,
+            transitionDuration: '300ms',
+            '&.Mui-checked': {
+              transform: 'translateX(20px)',
+              '& + .MuiSwitch-track': {
+                backgroundColor: '#34D399',
+                opacity: 1,
+                border: 0,
+              },
+            },
+          },
+          '& .MuiSwitch-thumb': {
+            width: 24,
+            height: 24,
+          },
+          '& .MuiSwitch-track': {
+            borderRadius: 16,
+            backgroundColor: '#333333',
+          },
+        },
+      },
+    },
+  },
+};
+
+// Create theme instances
+export const lightTheme = createTheme(lightThemeOptions);
+export const darkTheme = createTheme(darkThemeOptions);
+
+// Default export for backward compatibility (light theme)
+export const muiTheme = lightTheme;
 
 export default muiTheme;
-

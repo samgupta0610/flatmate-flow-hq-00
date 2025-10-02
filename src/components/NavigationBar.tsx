@@ -54,7 +54,9 @@ const NavigationBar = () => {
         '& .MuiDrawer-paper': {
           width: 256,
           boxSizing: 'border-box',
-          background: 'linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)',
+          background: (theme) => theme.palette.mode === 'dark' 
+            ? 'linear-gradient(180deg, #1A1A1A 0%, #0F0F0F 100%)'
+            : 'linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)',
           borderRight: 1,
           borderColor: 'divider',
           backdropFilter: 'blur(8px)',

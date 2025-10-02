@@ -105,7 +105,11 @@ const SortableTaskRow: React.FC<SortableTaskRowProps> = ({
           bgcolor: 'action.hover',
           boxShadow: isDragging ? 'none' : '0 2px 4px rgba(0,0,0,0.1)',
         },
-        bgcolor: task.selected ? 'primary.50' : 'transparent',
+        bgcolor: task.selected 
+          ? (theme) => theme.palette.mode === 'dark' 
+            ? 'rgba(52, 211, 153, 0.1)' 
+            : 'primary.50' 
+          : 'transparent',
         borderLeft: { xs: 0, md: task.selected ? 4 : 0 },
         borderColor: 'primary.main',
         '&:not(:last-child)': {

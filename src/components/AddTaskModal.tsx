@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -38,12 +38,20 @@ interface AddTaskModalProps {
     title: string;
     id: string;
   }>;
+  initialData?: {
+    title: string;
+    daysOfWeek: string[];
+    category: string;
+    remarks: string;
+    priority: string;
+  };
 }
 const AddTaskModal: React.FC<AddTaskModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  existingTasks = []
+  existingTasks = [],
+  initialData
 }) => {
   const [taskName, setTaskName] = useState('');
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
@@ -67,6 +75,19 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
   const priorityMap = ['low', 'medium', 'high', 'urgent'];
   const priorityLabels = ['Low', 'Medium', 'High', 'Urgent'];
   const priorityColors = ['#10B981', '#FBBF24', '#F59E0B', '#EF4444'];
+
+  // Pre-fill form when initialData is provided
+  useEffect(() => {
+    if (initialData && isOpen) {
+      setTaskName(initialData.title || '');
+      setSelectedDays(initialData.daysOfWeek || []);
+      setFrequency(initialData.category as 'daily' | 'weekly' || 'daily');
+      setRemarks(initialData.remarks || '');
+      setArea(initialData.remarks || ''); // Using remarks as area for now
+      const priorityIndex = priorityMap.indexOf(initialData.priority);
+      setPriority(priorityIndex >= 0 ? priorityIndex : 1);
+    }
+  }, [initialData, isOpen]);
   const toggleDay = (dayId: string) => {
     setSelectedDays(prev =>
       prev.includes(dayId)
@@ -76,7 +97,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
   };
 
   const handleSave = async () => {
-    if (!taskName.trim()) return;
+    if (!taskName || !taskName.trim()) return;
     
     setIsSaving(true);
     try {
@@ -301,7 +322,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
         <Button
           onClick={handleSave}
           variant="contained"
-          disabled={!taskName.trim() || isSaving}
+          disabled={!taskName || !taskName.trim() || isSaving}
           sx={{
             flex: 2,
             background: 'linear-gradient(135deg, #34D399 0%, #10B981 100%)',

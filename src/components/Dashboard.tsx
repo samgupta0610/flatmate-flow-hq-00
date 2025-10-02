@@ -120,14 +120,6 @@ const Dashboard = () => {
         </div>
 
 
-        {/* Floating Action Button */}
-        <Button
-          size="icon"
-          className="floating-action text-white"
-          onClick={() => navigate("/maid-tasks")}
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
 
         {/* Onboarding Guide */}
         <OnboardingGuide 

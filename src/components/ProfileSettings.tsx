@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Home, Code, Mail, Globe } from 'lucide-react';
+import { Switch, FormControlLabel } from '@mui/material';
+import { User, Home, Code, Mail, Globe, Palette } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useProfile } from '@/hooks/useProfile';
 import { useHouseGroupInfo } from '@/hooks/useHouseGroupInfo';
 import { useAuth } from '@/lib/auth';
+import { useTheme } from '@/contexts/ThemeContext';
 import HouseholdContactsManager from './HouseholdContactsManager';
 import VendorContactsManager from './VendorContactsManager';
 
@@ -26,6 +28,7 @@ const ProfileSettings: React.FC = () => {
   const { profile, updateProfile } = useProfile();
   const { houseGroup } = useHouseGroupInfo();
   const { user } = useAuth();
+  const { mode, setTheme } = useTheme();
 
   useEffect(() => {
     if (profile) {
@@ -225,6 +228,23 @@ const ProfileSettings: React.FC = () => {
               </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Theme Settings Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palette className="w-5 h-5" />
+            Theme
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Switch
+            checked={mode === 'dark'}
+            onChange={(e) => setTheme(e.target.checked ? 'dark' : 'light')}
+            color="primary"
+          />
         </CardContent>
       </Card>
 

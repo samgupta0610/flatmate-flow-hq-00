@@ -3,9 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import muiTheme from './theme/muiTheme';
+import { Box } from '@mui/material';
+import { ThemeProvider } from './contexts/ThemeContext';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
@@ -20,8 +19,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <ThemeProvider theme={muiTheme}>
-    <CssBaseline />
+  <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
@@ -32,15 +30,15 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route element={
               <ProtectedRoute>
-                <div className="flex h-screen bg-maideasy-background">
+                <Box sx={{ display: 'flex', height: '100vh', bgcolor: 'background.default' }}>
                   <NavigationBar />
-                  <div className="flex-1 md:ml-64">
-                    <div className="h-full overflow-hidden">
+                  <Box sx={{ flex: 1, ml: { md: '256px' } }}>
+                    <Box sx={{ height: '100%', overflow: 'hidden' }}>
                       <Outlet />
-                    </div>
-                  </div>
+                    </Box>
+                  </Box>
                   <MobileNav />
-                </div>
+                </Box>
               </ProtectedRoute>
             }>
               <Route path="/" element={<Index />} />

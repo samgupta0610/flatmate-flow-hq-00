@@ -1,12 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { ThemeProvider } from '@mui/material/styles';
-import { CssBaseline } from '@mui/material';
 import { useToast } from "@/hooks/use-toast";
 import { MealItem, DailyPlan, WeeklyPlan } from '@/types/meal';
 import { initialMealItems, daysOfWeek, sampleWeeklyPlan } from '@/constants/meal';
 import { useMenuManagement } from '@/hooks/useMenuManagement';
-import { muiTheme } from '@/theme/muiTheme';
 import MealPlannerDashboard from './MealPlannerDashboard';
 
 const MealPlanner = () => {
@@ -93,19 +90,16 @@ const MealPlanner = () => {
   };
 
   return (
-    <ThemeProvider theme={muiTheme}>
-      <CssBaseline />
-      <MealPlannerDashboard
-        selectedDate={selectedDate}
-        selectedDatePlan={selectedDatePlan}
-        mealItems={mealItems}
-        activeMenu={activeMenu}
-        onDateSelect={setSelectedDate}
-        onAddMealToDay={addMealToDay}
-        onRemoveMealFromDay={removeMealFromDay}
-        onUpdateMealPeopleCount={updateMealPeopleCount}
-      />
-    </ThemeProvider>
+    <MealPlannerDashboard
+      selectedDate={selectedDate}
+      selectedDatePlan={selectedDatePlan}
+      mealItems={mealItems}
+      activeMenu={activeMenu}
+      onDateSelect={setSelectedDate}
+      onAddMealToDay={addMealToDay}
+      onRemoveMealFromDay={removeMealFromDay}
+      onUpdateMealPeopleCount={updateMealPeopleCount}
+    />
   );
 };
 
