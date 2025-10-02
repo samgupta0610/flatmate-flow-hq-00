@@ -15,6 +15,7 @@ import {
   CircularProgress,
   InputAdornment,
   Fab,
+  IconButton,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -120,130 +121,79 @@ const MaidTasks = () => {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        height: { xs: 'calc(100vh - 80px)', md: '100vh' },
         bgcolor: 'background.default',
-        pb: { xs: 10, md: 4 },
+        display: 'flex',
+        flexDirection: 'column',
+        pt: 0,
+        mt: 0,
       }}
     >
       {/* Header */}
-      <Paper
-        elevation={1}
-        sx={{
-          borderBottom: 1,
-          borderColor: 'divider',
-          p: { xs: 2, md: 3 },
-          mb: 0,
-          borderRadius: 0,
-        }}
-      >
-        <Container maxWidth="lg" sx={{ px: { xs: 2, md: 3 } }}>
-          <Stack spacing={2}>
-            <Box>
-              <Typography 
-                variant="h5" 
-                fontWeight={700} 
-                sx={{ 
-                  fontSize: { xs: '1.5rem', md: '2.125rem' },
-                  mb: 0.5 
-                }}
-              >
-                Task Manager
-              </Typography>
-              <Typography 
-                variant="body2" 
-                color="text.secondary"
-                sx={{ fontSize: { xs: '0.813rem', md: '0.875rem' } }}
-              >
-                Manage your cleaning tasks efficiently
-              </Typography>
-            </Box>
-
-            <Stack direction="row" spacing={1.5} justifyContent="flex-end">
-              <Button
-                variant="outlined"
-                startIcon={<ShareIcon />}
-                onClick={() => setShowShareModal(true)}
-                disabled={selectedTasks.length === 0}
-                size="medium"
-                sx={{
-                  minWidth: { xs: 'auto', sm: 100 },
-                  px: { xs: 2, sm: 3 },
-                  borderRadius: 10,
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  position: 'relative',
-                  '&:hover': { 
-                    transform: 'scale(1.05)',
-                    borderColor: 'primary.main',
-                    bgcolor: 'primary.50',
-                  },
-                  transition: 'all 0.2s',
-                }}
-              >
-                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                  Share
+      <Box sx={{ 
+        bgcolor: 'background.paper', 
+        p: 3, 
+        borderBottom: 1, 
+        borderColor: 'divider',
+        flexShrink: 0
+      }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
+              Task Manager
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Manage your cleaning tasks efficiently
+            </Typography>
+          </Box>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <IconButton
+              onClick={() => setShowShareModal(true)}
+              disabled={selectedTasks.length === 0}
+              sx={{ 
+                border: 1, 
+                borderColor: 'divider',
+                borderRadius: 2,
+                width: 40,
+                height: 40,
+                position: 'relative'
+              }}
+            >
+              <ShareIcon />
+              {selectedTasks.length > 0 && (
+                <Box
+                  component="span"
+                  sx={{
+                    position: 'absolute',
+                    top: -6,
+                    right: -6,
+                    bgcolor: 'primary.main',
+                    color: 'white',
+                    borderRadius: '50%',
+                    width: 20,
+                    height: 20,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    border: '2px solid white',
+                  }}
+                >
+                  {selectedTasks.length}
                 </Box>
-                {selectedTasks.length > 0 && (
-                  <Box
-                    component="span"
-                    sx={{
-                      position: 'absolute',
-                      top: -6,
-                      right: -6,
-                      bgcolor: 'primary.main',
-                      color: 'white',
-                      borderRadius: '50%',
-                      width: 20,
-                      height: 20,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      border: '2px solid white',
-                    }}
-                  >
-                    {selectedTasks.length}
-                  </Box>
-                )}
-              </Button>
-
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => setShowAddModal(true)}
-                size="medium"
-                sx={{
-                  background: 'linear-gradient(135deg, #34D399 0%, #10B981 100%)',
-                  fontWeight: 600,
-                  px: { xs: 2.5, sm: 3 },
-                  borderRadius: 10,
-                  textTransform: 'none',
-                  boxShadow: '0 4px 12px rgba(52, 211, 153, 0.3)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                    boxShadow: '0 6px 16px rgba(52, 211, 153, 0.4)',
-                    transform: 'scale(1.05)',
-                  },
-                  transition: 'all 0.2s',
-                }}
-              >
-                New
-              </Button>
-            </Stack>
+              )}
+            </IconButton>
           </Stack>
-        </Container>
-      </Paper>
+        </Box>
+      </Box>
 
       {/* Search and Filter Bar */}
       <Paper
         elevation={0}
         sx={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 40,
+          flexShrink: 0,
           bgcolor: 'background.paper',
-          backdropFilter: 'blur(8px)',
           borderBottom: 1,
           borderColor: 'divider',
           py: { xs: 1.5, md: 2 },
@@ -306,21 +256,23 @@ const MaidTasks = () => {
       </Paper>
 
       {/* Task List */}
-      <Container 
-        maxWidth="lg" 
-        sx={{ 
-          mt: { xs: 2, md: 3 },
+      <Box
+        sx={{
+          flex: 1,
+          overflow: 'auto',
           px: { xs: 2, md: 3 },
           pb: { xs: 2, md: 4 },
         }}
       >
-        <TaskTable
-          tasks={filteredTasks}
-          onUpdate={handleUpdateTask}
-          onDelete={deleteTask}
-          onEdit={setEditingTask}
-        />
-      </Container>
+        <Container maxWidth="lg" sx={{ px: { xs: 0, md: 0 } }}>
+          <TaskTable
+            tasks={filteredTasks}
+            onUpdate={handleUpdateTask}
+            onDelete={deleteTask}
+            onEdit={setEditingTask}
+          />
+        </Container>
+      </Box>
 
       {/* Floating Action Button (Mobile) */}
       <Fab
@@ -330,8 +282,8 @@ const MaidTasks = () => {
         size="large"
         sx={{
           position: 'fixed',
-          bottom: { xs: 90, md: 24 },
-          right: { xs: 20, md: 24 },
+          bottom: { xs: 100, md: 32 },
+          right: { xs: 24, md: 32 },
           display: { xs: 'flex', sm: 'none' },
           background: 'linear-gradient(135deg, #34D399 0%, #10B981 100%)',
           boxShadow: '0 6px 20px rgba(52, 211, 153, 0.4)',

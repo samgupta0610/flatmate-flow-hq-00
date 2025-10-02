@@ -54,6 +54,13 @@ export const muiTheme = createTheme({
       disabled: '#9CA3AF',    // Light gray
     },
     divider: '#E5E7EB',
+    // Material Design 3 State Colors
+    action: {
+      hover: 'rgba(52, 211, 153, 0.08)',
+      selected: 'rgba(52, 211, 153, 0.12)',
+      disabled: 'rgba(0, 0, 0, 0.26)',
+      disabledBackground: 'rgba(0, 0, 0, 0.12)',
+    },
   },
 
   // Material Design 3 Typography System
@@ -368,6 +375,98 @@ export const muiTheme = createTheme({
           },
           '&.Mui-expanded': {
             margin: '16px 0',
+          },
+        },
+      },
+    },
+    
+    // Material Design 3 List Components
+    MuiList: {
+      styleOverrides: {
+        root: {
+          padding: 0,
+        },
+      },
+    },
+    
+    MuiListItem: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          margin: '4px 0',
+          '&:hover': {
+            backgroundColor: 'rgba(52, 211, 153, 0.08)',
+          },
+        },
+      },
+    },
+    
+    MuiListItemButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          '&:hover': {
+            backgroundColor: 'rgba(52, 211, 153, 0.08)',
+          },
+          '&.Mui-selected': {
+            backgroundColor: 'rgba(52, 211, 153, 0.12)',
+            '&:hover': {
+              backgroundColor: 'rgba(52, 211, 153, 0.16)',
+            },
+          },
+        },
+      },
+    },
+    
+    // Material Design 3 Form Components
+    MuiFormControl: {
+      styleOverrides: {
+        root: {
+          '& .MuiInputLabel-root': {
+            color: '#4B5563',
+            '&.Mui-focused': {
+              color: '#34D399',
+            },
+          },
+        },
+      },
+    },
+    
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          color: '#4B5563',
+          '&.Mui-focused': {
+            color: '#34D399',
+          },
+        },
+      },
+    },
+    
+    MuiSelect: {
+      styleOverrides: {
+        root: {
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#34D399',
+            borderWidth: 2,
+          },
+        },
+      },
+    },
+    
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          margin: '2px 4px',
+          '&:hover': {
+            backgroundColor: 'rgba(52, 211, 153, 0.08)',
+          },
+          '&.Mui-selected': {
+            backgroundColor: 'rgba(52, 211, 153, 0.12)',
+            '&:hover': {
+              backgroundColor: 'rgba(52, 211, 153, 0.16)',
+            },
           },
         },
       },

@@ -1,12 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageCircle, Clock, User, Globe, Loader2, Edit2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Box,
+  Typography,
+  Paper,
+  Stack,
+  IconButton,
+  Switch,
+  FormControlLabel,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Chip,
+  CircularProgress,
+  Divider
+} from '@mui/material';
+import {
+  Message as MessageCircleIcon,
+  AccessTime as ClockIcon,
+  Person as UserIcon,
+  Language as GlobeIcon,
+  Edit as Edit2Icon,
+  Close as CloseIcon
+} from '@mui/icons-material';
 import { getTranslatedTask, getTaskEmoji } from '@/utils/enhancedTranslations';
 import { useMaidContact } from '@/hooks/useMaidContact';
 import { useUltramsgSender } from '@/hooks/useUltramsgSender';
@@ -297,57 +319,104 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-green-600" />
-            Share Tasks
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-6">
+    <Dialog 
+      open={isOpen} 
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: { borderRadius: 2 }
+      }}
+    >
+      <DialogTitle>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <MessageCircleIcon color="success" />
+            <Typography variant="h6" fontWeight="bold">
+              Share Tasks
+            </Typography>
+          </Stack>
+          <IconButton onClick={onClose} size="small">
+            <CloseIcon />
+          </IconButton>
+        </Stack>
+      </DialogTitle>
+      
+      <DialogContent sx={{ maxHeight: '85vh', overflow: 'auto', px: 3 }}>
+        <Stack spacing={4} sx={{ pt: 2 }}>
           {/* Language Selection */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Globe className="w-4 h-4 text-green-600" />
-              <Label className="text-sm font-medium">Message Language</Label>
-            </div>
-            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
+          <Box>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+              <GlobeIcon color="success" />
+              <Typography variant="subtitle1" fontWeight="bold">
+                Message Language
+              </Typography>
+            </Stack>
+            <FormControl fullWidth>
+              <InputLabel>Language</InputLabel>
+              <Select 
+                value={selectedLanguage} 
+                onChange={(e) => setSelectedLanguage(e.target.value)}
+                label="Language"
+              >
                 {languages.map(lang => (
-                  <SelectItem key={lang.value} value={lang.value}>
+                  <MenuItem key={lang.value} value={lang.value}>
                     {lang.label}
-                  </SelectItem>
+                  </MenuItem>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
+              </Select>
+            </FormControl>
+          </Box>
 
           {/* Message Preview */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Message Preview</Label>
-            <div className="bg-gray-50 rounded-lg p-4 max-h-48 overflow-y-auto">
+          <Box>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+              Message Preview
+            </Typography>
+            <Paper 
+              variant="outlined" 
+              sx={{ 
+                p: 3, 
+                bgcolor: 'grey.50', 
+                maxHeight: 250, 
+                overflow: 'auto',
+                borderRadius: 2
+              }}
+            >
               {isEditingMessage ? (
-                <Textarea
+                <TextField
                   value={customMessage}
                   onChange={(e) => setCustomMessage(e.target.value)}
                   placeholder="Edit your message..."
-                  className="min-h-[120px] bg-white"
+                  multiline
+                  rows={8}
+                  fullWidth
+                  variant="outlined"
+                  sx={{ 
+                    bgcolor: 'background.paper',
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2
+                    }
+                  }}
                 />
               ) : (
-                <pre className="text-sm whitespace-pre-wrap text-gray-700">
+                <Typography 
+                  component="pre" 
+                  variant="body2" 
+                  sx={{ 
+                    whiteSpace: 'pre-wrap', 
+                    fontFamily: 'monospace',
+                    m: 0
+                  }}
+                >
                   {generateTranslatedMessage()}
-                </pre>
+                </Typography>
               )}
-            </div>
-            <div className="flex gap-2">
+            </Paper>
+            <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
               <Button
-                variant="outline"
-                size="sm"
+                variant="outlined"
+                size="small"
                 onClick={() => {
                   if (!isEditingMessage) {
                     setCustomMessage(generateTranslatedMessage());
@@ -359,8 +428,8 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
               </Button>
               {isEditingMessage && (
                 <Button
-                  variant="ghost"
-                  size="sm"
+                  variant="text"
+                  size="small"
                   onClick={() => {
                     setCustomMessage('');
                     setIsEditingMessage(false);
@@ -369,73 +438,76 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
                   Reset
                 </Button>
               )}
-            </div>
-          </div>
+            </Stack>
+          </Box>
 
           {/* Contact Details */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-purple-600" />
-                <Label className="text-sm font-medium">Contact Details</Label>
-              </div>
+          <Box>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <UserIcon color="primary" />
+                <Typography variant="subtitle1" fontWeight="bold">
+                  Contact Details
+                </Typography>
+              </Stack>
               {maidContact && !isEditingContact && (
                 <Button
-                  variant="ghost"
-                  size="sm"
+                  variant="text"
+                  size="small"
+                  startIcon={<Edit2Icon />}
                   onClick={() => setIsEditingContact(true)}
-                  className="h-6 px-2 text-xs"
                 >
-                  <Edit2 className="w-3 h-3 mr-1" />
                   Edit
                 </Button>
               )}
-            </div>
+            </Stack>
             
             {maidContact && !isEditingContact ? (
-              <div className="bg-gray-50 rounded-lg p-3 space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Name:</span>
-                  <span className="text-sm font-medium">{maidContact.name}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Phone:</span>
-                  <span className="text-sm font-medium">{maidContact.phone}</span>
-                </div>
-                {maidContact.last_sent_at && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Last sent:</span>
-                    <span className="text-xs text-gray-500">
-                      {new Date(maidContact.last_sent_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                )}
-              </div>
+              <Paper variant="outlined" sx={{ p: 2, bgcolor: 'grey.50' }}>
+                <Stack spacing={1}>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="body2" color="text.secondary">Name:</Typography>
+                    <Typography variant="body2" fontWeight="medium">{maidContact.name}</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="body2" color="text.secondary">Phone:</Typography>
+                    <Typography variant="body2" fontWeight="medium">{maidContact.phone}</Typography>
+                  </Stack>
+                  {maidContact.last_sent_at && (
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="body2" color="text.secondary">Last sent:</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {new Date(maidContact.last_sent_at).toLocaleDateString()}
+                      </Typography>
+                    </Stack>
+                  )}
+                </Stack>
+              </Paper>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs text-gray-600">Name</Label>
-                  <Input
+              <Stack spacing={3}>
+                <Stack direction="row" spacing={2}>
+                  <TextField
+                    label="Name"
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
                     placeholder="Contact name"
-                    className="mt-1"
+                    fullWidth
+                    variant="outlined"
                   />
-                </div>
-                <div>
-                  <Label className="text-xs text-gray-600">Phone</Label>
-                  <Input
+                  <TextField
+                    label="Phone"
                     value={contactPhone}
                     onChange={(e) => setContactPhone(e.target.value)}
                     placeholder="+1234567890"
-                    className="mt-1"
+                    fullWidth
+                    variant="outlined"
                   />
-                </div>
+                </Stack>
                 {isEditingContact && (
-                  <div className="col-span-2 flex gap-2 mt-2">
+                  <Stack direction="row" spacing={1}>
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant="outlined"
+                      size="small"
                       onClick={async () => {
                         try {
                           await saveMaidContact(contactPhone, contactName, selectedLanguage);
@@ -444,139 +516,120 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
                           console.error('Error saving contact:', error);
                         }
                       }}
-                      className="flex-1"
+                      fullWidth
                     >
                       Save
                     </Button>
                     <Button
-                      variant="ghost"
-                      size="sm"
+                      variant="text"
+                      size="small"
                       onClick={() => {
                         setContactName(maidContact?.name || '');
                         setContactPhone(maidContact?.phone || '');
                         setIsEditingContact(false);
                       }}
-                      className="flex-1"
+                      fullWidth
                     >
                       Cancel
                     </Button>
-                  </div>
+                  </Stack>
                 )}
-              </div>
+              </Stack>
             )}
-          </div>
+          </Box>
 
           {/* Auto Send Toggle */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-blue-600" />
-                <Label className="text-sm font-medium">Auto Send</Label>
-              </div>
-              <Switch
-                checked={autoSend}
-                onCheckedChange={setAutoSend}
+          <Box>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <ClockIcon color="primary" />
+                <Typography variant="subtitle1" fontWeight="bold">
+                  Auto Send
+                </Typography>
+              </Stack>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={autoSend}
+                    onChange={(e) => setAutoSend(e.target.checked)}
+                    color="primary"
+                  />
+                }
+                label=""
               />
-            </div>
+            </Stack>
             
             {autoSend && (
-              <div className="pl-6 space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-xs text-gray-600">Time</Label>
-                    <Input
-                      type="time"
-                      value={scheduledTime}
-                      onChange={(e) => setScheduledTime(e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs text-gray-600">Frequency</Label>
-                    <Select value={frequency} onValueChange={setFrequency}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="daily">Daily</SelectItem>
-                        <SelectItem value="weekly">Weekly</SelectItem>
-                      </SelectContent>
+              <Stack spacing={3} sx={{ pl: 4 }}>
+                <Stack direction="row" spacing={2}>
+                  <TextField
+                    label="Time"
+                    type="time"
+                    value={scheduledTime}
+                    onChange={(e) => setScheduledTime(e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                  />
+                  <FormControl fullWidth>
+                    <InputLabel>Frequency</InputLabel>
+                    <Select 
+                      value={frequency} 
+                      onChange={(e) => setFrequency(e.target.value)}
+                    >
+                      <MenuItem value="daily">Daily</MenuItem>
+                      <MenuItem value="weekly">Weekly</MenuItem>
                     </Select>
-                  </div>
-                </div>
-
+                  </FormControl>
+                </Stack>
+                
                 {frequency === 'weekly' && (
-                  <div>
-                    <Label className="text-xs text-gray-600 mb-2 block">Select Days</Label>
-                    <div className="flex flex-wrap gap-1">
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      Days of Week
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap">
                       {weekDays.map(day => (
-                        <Button
+                        <Chip
                           key={day.value}
-                          variant={selectedDays.includes(day.value) ? "default" : "outline"}
-                          size="sm"
+                          label={day.label}
                           onClick={() => toggleDay(day.value)}
-                          className="text-xs px-2 py-1"
-                        >
-                          {day.label}
-                        </Button>
+                          color={selectedDays.includes(day.value) ? "primary" : "default"}
+                          variant={selectedDays.includes(day.value) ? "filled" : "outlined"}
+                          size="small"
+                        />
                       ))}
-                    </div>
-                  </div>
+                    </Stack>
+                  </Box>
                 )}
-              </div>
+              </Stack>
             )}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="space-y-3 pt-4">
-            {/* Send Now Button */}
-            <Button
-              onClick={handleSendNow}
-              className="w-full bg-green-600 hover:bg-green-700"
-              disabled={tasks.length === 0 || isSending || !contactPhone.trim()}
-            >
-              {isSending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Send Now
-                </>
-              )}
-            </Button>
-
-            {/* Enable Auto-Send Button */}
-            {autoSend && (
-              <Button
-                onClick={handleEnableAutoSend}
-                variant="outline"
-                className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
-                disabled={isSending || !contactPhone.trim() || !contactName.trim()}
-              >
-                {isSending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Setting up...
-                  </>
-                ) : (
-                  <>
-                    <Clock className="w-4 h-4 mr-2" />
-                    Enable Auto-Send
-                  </>
-                )}
-              </Button>
-            )}
-
-            {/* Cancel Button */}
-            <Button variant="ghost" onClick={onClose} className="w-full">
-              Cancel
-            </Button>
-          </div>
-        </div>
+          </Box>
+        </Stack>
       </DialogContent>
+
+      <DialogActions sx={{ p: 3, pt: 1 }}>
+        <Button
+          onClick={handleSendNow}
+          disabled={isSending || !contactPhone.trim()}
+          variant="contained"
+          fullWidth
+          startIcon={isSending ? <CircularProgress size={16} /> : <MessageCircleIcon />}
+        >
+          {isSending ? 'Sending...' : 'Send Now'}
+        </Button>
+        
+        {autoSend && (
+          <Button
+            onClick={handleEnableAutoSend}
+            disabled={isSending || !contactPhone.trim() || !contactName.trim()}
+            variant="outlined"
+            fullWidth
+            startIcon={isSending ? <CircularProgress size={16} /> : <ClockIcon />}
+          >
+            {isSending ? 'Setting up...' : 'Enable Auto-Send'}
+          </Button>
+        )}
+      </DialogActions>
     </Dialog>
   );
 };

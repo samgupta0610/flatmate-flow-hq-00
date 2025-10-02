@@ -1,11 +1,25 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Upload, Download, Plus } from 'lucide-react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+  Box,
+  Typography,
+  Paper,
+  Stack,
+  IconButton,
+  LinearProgress
+} from '@mui/material';
+import {
+  CloudUpload,
+  Download,
+  Add,
+  Close
+} from '@mui/icons-material';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -106,89 +120,123 @@ const CreateMenuModal: React.FC<CreateMenuModalProps> = ({ open, onOpenChange })
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] mx-4">
-        <DialogHeader>
-          <DialogTitle className="text-lg">Create New Menu</DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4 py-4">
-          <div>
-            <Label htmlFor="menu-name" className="text-sm font-medium">
-              Menu Name *
-            </Label>
-            <Input
-              id="menu-name"
-              value={menuName}
-              onChange={(e) => setMenuName(e.target.value)}
-              placeholder="Enter menu name"
-              className="mt-1"
-            />
-          </div>
+    <Dialog 
+      open={open} 
+      onClose={() => onOpenChange(false)}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: { borderRadius: 2 }
+      }}
+    >
+      <DialogTitle>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6" fontWeight="bold">
+            Create New Menu
+          </Typography>
+          <IconButton onClick={() => onOpenChange(false)} size="small">
+            <Close />
+          </IconButton>
+        </Stack>
+      </DialogTitle>
+      
+      <DialogContent>
+        <Stack spacing={3} sx={{ pt: 1 }}>
+          <TextField
+            label="Menu Name"
+            value={menuName}
+            onChange={(e) => setMenuName(e.target.value)}
+            placeholder="Enter menu name"
+            fullWidth
+            required
+            variant="outlined"
+          />
 
-          <div>
-            <Label htmlFor="description" className="text-sm font-medium">
-              Description
-            </Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe your menu..."
-              rows={3}
-              className="mt-1"
-            />
-          </div>
+          <TextField
+            label="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Describe your menu..."
+            multiline
+            rows={3}
+            fullWidth
+            variant="outlined"
+          />
 
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-            <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-600 mb-2">Upload Excel File</p>
+          <Paper 
+            variant="outlined" 
+            sx={{ 
+              p: 3, 
+              border: 2, 
+              borderStyle: 'dashed',
+              borderColor: 'divider',
+              textAlign: 'center',
+              bgcolor: 'action.hover'
+            }}
+          >
+            <CloudUpload sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Upload Excel File
+            </Typography>
+            
             <input
               type="file"
               accept=".xlsx,.xls,.csv"
               onChange={handleExcelUpload}
-              className="hidden"
+              style={{ display: 'none' }}
               id="excel-upload"
               disabled={isUploading}
             />
-            <label
+            
+            <Button
+              component="label"
               htmlFor="excel-upload"
-              className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 rounded cursor-pointer hover:bg-blue-100 disabled:opacity-50"
+              variant="outlined"
+              size="small"
+              startIcon={<CloudUpload />}
+              disabled={isUploading}
+              sx={{ mb: 2 }}
             >
               {isUploading ? 'Uploading...' : 'Choose File'}
-            </label>
-            <div className="mt-2">
+            </Button>
+            
+            {isUploading && (
+              <LinearProgress sx={{ mt: 1 }} />
+            )}
+            
+            <Box>
               <Button
-                variant="ghost"
-                size="sm"
+                variant="text"
+                size="small"
+                startIcon={<Download />}
                 onClick={downloadTemplate}
-                className="text-xs text-gray-500"
+                sx={{ color: 'text.secondary' }}
               >
-                <Download className="w-3 h-3 mr-1" />
                 Download Template
               </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          <Button 
-            onClick={() => onOpenChange(false)} 
-            variant="outline" 
-            className="flex-1"
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleCreateMenu} 
-            className="flex-1"
-            disabled={!menuName.trim() || !user}
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            Create Menu
-          </Button>
-        </div>
+            </Box>
+          </Paper>
+        </Stack>
       </DialogContent>
+
+      <DialogActions sx={{ p: 3, pt: 1 }}>
+        <Button 
+          onClick={() => onOpenChange(false)} 
+          variant="outlined"
+          fullWidth
+        >
+          Cancel
+        </Button>
+        <Button 
+          onClick={handleCreateMenu} 
+          variant="contained"
+          fullWidth
+          disabled={!menuName.trim() || !user}
+          startIcon={<Add />}
+        >
+          Create Menu
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 };
