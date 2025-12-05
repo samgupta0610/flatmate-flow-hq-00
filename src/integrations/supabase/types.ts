@@ -534,10 +534,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_join_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_join_code: { Args: never; Returns: string }
       should_send_auto_reminder: {
         Args: {
           contact_auto_send: boolean
