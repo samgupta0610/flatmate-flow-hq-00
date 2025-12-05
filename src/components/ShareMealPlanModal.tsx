@@ -10,7 +10,7 @@ import { MessageCircle, Clock, User, Globe, Loader2, Edit2 } from 'lucide-react'
 import { getTranslatedMeal, getMealEmoji } from '@/utils/mealTranslations';
 import { useMealContact } from '@/hooks/useMealContact';
 import { useUltramsgSender } from '@/hooks/useUltramsgSender';
-import { DailyPlan } from '@/types/meal';
+import { DailyPlan, MealItem } from '@/types/meal';
 
 interface ShareMealPlanModalProps {
   open: boolean;
@@ -40,7 +40,6 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
     mealContact?.days_of_week || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
   );
   const [isEditingContact, setIsEditingContact] = useState(false);
-  const [servings, setServings] = useState(4);
 
   // Update state when mealContact changes
   useEffect(() => {
@@ -72,6 +71,21 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
     { value: 'sunday', label: 'Sun' }
   ];
 
+  const getPeopleText = (count: number) => {
+    if (selectedLanguage === 'hindi') return `${count} लोग`;
+    if (selectedLanguage === 'tamil') return `${count} பேர்`;
+    if (selectedLanguage === 'telugu') return `${count} మంది`;
+    if (selectedLanguage === 'kannada') return `${count} ಜನ`;
+    return `${count} people`;
+  };
+
+  const formatMealItem = (item: MealItem, index: number) => {
+    const translatedItem = getTranslatedMeal(item.name, selectedLanguage);
+    const emoji = getMealEmoji(item.name);
+    const peopleCount = item.peopleCount || item.servings || 2;
+    return `${index + 1}. ${emoji} ${translatedItem} - ${getPeopleText(peopleCount)}`;
+  };
+
   const generateTranslatedMessage = () => {
     const greeting = selectedLanguage === 'hindi' 
       ? 'नमस्ते!' 
@@ -93,16 +107,6 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
       ? `ಇಂದಿನ ಊಟ (${todayName}):`
       : `Today's meal plan (${todayName}):`;
     
-    const servingsText = selectedLanguage === 'hindi' 
-      ? `${servings} लोगों के लिए` 
-      : selectedLanguage === 'tamil' 
-      ? `${servings} பேருக்கு` 
-      : selectedLanguage === 'telugu'
-      ? `${servings} మందికి`
-      : selectedLanguage === 'kannada'
-      ? `${servings} ಜನರಿಗೆ`
-      : `For ${servings} people`;
-    
     const thankYou = selectedLanguage === 'hindi' 
       ? 'कृपया इन्हें तैयार करें। धन्यवाद!' 
       : selectedLanguage === 'tamil' 
@@ -113,10 +117,10 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
       ? 'ದಯವಿಟ್ಟು ಇವುಗಳನ್ನು ತಯಾರಿಸಿ. ಧನ್ಯವಾದಗಳು!'
       : 'Please prepare these items. Thank you!';
 
-    let message = `${greeting}\n\n${mealPlanHeader}\n${servingsText}\n\n`;
+    let message = `${greeting}\n\n${mealPlanHeader}\n\n`;
     
     // Breakfast
-    if (todaysPlan.breakfast.length > 0) {
+    if (todaysPlan?.breakfast?.length > 0) {
       const breakfastHeader = selectedLanguage === 'hindi' ? '🌅 नाश्ता:' 
         : selectedLanguage === 'tamil' ? '🌅 காலை உணவு:' 
         : selectedLanguage === 'telugu' ? '🌅 అల్పాహారం:'
@@ -124,15 +128,13 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
         : '🌅 Breakfast:';
       message += `${breakfastHeader}\n`;
       todaysPlan.breakfast.forEach((item, index) => {
-        const translatedItem = getTranslatedMeal(item.name, selectedLanguage);
-        const emoji = getMealEmoji(item.name);
-        message += `${index + 1}. ${emoji} ${translatedItem}\n`;
+        message += `${formatMealItem(item, index)}\n`;
       });
       message += '\n';
     }
 
     // Lunch
-    if (todaysPlan.lunch.length > 0) {
+    if (todaysPlan?.lunch?.length > 0) {
       const lunchHeader = selectedLanguage === 'hindi' ? '🌞 दोपहर का खाना:' 
         : selectedLanguage === 'tamil' ? '🌞 மதிய உணவு:' 
         : selectedLanguage === 'telugu' ? '🌞 మధ్యాహ్న భోజనం:'
@@ -140,15 +142,13 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
         : '🌞 Lunch:';
       message += `${lunchHeader}\n`;
       todaysPlan.lunch.forEach((item, index) => {
-        const translatedItem = getTranslatedMeal(item.name, selectedLanguage);
-        const emoji = getMealEmoji(item.name);
-        message += `${index + 1}. ${emoji} ${translatedItem}\n`;
+        message += `${formatMealItem(item, index)}\n`;
       });
       message += '\n';
     }
 
     // Dinner
-    if (todaysPlan.dinner.length > 0) {
+    if (todaysPlan?.dinner?.length > 0) {
       const dinnerHeader = selectedLanguage === 'hindi' ? '🌙 रात का खाना:' 
         : selectedLanguage === 'tamil' ? '🌙 இரவு உணவு:' 
         : selectedLanguage === 'telugu' ? '🌙 రాత్రి భోజనం:'
@@ -156,15 +156,13 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
         : '🌙 Dinner:';
       message += `${dinnerHeader}\n`;
       todaysPlan.dinner.forEach((item, index) => {
-        const translatedItem = getTranslatedMeal(item.name, selectedLanguage);
-        const emoji = getMealEmoji(item.name);
-        message += `${index + 1}. ${emoji} ${translatedItem}\n`;
+        message += `${formatMealItem(item, index)}\n`;
       });
       message += '\n';
     }
 
     // Snacks
-    if (todaysPlan.snack && todaysPlan.snack.length > 0) {
+    if (todaysPlan?.snack && todaysPlan.snack.length > 0) {
       const snackHeader = selectedLanguage === 'hindi' ? '🍪 नाश्ता:' 
         : selectedLanguage === 'tamil' ? '🍪 சிற்றுண்டி:' 
         : selectedLanguage === 'telugu' ? '🍪 చిరుతిండి:'
@@ -172,9 +170,7 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
         : '🍪 Snacks:';
       message += `${snackHeader}\n`;
       todaysPlan.snack.forEach((item, index) => {
-        const translatedItem = getTranslatedMeal(item.name, selectedLanguage);
-        const emoji = getMealEmoji(item.name);
-        message += `${index + 1}. ${emoji} ${translatedItem}\n`;
+        message += `${formatMealItem(item, index)}\n`;
       });
       message += '\n';
     }
@@ -323,19 +319,6 @@ const ShareMealPlanModal: React.FC<ShareMealPlanModalProps> = ({
         </DialogHeader>
         
         <div className="space-y-6">
-          {/* Servings */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Number of Servings</Label>
-            <Input
-              type="number"
-              value={servings}
-              onChange={(e) => setServings(parseInt(e.target.value) || 1)}
-              min="1"
-              max="20"
-              className="w-full"
-            />
-          </div>
-
           {/* Language Selection */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
