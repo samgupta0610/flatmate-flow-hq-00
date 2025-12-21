@@ -6,10 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageCircle, Clock, User, Globe, Loader2, Edit2 } from 'lucide-react';
+import { MessageCircle, Clock, User, Globe, Loader2, Edit2, CalendarDays } from 'lucide-react';
 import { getTranslatedTask, getTaskEmoji } from '@/utils/enhancedTranslations';
 import { useMaidContact } from '@/hooks/useMaidContact';
 import { useUltramsgSender } from '@/hooks/useUltramsgSender';
+import { format, addDays } from 'date-fns';
 
 interface ShareTaskModalProps {
   isOpen: boolean;
@@ -20,6 +21,8 @@ interface ShareTaskModalProps {
     task_category?: string;
     remarks?: string;
     priority?: string;
+    category?: string;
+    days_of_week?: string[];
   }>;
   onSend: () => void;
 }
@@ -45,6 +48,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
     maidContact?.days_of_week || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
   );
   const [isEditingContact, setIsEditingContact] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   // Update state when maidContact changes
   useEffect(() => {
@@ -97,11 +101,53 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
     }
   };
 
+  // Filter tasks based on selected date
+  const selectedWeekday = format(selectedDate, 'EEEE').toLowerCase();
+  const filteredTasksForDay = tasks.filter(task => {
+    // Daily tasks are always included
+    if (task.category === 'daily') return true;
+    // Weekly tasks are included if the selected day matches
+    if (task.category === 'weekly' && task.days_of_week?.includes(selectedWeekday)) return true;
+    // If no category, include by default
+    if (!task.category) return true;
+    return false;
+  });
+
+  const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+  const isTomorrow = format(selectedDate, 'yyyy-MM-dd') === format(addDays(new Date(), 1), 'yyyy-MM-dd');
+
+  const getDateHeaderTranslation = (date: Date, language: string) => {
+    const dayNames: Record<string, Record<string, string>> = {
+      english: { monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday' },
+      hindi: { monday: 'सोमवार', tuesday: 'मंगलवार', wednesday: 'बुधवार', thursday: 'गुरुवार', friday: 'शुक्रवार', saturday: 'शनिवार', sunday: 'रविवार' },
+      tamil: { monday: 'திங்கள்', tuesday: 'செவ்வாய்', wednesday: 'புதன்', thursday: 'வியாழன்', friday: 'வெள்ளி', saturday: 'சனி', sunday: 'ஞாயிறு' },
+      telugu: { monday: 'సోమవారం', tuesday: 'మంగళవారం', wednesday: 'బుధవారం', thursday: 'గురువారం', friday: 'శుక్రవారం', saturday: 'శనివారం', sunday: 'ఆదివారం' },
+      kannada: { monday: 'ಸೋಮವಾರ', tuesday: 'ಮಂಗಳವಾರ', wednesday: 'ಬುಧವಾರ', thursday: 'ಗುರುವಾರ', friday: 'ಶುಕ್ರವಾರ', saturday: 'ಶನಿವಾರ', sunday: 'ಭಾನುವಾರ' }
+    };
+    
+    const weekday = format(date, 'EEEE').toLowerCase();
+    const dayName = dayNames[language]?.[weekday] || format(date, 'EEEE');
+    const dateStr = format(date, 'd MMM yyyy');
+    
+    const taskForText: Record<string, string> = {
+      english: 'Tasks for',
+      hindi: 'के लिए काम:',
+      tamil: 'பணிகள்:',
+      telugu: 'పనులు:',
+      kannada: 'ಕೆಲಸಗಳು:'
+    };
+
+    if (language === 'hindi') {
+      return `${dayName}, ${dateStr} ${taskForText[language]}`;
+    }
+    return `${taskForText[language]} ${dayName}, ${dateStr}:`;
+  };
+
   const generateTranslatedMessage = () => {
-    if (tasks.length === 0) return 'No tasks selected';
+    if (filteredTasksForDay.length === 0) return 'No tasks for this day';
 
     // Sort tasks by priority (urgent → high → medium → low)
-    const sortedTasks = [...tasks].sort((a, b) => 
+    const sortedTasks = [...filteredTasksForDay].sort((a, b) => 
       getPriorityOrder(b.priority) - getPriorityOrder(a.priority)
     );
 
@@ -115,15 +161,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
       ? 'ನಮಸ್ಕಾರ!'
       : 'Hello!';
     
-    const taskListHeader = selectedLanguage === 'hindi' 
-      ? 'आज के काम:' 
-      : selectedLanguage === 'tamil' 
-      ? 'இன்றைய பணிகள்:' 
-      : selectedLanguage === 'telugu'
-      ? 'నేటి పనులు:'
-      : selectedLanguage === 'kannada'
-      ? 'ಇಂದಿನ ಕೆಲಸಗಳು:'
-      : "Today's cleaning tasks:";
+    const taskListHeader = getDateHeaderTranslation(selectedDate, selectedLanguage);
     
     const thankYou = selectedLanguage === 'hindi' 
       ? 'कृपया ये काम पूरे करें। धन्यवाद!' 
@@ -135,7 +173,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
       ? 'ದಯವಿಟ್ಟು ಈ ಕೆಲಸಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ. ಧನ್ಯವಾದಗಳು!'
       : 'Please complete these tasks. Thank you!';
 
-    let message = `${greeting}\n\n${taskListHeader}\n`;
+    let message = `${greeting}\n\n${taskListHeader}\n\n`;
     
     sortedTasks.forEach((task, index) => {
       const translatedTask = getTranslatedTask(task.title, selectedLanguage);
@@ -223,12 +261,12 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
     return `${confirmationText} ${scheduleDetails}`;
   };
 
-  // Reset custom message when language changes to ensure preview updates
+  // Reset custom message when language or date changes to ensure preview updates
   useEffect(() => {
     if (!isEditingMessage && customMessage) {
       setCustomMessage(''); // Clear cached message to force regeneration
     }
-  }, [selectedLanguage]);
+  }, [selectedLanguage, selectedDate]);
 
   const handleSendNow = async () => {
     const messageToSend = isEditingMessage ? customMessage : generateTranslatedMessage();
@@ -307,6 +345,46 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
         </DialogHeader>
         
         <div className="space-y-6">
+          {/* Day Selection */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="w-4 h-4 text-blue-600" />
+              <Label className="text-sm font-medium">Select Day for Tasks</Label>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={isToday ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedDate(new Date())}
+                className="text-sm"
+              >
+                Today
+              </Button>
+              <Button
+                variant={isTomorrow ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedDate(addDays(new Date(), 1))}
+                className="text-sm"
+              >
+                Tomorrow
+              </Button>
+              <Input
+                type="date"
+                value={format(selectedDate, 'yyyy-MM-dd')}
+                onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                className="w-auto h-9 text-sm"
+              />
+            </div>
+            <div className="bg-muted/50 rounded-lg px-3 py-2 flex items-center justify-between">
+              <span className="text-sm font-medium">
+                {format(selectedDate, 'EEEE, d MMM yyyy')}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                {filteredTasksForDay.length} task{filteredTasksForDay.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+          </div>
+
           {/* Language Selection */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -533,7 +611,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
             <Button
               onClick={handleSendNow}
               className="w-full bg-green-600 hover:bg-green-700"
-              disabled={tasks.length === 0 || isSending || !contactPhone.trim()}
+              disabled={filteredTasksForDay.length === 0 || isSending || !contactPhone.trim()}
             >
               {isSending ? (
                 <>
