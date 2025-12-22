@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,9 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MessageCircle, Clock, User, Globe, Loader2, Edit2, CalendarDays } from 'lucide-react';
-import { getTranslatedTask, getTaskEmoji } from '@/utils/enhancedTranslations';
+import { getTaskEmoji } from '@/utils/enhancedTranslations';
 import { useMaidContact } from '@/hooks/useMaidContact';
 import { useUltramsgSender } from '@/hooks/useUltramsgSender';
+import { useTranslation } from '@/hooks/useTranslation';
 import { format, addDays } from 'date-fns';
 
 interface ShareTaskModalProps {
@@ -35,6 +36,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
 }) => {
   const { maidContact, saveMaidContact, updateAutoSendSettings } = useMaidContact();
   const { sendMessage, isSending } = useUltramsgSender();
+  const { translateTexts, isTranslating } = useTranslation();
   
   const [selectedLanguage, setSelectedLanguage] = useState('english');
   const [autoSend, setAutoSend] = useState(maidContact?.auto_send || false);
@@ -49,6 +51,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
   );
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [translatedMessage, setTranslatedMessage] = useState<string>('');
 
   // Update state when maidContact changes
   useEffect(() => {
@@ -143,7 +146,8 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
     return `${taskForText[language]} ${dayName}, ${dateStr}:`;
   };
 
-  const generateTranslatedMessage = () => {
+  // Generate translated message using AI
+  const generateTranslatedMessage = useCallback(async () => {
     if (filteredTasksForDay.length === 0) return 'No tasks for this day';
 
     // Sort tasks by priority (urgent → high → medium → low)
@@ -173,10 +177,16 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
       ? 'ದಯವಿಟ್ಟು ಈ ಕೆಲಸಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ. ಧನ್ಯವಾದಗಳು!'
       : 'Please complete these tasks. Thank you!';
 
+    // Get all task titles for translation
+    const taskTitles = sortedTasks.map(t => t.title);
+    
+    // Translate all tasks in one batch call
+    const translatedTitles = await translateTexts(taskTitles, selectedLanguage, 'task');
+
     let message = `${greeting}\n\n${taskListHeader}\n\n`;
     
     sortedTasks.forEach((task, index) => {
-      const translatedTask = getTranslatedTask(task.title, selectedLanguage);
+      const translatedTask = translatedTitles[index] || task.title;
       const emoji = getTaskEmoji(task.title);
       const priorityEmoji = getPriorityEmoji(task.priority);
       const priorityText = task.priority ? ` ${task.priority}`.toUpperCase() : '';
@@ -201,7 +211,14 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
     message += `\n${totalTasksText} ${sortedTasks.length}\n\n${thankYou}`;
     
     return message;
-  };
+  }, [filteredTasksForDay, selectedLanguage, selectedDate, translateTexts]);
+
+  // Update translated message when dependencies change
+  useEffect(() => {
+    if (!isEditingMessage) {
+      generateTranslatedMessage().then(setTranslatedMessage);
+    }
+  }, [generateTranslatedMessage, isEditingMessage]);
 
   const toggleDay = (day: string) => {
     setSelectedDays(prev => 
@@ -269,7 +286,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
   }, [selectedLanguage, selectedDate]);
 
   const handleSendNow = async () => {
-    const messageToSend = isEditingMessage ? customMessage : generateTranslatedMessage();
+    const messageToSend = isEditingMessage ? customMessage : translatedMessage;
     
     if (!contactPhone.trim()) {
       return;
@@ -418,7 +435,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
                 />
               ) : (
                 <pre className="text-sm whitespace-pre-wrap text-gray-700">
-                  {generateTranslatedMessage()}
+                  {isTranslating ? 'Translating...' : translatedMessage}
                 </pre>
               )}
             </div>
@@ -428,7 +445,7 @@ const ShareTaskModal: React.FC<ShareTaskModalProps> = ({
                 size="sm"
                 onClick={() => {
                   if (!isEditingMessage) {
-                    setCustomMessage(generateTranslatedMessage());
+                    setCustomMessage(translatedMessage);
                   }
                   setIsEditingMessage(!isEditingMessage);
                 }}

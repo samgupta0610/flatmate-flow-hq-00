@@ -67,3 +67,6 @@ verify_jwt = false
 
 [functions.meal-response]
 verify_jwt = false
+
+[functions.translate-text]
+verify_jwt = false
